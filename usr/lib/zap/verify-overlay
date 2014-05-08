@@ -1,0 +1,81 @@
+#!/bin/sh
+
+ONAME=""
+ODIR="/var/sadm/overlays"
+PKGARGS=""
+DESTROOT=""
+
+case $1 in
+-R)
+	DESTROOT="$2"
+	PKGARGS="-R ${DESTROOT}"
+	ODIR="${DESTROOT}/${ODIR}"
+	shift
+	shift
+	if [ ! -d "$DESTROOT" ]; then
+	    echo "ERROR: alternate root $DESTROOT doesn't exist"
+	    exit 1
+	fi
+	;;
+esac
+
+case $# in
+1)
+	ONAME="$1"
+	;;
+*)
+	echo "Usage: $0 [-R alt-root] overlay"
+	exit 1
+	;;
+esac
+
+#
+# An overlay must contain a .ovl file and a .pkgs file
+#
+OVL="${ODIR}/${ONAME}.ovl"
+if [ ! -f "${OVL}" ]; then
+    echo "ERROR: overlay does not exist"
+    exit 1
+fi
+PLIST="${ODIR}/${ONAME}.pkgs"
+if [ ! -f "${PLIST}" ]; then
+    echo "ERROR: package list missing"
+    exit 1
+fi
+
+#
+# if we're not installed then nothing else to verify
+#
+if [ ! -f ${ODIR}/installed/${ONAME} ]; then
+    echo "Overlay ${ONAME} is not installed"
+    exit 0
+fi
+
+STATUS=0
+
+#
+# first check dependencies on other overlays
+#
+for novl in `/usr/bin/grep '^REQUIRES=' ${OVL} | /usr/bin/sed s:REQUIRES=::`
+do
+    if [ ! -f ${ODIR}/installed/${novl} ]; then
+    echo "ERROR: prerequisite overlay ${novl} is not installed"
+    STATUS=1
+fi
+
+done
+
+#
+# then check packages
+#
+for pkg in `cat ${PLIST}`
+do
+  /usr/bin/pkginfo ${PKGARGS} -q ${pkg}
+  FOUNDPKG=$?
+  if [ $FOUNDPKG -ne 0 ]; then
+      echo "ERROR: member package ${pkg} is not installed"
+      STATUS=1
+  fi
+done
+
+exit $STATUS

@@ -1,0 +1,50 @@
+#!/bin/sh
+#
+# update a package (if necessary)
+#
+# note that the check isn't that the available version is newer than the
+# installed verson, merely that it's different
+#
+# note also that if called with multiple packages, they are handled
+# sequentially and in isolation
+#
+# note also that until openindiana packages are reversioned for zap, they will
+# always show as needing update, so updates are explicitly disabled for oi
+#
+ZAPLIBDIR="/usr/lib/zap"
+CACHE_DIR=`${ZAPLIBDIR}/zap-cfg cache-dir`
+
+case $1 in
+-R)
+    BFLAGS="-R $2"
+    shift
+    shift
+    ;;
+esac
+
+for pkg in $*
+do
+    IVERSION=`${ZAPLIBDIR}/pkgversion ${BFLAGS} $pkg`
+    AFVERSION=`${ZAPLIBDIR}/get-version $pkg`
+    AVERSION=${AFVERSION% *}
+    AREPO=${AFVERSION#* }
+    RVERSION=${AVERSION#*.}
+    if [ "$AREPO" != "oi" ]; then
+	if [ "X${pkg}.${IVERSION}" = "X${AVERSION}" ]; then
+	    echo "Package $pkg is already at version $IVERSION"
+	else
+	    echo "Package $pkg is at version $IVERSION and needs updating to $AVERSION"
+	    if [ ! -f ${CACHE_DIR}/${AVERSION}.zap ]; then
+		${ZAPLIBDIR}/retrieve-pkg ${pkg}
+	    fi
+	    if [ -f ${CACHE_DIR}/${AVERSION}.zap ]; then
+		${ZAPLIBDIR}/delpkg ${BFLAGS} $pkg
+		${ZAPLIBDIR}/install-pkg ${BFLAGS} $pkg
+	    fi
+	    NVERSION=`${ZAPLIBDIR}/pkgversion ${BFLAGS} $pkg`
+	    if [ "X${NVERSION}" = "X${RVERSION}" ]; then
+		echo "Update successful."
+	    fi
+	fi
+    fi
+done

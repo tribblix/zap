@@ -1,0 +1,33 @@
+#!/bin/sh
+#
+# generate a version 5 UUID
+#
+# xxxxxxxx-xxxx-5xxx-Yxxx-xxxxxxxxxxxx
+# and Y is one of 8,9,A,B
+#
+HEAD=/usr/gnu/bin/head
+RAND=/dev/random
+SSL=/usr/bin/openssl 
+
+if [ ! -x $HEAD ]; then
+   HEAD=/opt/sfw/bin/ghead
+fi
+if [ ! -x $SSL ]; then
+   SSL=/usr/sfw/bin/openssl
+fi
+#
+# first generate a random hash
+#
+HASH=`$HEAD -c 32 $RAND | $SSL dgst -sha1`
+#
+# cut it into pieces
+#
+H1=`echo $HASH|cut -c1-8`
+H2=`echo $HASH|cut -c9-12`
+H3=`echo $HASH|cut -c14-16`
+H4=`echo $HASH|cut -c18-20`
+H5=`echo $HASH|cut -c21-32`
+#
+# emit in the correct format
+#
+echo ${H1}-${H2}-5${H3}-9${H4}-${H5}

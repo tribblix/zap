@@ -1,0 +1,123 @@
+#!/bin/ksh
+
+ZAPLIBDIR="/usr/lib/zap"
+PKGARGS=""
+DESTROOT=""
+NINSTALLED=0
+NFAILED=0
+
+case $1 in
+-R)
+	DESTROOT="$2"
+	PKGARGS="-R ${DESTROOT}"
+	shift
+	shift
+	if [ ! -d "$DESTROOT" ]; then
+	    echo "ERROR: alternate root $DESTROOT doesn't exist"
+	    exit 1
+	fi
+	;;
+esac
+
+SRCLIST=`${ZAPLIBDIR}/zap-cfg list-sources`
+
+#
+# prepend the given source to the list, so it gets searched first
+#
+case $1 in
+-s)
+	SRCEXTRA="$2"
+	shift
+	shift
+	if [ ! -d "$SRCEXTRA" ]; then
+	    echo "ERROR: package source $SRCEXTRA doesn't exist"
+	    exit 1
+	fi
+	SRCLIST="$SRCEXTRA $SRCLIST"
+	;;
+esac
+
+case $# in
+0)
+	echo "Usage: $0 [-R alt-root] [ -s source] package [package...]"
+	exit 1
+	;;
+esac
+
+#
+# FIXME:
+#  dependency resolution
+#  install in dependency order
+#  map aliases to packages
+#  map packages to package instances (which have the version number)
+#  use repo catalog instead of blind retrieve
+#  add proxy server config to zap-cfg
+#  add (optional) deletion of downloaded files
+#  fail if there are missing packages after first pass
+#  is using /tmp as the fallback cache dir safe?
+#  separate the download dir from the source list
+#
+
+#
+# two passes; first looks for and downloads any packages we need
+#
+for pkg in $*
+do
+  /usr/bin/pkginfo ${PKGARGS} -q ${pkg}
+  FOUNDPKG=$?
+  if [ $FOUNDPKG -ne 0 ]; then
+    ISINST="false"
+    fpkg=`${ZAPLIBDIR}/get-version $pkg | /usr/bin/awk '{print $1}'`
+    for SRCDIR in $SRCLIST
+    do
+	if [ -f ${SRCDIR}/${fpkg}.zap ]; then
+	    ISINST="true"
+	    break
+	elif [ -f ${SRCDIR}/${fpkg}.pkg ]; then
+	    ISINST="true"
+	    break
+	fi
+    done
+    # download if we don't have it yet
+    if [ "$ISINST" = "false" ]; then
+	${ZAPLIBDIR}/retrieve-pkg ${pkg}
+    fi
+  fi
+done
+
+#
+# OK, now we're in the installer
+#
+for pkg in $*
+do
+  /usr/bin/pkginfo ${PKGARGS} -q ${pkg}
+  FOUNDPKG=$?
+  if [ $FOUNDPKG -eq 0 ]; then
+    echo "Package $pkg already installed"
+  else
+    ISINST="false"
+    fpkg=`${ZAPLIBDIR}/get-version $pkg | /usr/bin/awk '{print $1}'`
+    for SRCDIR in $SRCLIST
+    do
+	if [ -f ${SRCDIR}/${fpkg}.zap ]; then
+            ${ZAPLIBDIR}/instzap ${PKGARGS} ${SRCDIR}/${fpkg}.zap ${pkg}
+	    ISINST="true"
+	    break
+	elif [ -f ${SRCDIR}/${fpkg}.pkg ]; then
+	    ${ZAPLIBDIR}/instpkg ${PKGARGS} ${SRCDIR}/${fpkg}.pkg ${pkg}
+	    ISINST="true"
+	    break
+	fi
+    done
+    if [ "$ISINST" = "false" ]; then
+        echo "No source for package ${pkg}"
+	NFAILED=$(($NFAILED+1))
+    else
+	NINSTALLED=$(($NINSTALLED+1))
+    fi
+  fi
+done
+
+echo Installed $NINSTALLED packages, $NFAILED failed
+
+exit $NFAILED

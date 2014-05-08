@@ -1,0 +1,15 @@
+#!/bin/ksh
+
+ZAPLIBDIR="/usr/lib/zap"
+
+CACHE_DIR=`${ZAPLIBDIR}/zap-cfg cache-dir`
+
+for pkg in $*
+do
+    ${ZAPLIBDIR}/get-version $pkg | read fpkg frepo
+    if [ -n "$frepo" ]; then
+	REPO=`${ZAPLIBDIR}/zap-cfg repo-url $frepo`
+	echo "Trying to fetch ${REPO}/${fpkg}.zap"
+	/usr/bin/curl -f -s -o ${CACHE_DIR}/${fpkg}.zap ${REPO}/${fpkg}.zap
+    fi
+done

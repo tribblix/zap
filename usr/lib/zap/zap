@@ -1,0 +1,83 @@
+#!/bin/ksh
+#
+# driver for zap
+#
+ZAPLIBDIR="/usr/lib/zap"
+
+case $# in
+0)
+	echo "Usage: $0 subcommand [arguments]"
+	exit 2
+	;;
+esac
+
+case $1 in
+retrieve)
+	shift
+	exec ${ZAPLIBDIR}/retrieve-pkg $*
+	;;
+install)
+	shift
+	exec ${ZAPLIBDIR}/install-pkg $*
+	;;
+update)
+	shift
+	exec ${ZAPLIBDIR}/update-package $*
+	;;
+uninstall)
+	shift
+	exec ${ZAPLIBDIR}/delpkg $*
+	;;
+install-overlay)
+	shift
+	exec ${ZAPLIBDIR}/install-overlay $*
+	;;
+update-overlay)
+	shift
+	exec ${ZAPLIBDIR}/update-overlay $*
+	;;
+uninstall-overlay)
+	shift
+	exec ${ZAPLIBDIR}/uninstall-overlay $*
+	;;
+verify-overlay)
+	shift
+	exec ${ZAPLIBDIR}/verify-overlay $*
+	;;
+list-packages)
+	shift
+	exec /usr/bin/pkginfo $*
+	;;
+list-overlays)
+	shift
+	exec ${ZAPLIBDIR}/list-overlays $*
+	;;
+refresh-overlays)
+	shift
+	exec ${ZAPLIBDIR}/refresh-overlays $*
+	;;
+describe-package)
+	shift
+	exec /usr/bin/pkginfo -l $*
+	;;
+describe-overlay)
+	shift
+	exec ${ZAPLIBDIR}/describe-overlay $*
+	;;
+refresh-catalog)
+	shift
+	exec ${ZAPLIBDIR}/refresh-catalog $*
+	;;
+create-zone)
+	shift
+	exec ${ZAPLIBDIR}/create-zone $*
+	;;
+destroy-zone)
+	shift
+	exec ${ZAPLIBDIR}/destroy-zone $*
+	;;
+*)
+	echo "Unrecognized subcommand"
+	exit 2
+	;;
+esac

@@ -1,0 +1,40 @@
+#!/bin/ksh
+
+ODIR="/var/sadm/overlays"
+DESTROOT=""
+
+case $1 in
+-R)
+	DESTROOT="$2"
+	PKGARGS="-R ${DESTROOT}"
+	shift
+	shift
+	if [ ! -d "$DESTROOT" ]; then
+	    echo "ERROR: alternate root $DESTROOT doesn't exist"
+	    exit 1
+	fi
+	;;
+esac
+
+#
+if [ ! -d ${DESTROOT}/${ODIR} ]; then
+    exit 0
+fi
+cd ${DESTROOT}/${ODIR}
+for OVL in $*
+do
+    FOVL=${OVL}.ovl
+    if [ -f ${DESTROOT}/${ODIR}/${FOVL} ]; then
+	echo "OVERLAY: $OVL"
+	cat ${DESTROOT}/${ODIR}/${FOVL}
+	if [ -f ${DESTROOT}/${ODIR}/installed/$OVL ]; then
+	    STATUS="Installed"
+	else
+	    STATUS="Not installed"
+	fi
+	echo "STATUS=$STATUS"
+    else
+	echo "ERROR: no such overlay $OVL"
+    fi
+    echo ""
+done

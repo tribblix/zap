@@ -1,0 +1,50 @@
+#!/bin/sh
+#
+# install multiple packages from a lis in a file
+# the packages are assumed to be in pkg format in one directory
+#
+
+case $1 in
+-R)
+    BFLAGS="-R $2"
+    shift
+    shift
+    ;;
+esac
+
+case $# in
+2)
+    DIR=$1
+    LIS=$2
+    ;;
+*)
+    echo "Usage: finstpkg [-R alt-root] package-directory package-list"
+    exit 1
+    ;;
+esac
+
+if [ ! -d ${DIR} ]; then
+    echo "Package directory ${DIR} doesn't exist"
+    exit 1
+fi
+
+if [ ! -f ${LIS} ]; then
+    echo "Package list ${LIS} not found"
+    exit 1
+fi
+
+#
+# install packages one at a time
+# FIXME handle compressed pkgs
+# FIXME d/l from a repo
+#
+for pkg in `cat ${LIS}`
+do
+    if [ -f ${DIR}/${pkg}.pkg ]; then
+	/var/sadm/overlays/instpkg ${BFLAGS} ${DIR}/${pkg}.pkg ${pkg}
+    elif [ -f ${DIR}/${pkg}.zap ]; then
+	/var/sadm/overlays/instzap ${BFLAGS} ${DIR}/${pkg}.zap ${pkg}
+    else
+	echo "No source for package ${pkg}"
+    fi
+done

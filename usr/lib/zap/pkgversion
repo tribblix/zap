@@ -1,0 +1,55 @@
+#!/bin/ksh
+#
+# given a package, returns the version of it
+# expects either a pkg or zap file, or an installed package name
+#
+
+ALTROOT=""
+case $1 in
+-R)
+    ALTROOT="$2"
+    shift
+    shift
+    ;;
+esac
+
+case $# in
+1)
+	pkgname="$1"
+	;;
+*)
+	echo "Usage: $0 pkg"
+	exit 1
+	;;
+esac
+
+case $pkgname in
+*.zap)
+	if [ -f ${pkgname} ]; then
+	   thispkg=${pkgname##*/}
+	   zipgrep VERSION= ${pkgname} ${thispkg%%.*}/pkginfo | awk -F= '{print $2}' | sed 's="==g'
+	   exit 0
+	else
+	   echo "Error: unable to find package file $pkgname"
+	   exit 1
+	fi
+	;;
+*.pkg)
+	if [ -f ${pkgname} ]; then
+	   pkginfo -l -d ${pkgname} | grep VERSION: | awk '{print $NF}' | sed 's="==g'
+	   exit 0
+	else
+	   echo "Error: unable to find package file $pkgname"
+	   exit 1
+	fi
+	;;
+*)
+	if [ -f ${ALTROOT}/var/sadm/pkg/${pkgname}/pkginfo ]; then
+	   grep '^VERSION=' ${ALTROOT}/var/sadm/pkg/${pkgname}/pkginfo | sed 's:VERSION=::'
+	   exit 0
+	else
+	   echo "Error: unable to find package $pkgname"
+	   exit 1
+	fi
+	;;
+esac

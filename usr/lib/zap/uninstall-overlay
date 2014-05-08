@@ -1,0 +1,116 @@
+#!/bin/ksh
+
+ONAME=""
+ZAPLIBDIR="/usr/lib/zap"
+ODIR="/var/sadm/overlays"
+PKGARGS=""
+DESTROOT=""
+
+case $1 in
+-R)
+	DESTROOT="$2"
+	PKGARGS="-R ${DESTROOT}"
+	shift
+	shift
+	if [ ! -d "$DESTROOT" ]; then
+	    echo "ERROR: alternate root $DESTROOT doesn't exist"
+	    exit 1
+	fi
+	;;
+esac
+
+case $# in
+1)
+	ONAME="$1"
+	;;
+*)
+	echo "Usage: $0 [-R alt-root] overlay"
+	exit 1
+	;;
+esac
+
+#
+# OK, we're in the installer
+#
+
+#
+# if not installed, just exit
+#
+if [ ! -f ${DESTROOT}/${ODIR}/installed/${ONAME} ]; then
+    echo "DEBUG: overlay $ONAME not installed, exiting"
+    exit 0
+fi
+
+#
+# if no package list, we wouldn't know what to do, so exit
+#
+PLIST="${DESTROOT}/${ODIR}/${ONAME}.pkgs"
+if [ ! -f "${PLIST}" ]; then
+    echo "ERROR: package list missing"
+    exit 1
+fi
+
+#
+# check for overlays that depend on the one we would uninstall
+#
+DEPCLEAN=0
+DEPLIST=""
+for OVLFILES in ${DESTROOT}/${ODIR}/installed/*
+do
+    INSTOVLNAME=${OVLFILES##*/}
+    if [ "X${INSTOVLNAME}" != "X${ONAME}" ]; then
+	INSTOVL=${DESTROOT}/${ODIR}/${INSTOVLNAME}.ovl
+	for novl in `/usr/bin/grep '^REQUIRES=' ${INSTOVL} | /usr/bin/sed s:REQUIRES=::`
+	do
+	    if [ "X${novl}" = "X${ONAME}" ]; then
+		DEPCLEAN=1
+		DEPLIST="${DEPLIST} ${INSTOVLNAME}"
+	    fi
+	done
+    fi
+done
+if [ $DEPCLEAN -eq 1 ]; then
+    echo "ERROR: installed overlays${DEPLIST} depend on ${ONAME}"
+    echo "uninstall of overlay ${ONAME} cancelled"
+    exit 1
+fi
+
+#
+# don't uninstall packages that are in other installed overlays
+#
+# we want to know all the installed overlays
+#
+cd ${DESTROOT}/${ODIR}/installed
+NPKGLIST=`ls -1| awk '{print $1".pkgs"}'`
+cd ${DESTROOT}/${ODIR}
+for pkg in `rev -l ${PLIST}`
+do
+NFOUND=`grep "^${pkg}\$" $NPKGLIST|wc -l|awk '{print $1}'`
+# if we find it once then it's only in the overlay we're removing
+# else it's also in other overlays and we must retain it
+case $NFOUND in
+1)
+	${ZAPLIBDIR}/delpkg ${PKGARGS} $pkg
+	;;
+*)
+	echo "Retaining package $pkg"
+	;;
+esac
+done
+
+#
+# FIXME: check package dependencies
+#
+#
+# - this generates a lists of dependencies where the package is either
+#   a dependent or a dependency
+#/usr/bin/grep '^P' /var/sadm/pkg/*/install/depend | awk -F/ '{print $5,$NF}' | awk '{print $1,$3}' | /usr/bin/gfgrep -w -f ${DESTROOT}/${ODIR}/${ONAME}.pkgs
+# - we would remove all our packages from the first column
+# - whatever is left in the 2nd column can't be removed
+#
+
+#
+# book keeping
+#
+echo "Overlay ${ONAME} uninstalled"
+rm ${DESTROOT}/${ODIR}/installed/${ONAME}

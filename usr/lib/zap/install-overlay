@@ -1,0 +1,86 @@
+#!/bin/sh
+
+ONAME=""
+ZAPLIBDIR="/usr/lib/zap"
+ODIR="/var/sadm/overlays"
+PKGARGS=""
+DESTROOT=""
+SRCARGS=""
+
+case $1 in
+-R)
+	DESTROOT="$2"
+	PKGARGS="-R ${DESTROOT}"
+	shift
+	shift
+	if [ ! -d "$DESTROOT" ]; then
+	    echo "ERROR: alternate root $DESTROOT doesn't exist"
+	    exit 1
+	fi
+	;;
+esac
+
+case $1 in
+-s)
+	SRCDIR="$2"
+	SRCARGS="-s ${SRCDIR}"
+	shift
+	shift
+	# FIXME should this be fatal or a warning?
+	if [ ! -d "$SRCDIR" ]; then
+	    echo "ERROR: package source $SRCDIR doesn't exist"
+	    exit 1
+	fi
+	;;
+esac
+
+case $# in
+1)
+	ONAME="$1"
+	;;
+*)
+	echo "Usage: $0 [-R alt-root] [-s pkg_source] overlay"
+	exit 1
+	;;
+esac
+
+#
+# OK, we're in the installer
+#
+
+#
+# if installed, just exit
+# if someone has messed with packages behind our back, they suffer
+#
+if [ -f ${DESTROOT}/${ODIR}/installed/${ONAME} ]; then
+    exit 0
+fi
+
+PLIST="${ODIR}/${ONAME}.pkgs"
+if [ ! -f "${PLIST}" ]; then
+    echo "ERROR: package list missing"
+    exit 1
+fi
+
+#
+# install dependent overlays, if any
+#
+OVL="${ODIR}/${ONAME}.ovl"
+for novl in `/usr/bin/grep '^REQUIRES=' ${OVL} | /usr/bin/sed s:REQUIRES=::`
+do
+    ${ZAPLIBDIR}/install-overlay ${PKGARGS} ${SRCARGS} ${novl}
+done
+
+${ZAPLIBDIR}/install-pkg ${PKGARGS} ${SRCARGS} `cat ${PLIST}`
+OVSUCCESS=$?
+
+#
+# book keeping
+#
+if [ $OVSUCCESS -eq 0 ]; then
+    echo "Overlay ${ONAME} installation succeeded"
+    mkdir -p ${DESTROOT}/${ODIR}/installed
+    touch ${DESTROOT}/${ODIR}/installed/${ONAME}
+else
+    echo "Errors in installation of overlay ${ONAME}"
+fi

@@ -1,0 +1,33 @@
+#!/bin/ksh
+#
+# given a package, return its dependencies
+# expects either a zap file, or an installed package name
+#
+
+case $# in
+1)
+	pkgname="$1"
+	;;
+*)
+	echo "Usage: $0 pkg"
+	exit 1
+	;;
+esac
+
+case $pkgname in
+*.zap)
+	if [ -f ${pkgname} ]; then
+	   thispkg=${pkgname##*/}
+	   zipgrep '^P' ${pkgname} ${thispkg%%.*}/install/depend 2>/dev/null | awk '{print $2}'
+	   exit 0
+	else
+	   exit 1
+	fi
+	;;
+*)
+	if [ -f /var/sadm/pkg/${pkgname}/install/depend ]; then
+	   grep '^P' /var/sadm/pkg/${pkgname}/install/depend | awk '{print $2}'
+	   exit 0
+	fi
+	;;
+esac

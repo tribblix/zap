@@ -1,0 +1,56 @@
+#!/bin/ksh
+#
+# refreshes the specified overlay repo(s), and their overlays, or all
+#
+
+ZAPLIBDIR="/usr/lib/zap"
+CFGDIR="/etc/zap"
+ODIR="/var/sadm/overlays"
+UPDATED="no"
+
+refresh_repo() {
+    frepo="$1"
+    REPO=`${ZAPLIBDIR}/zap-cfg overlay-url $frepo`
+    /usr/bin/curl -f -s -o ${CFGDIR}/repositories/${frepo}.overlays.tmp ${REPO}/catalog
+    if [ -s ${CFGDIR}/repositories/${frepo}.overlays.tmp ]; then
+	mv ${CFGDIR}/repositories/${frepo}.overlays ${CFGDIR}/repositories/${frepo}.overlays.bak
+	mv ${CFGDIR}/repositories/${frepo}.overlays.tmp ${CFGDIR}/repositories/${frepo}.overlays
+	awk -F'|' '{print $1,$2}' ${CFGDIR}/repositories/${frepo}.overlays | while read novl nver
+	do
+	    iver=`${ZAPLIBDIR}/overlay-version $novl`
+	    if [ "X${nver}" != "X${iver}" ]; then
+		/usr/bin/curl -f -s -o ${ODIR}/${novl}.ovl.tmp ${REPO}/${novl}.ovl
+		/usr/bin/curl -f -s -o ${ODIR}/${novl}.pkgs.tmp ${REPO}/${novl}.pkgs
+		if [ -s ${ODIR}/${novl}.ovl.tmp -a -s ${ODIR}/${novl}.pkgs.tmp ]; then
+		    UPDATED="yes"
+		    mv ${ODIR}/${novl}.ovl ${ODIR}/${novl}.ovl.bak
+		    mv ${ODIR}/${novl}.ovl.tmp ${ODIR}/${novl}.ovl
+		    mv ${ODIR}/${novl}.pkgs ${ODIR}/${novl}.pkgs.bak
+		    mv ${ODIR}/${novl}.pkgs.tmp ${ODIR}/${novl}.pkgs
+		fi
+	    fi
+	done
+    fi
+}
+
+case $# in
+0)
+	for repo in `${ZAPLIBDIR}/zap-cfg list-overlay-repos`
+	do
+	    refresh_repo $repo
+	done
+	;;
+*)
+	for repo in $*
+	do
+	    refresh_repo $repo
+	done
+	;;
+esac
+
+#
+# if anything changed, refresh the catalog as well
+#
+if [ "X${UPDATED}" != "Xno" ]; then
+    ${ZAPLIBDIR}/refresh-catalog
+fi

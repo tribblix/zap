@@ -1,0 +1,25 @@
+#!/bin/ksh
+#
+# stop, delete, and unconfigure a zone
+#
+ZNAME=""
+
+while getopts "z:" opt; do
+case $opt in
+z)
+	ZNAME="$OPTARG"
+	;;
+esac
+done
+
+if [[ -z $ZNAME ]]; then
+   echo "ERROR: zone name must be specified"
+   exit 1
+fi
+
+/usr/sbin/zoneadm -z $ZNAME halt
+echo "Halted zone $ZNAME"
+/usr/sbin/zoneadm -z $ZNAME uninstall -F
+echo "Uninstalled zone $ZNAME"
+/usr/sbin/zonecfg -z $ZNAME delete -F
+echo "Deleted zone $ZNAME"

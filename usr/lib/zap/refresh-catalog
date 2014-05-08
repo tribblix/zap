@@ -1,0 +1,32 @@
+#!/bin/ksh
+#
+# refreshes the specified repo(s), or all
+#
+
+ZAPLIBDIR="/usr/lib/zap"
+CFGDIR="/etc/zap"
+
+refresh_repo() {
+    frepo="$1"
+    REPO=`${ZAPLIBDIR}/zap-cfg repo-url $frepo`
+    /usr/bin/curl -f -s -o ${CFGDIR}/repositories/${frepo}.catalog.tmp ${REPO}/catalog
+    if [ -s ${CFGDIR}/repositories/${frepo}.catalog.tmp ]; then
+	mv ${CFGDIR}/repositories/${frepo}.catalog ${CFGDIR}/repositories/${frepo}.catalog.bak
+	mv ${CFGDIR}/repositories/${frepo}.catalog.tmp ${CFGDIR}/repositories/${frepo}.catalog
+    fi
+}
+
+case $# in
+0)
+	for repo in `/usr/bin/sort -k1 -n ${CFGDIR}/repo.list | /usr/bin/awk '{print $2}`
+	do
+	    refresh_repo $repo
+	done
+	;;
+*)
+	for repo in $*
+	do
+	    refresh_repo $repo
+	done
+	;;
+esac

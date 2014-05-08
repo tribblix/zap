@@ -1,0 +1,51 @@
+#!/bin/sh
+#
+# centralized configuration utility for zap
+#
+# other zap tools should use this script to query and set configuration
+#
+
+CFGDIR="/etc/zap"
+PKG_DIR="/var/zap/pkgs"
+CACHE_DIR="/var/zap/cache"
+CACHE_CFG="${CFGDIR}/cache_dir"
+
+case $1 in
+list-sources)
+	printf "${PKG_DIR} "
+	if [ -f ${CACHE_CFG} ]; then
+	    CACHE_DIR=`cat ${CACHE_CFG}`
+	fi
+	if [ -d "${CACHE_DIR}" ]; then
+	    echo $CACHE_DIR
+	else
+	    echo "/tmp"
+	fi
+	;;
+list-pkg-repos)
+	if [ -f ${CFGDIR}/repo.list ]; then
+	    /usr/bin/sort -k1 -n ${CFGDIR}/repo.list | /usr/bin/awk '{print $2}'
+	fi
+	;;
+list-overlay-repos)
+	if [ -f ${CFGDIR}/overlays.list ]; then
+	    /usr/bin/sort -k1 -n ${CFGDIR}/overlays.list | /usr/bin/awk '{print $2}'
+	fi
+	;;
+repo-url)
+	/usr/bin/grep '^URL=' ${CFGDIR}/repositories/${2}.repo | /usr/bin/sed s:URL=::
+	;;
+overlay-url)
+	/usr/bin/grep '^URL=' ${CFGDIR}/repositories/${2}.ovl | /usr/bin/sed s:URL=::
+	;;
+cache-dir)
+	if [ -f ${CACHE_CFG} ]; then
+	    CACHE_DIR=`cat ${CACHE_CFG}`
+	fi
+	if [ -d "${CACHE_DIR}" ]; then
+	    echo $CACHE_DIR
+	else
+	    echo "/tmp"
+	fi
+	;;
+esac

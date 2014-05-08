@@ -1,0 +1,152 @@
+#!/bin/ksh
+#
+# Create a zone
+#
+# Usage:
+#  -t brand - sparse or whole [default sparse]
+#  -z zone_name - zone name [required]
+#  -i IPv4 address [can be multiple]
+#  -d directory to create [can be multiple]
+#  -o overlay for partial root [can be multiple, passed to install]
+#  -O add overlay [can be multiple, passed to install]
+#
+# FIXMES:
+# add IPv6
+# add appstack overlays for sparse zones
+# inherit dirs (like I do for sfw)
+# dedicated stack and vnic creation
+#
+
+ZFSBASE="/export/zonedata"
+ZROOTBASE="/export/zones"
+ZBRAND=TRIBsparse
+ZNAME=""
+ZIP4=""
+ZOVERLAY=""
+ZADDOVERLAY=""
+ZDIRS=""
+
+while getopts "t:z:i:o:O:d:" opt; do
+case $opt in
+t)
+	ZBRAND="$OPTARG"
+	;;
+z)
+	ZNAME="$OPTARG"
+	;;
+i)
+	ZIP4="${ZIP4} $OPTARG"
+	;;
+o)
+	ZOVERLAY="${ZOVERLAY} $OPTARG"
+	;;
+O)
+	ZADDOVERLAY="${ZADDOVERLAY} $OPTARG"
+	;;
+d)
+	ZDIRS="${ZDIRS} $OPTARG"
+	;;
+esac
+done
+
+if [[ -z $ZNAME ]]; then
+   echo "ERROR: zone name must be specified"
+   exit 1
+fi
+
+#
+# normalize the brand, reject unknown brands
+#
+case $ZBRAND in
+sparse|TRIBsparse)
+	ZBRAND="TRIBsparse"
+	;;
+whole|TRIBwhole)
+	ZBRAND="TRIBwhole"
+	;;
+*)
+	echo "ERROR: unrecognized brand $ZBRAND"
+	exit 1
+	;;
+esac
+
+#
+# verify arguments against brands
+#
+case $ZBRAND in
+TRIBsparse)
+	if [[ -n $ZOVERLAY || -n $ZADDOVERLAY ]]; then
+	   echo "ERROR: cannot specify overlays for sparse-root zones"
+	   exit 1
+	fi
+	;;
+esac
+
+#
+# construct a zone configuration file
+#
+
+create_configuration() {
+echo create -t $ZBRAND
+echo set autoboot=true
+echo set zonepath=${ZROOTBASE}/${ZNAME}
+for IP in $ZIP4
+do
+	ZIFACE=`/usr/sbin/route -n get $IP | grep interface: | awk '{print $NF}'`
+	echo add net
+	echo set physical=$ZIFACE
+	echo set address=${IP}/24
+	echo end
+done
+for DIR in $ZDIRS
+do
+	mkdir -p ${ZFSBASE}/${ZNAME}${DIR}
+	echo add fs
+	echo set dir=${DIR}
+	echo set special=${ZFSBASE}/${ZNAME}${DIR}
+	echo set type=lofs
+	echo end
+done
+echo verify
+echo commit
+}
+
+create_install_opts() {
+for OVL in $ZOVERLAY
+do
+	printf " -o $OVL"
+done
+for OVL in $ZADDOVERLAY
+do
+	printf " -O $OVL"
+done
+}
+
+#
+# create any missing zfs datasets
+#
+if [[ -n ${ZDIRS} ]]; then
+   ZPARENT=`dirname ${ZFSBASE}`
+   ZDPARENT=`/usr/sbin/zfs list -H ${ZPARENT} | awk '{print $1}'`
+   ZREALNAME=`echo $ZFSBASE | sed s:${ZPARENT}:${ZDPARENT}:`
+   if [[ ! -d ${ZFSBASE} ]]; then
+      /usr/sbin/zfs create ${ZREALNAME}
+   fi
+   if [[ ! -d ${ZFSBASE}/${ZNAME} ]]; then
+      /usr/sbin/zfs create ${ZREALNAME}/${ZNAME}
+   fi
+fi
+if [[ ! -d ${ZROOTBASE} ]]; then
+   ZPARENT=`dirname ${ZROOTBASE}`
+   ZDPARENT=`/usr/sbin/zfs list -H ${ZPARENT} | awk '{print $1}'`
+   ZREALNAME=`echo $ZROOTBASE | sed s:${ZPARENT}:${ZDPARENT}:`
+   /usr/sbin/zfs create ${ZREALNAME}
+fi
+
+ZCFGFILE=/tmp/zap.zcfg.`date '+%F-%T'`.$$
+create_configuration > ${ZCFGFILE}
+
+/usr/sbin/zonecfg -z ${ZNAME} -f ${ZCFGFILE}
+/usr/sbin/zoneadm -z ${ZNAME} install `create_install_opts`
+/usr/sbin/zoneadm -z ${ZNAME} boot
+rm $ZCFGFILE

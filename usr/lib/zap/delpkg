@@ -1,0 +1,22 @@
+#!/bin/sh
+#
+# deletes those packages passed on the command line
+#
+ZAPLIBDIR="/usr/lib/zap"
+
+case $1 in
+-R)
+    BFLAGS="-R $2"
+    shift
+    shift
+    ;;
+esac
+
+for pkg in $*
+do
+        if /bin/pkginfo ${BFLAGS} -q ${pkg}
+	then
+                echo "Removing $pkg package"
+                /usr/sbin/pkgrm -a ${ZAPLIBDIR}/pkg.default -n ${BFLAGS} $pkg
+        fi
+done

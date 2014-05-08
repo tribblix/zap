@@ -1,0 +1,31 @@
+#!/bin/ksh
+#
+# given an overlay, returns the version of it
+#
+
+ALTROOT=""
+case $1 in
+-R)
+    ALTROOT="$2"
+    shift
+    shift
+    ;;
+esac
+
+case $# in
+1)
+	oname="$1"
+	;;
+*)
+	echo "Usage: $0 pkg"
+	exit 1
+	;;
+esac
+
+if [ -f ${ALTROOT}/var/sadm/overlays/${oname}.ovl ]; then
+    grep '^VERSION=' ${ALTROOT}/var/sadm/overlays/${oname}.ovl | sed 's:VERSION=::'
+    exit 0
+else
+    echo "Error: unable to find overlay $oname"
+    exit 1
+fi
