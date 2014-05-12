@@ -26,6 +26,12 @@ ZOVERLAY=""
 ZADDOVERLAY=""
 ZDIRS=""
 
+usage() {
+  echo "Usage: $0 -z zone_name [-t whole|sparse] [-i ip_address]"
+  echo "  [-d extra_dir] [-o overlay] [-O overlay]"
+  exit 1
+}
+
 while getopts "t:z:i:o:O:d:" opt; do
 case $opt in
 t)
@@ -51,7 +57,7 @@ done
 
 if [[ -z $ZNAME ]]; then
    echo "ERROR: zone name must be specified"
-   exit 1
+   usage
 fi
 
 #
@@ -66,7 +72,7 @@ whole|TRIBwhole)
 	;;
 *)
 	echo "ERROR: unrecognized brand $ZBRAND"
-	exit 1
+	usage
 	;;
 esac
 
@@ -77,7 +83,7 @@ case $ZBRAND in
 TRIBsparse)
 	if [[ -n $ZOVERLAY || -n $ZADDOVERLAY ]]; then
 	   echo "ERROR: cannot specify overlays for sparse-root zones"
-	   exit 1
+	   usage
 	fi
 	;;
 esac
