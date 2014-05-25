@@ -12,14 +12,37 @@ z)
 esac
 done
 
-if [[ -z $ZNAME ]]; then
-   echo "ERROR: zone name must be specified"
-   exit 1
+THISZONE=`/sbin/zonename`
+if [ "X$THISZONE" != "Xglobal" ]; then
+    echo "ERROR: zone management is only possible in the global zone"
+    exit 1
 fi
 
-/usr/sbin/zoneadm -z $ZNAME halt
-echo "Halted zone $ZNAME"
-/usr/sbin/zoneadm -z $ZNAME uninstall -F
-echo "Uninstalled zone $ZNAME"
-/usr/sbin/zonecfg -z $ZNAME delete -F
-echo "Deleted zone $ZNAME"
+if [[ -z $ZNAME ]]; then
+    echo "ERROR: zone name must be specified"
+    exit 1
+fi
+
+#
+# it makes no sense to destroy the global zone
+#
+if [ "X$ZNAME" = "Xglobal" ]; then
+    echo "ERROR: unable to delete the global zone"
+    exit 1
+fi
+
+#
+# check it exists, otherwise behaviour is correct but messy
+#
+/usr/sbin/zoneadm -z $ZNAME list > /dev/null 2>&1
+ZEXISTS=$?
+if [ $ZEXISTS -eq 0 ]; then
+    /usr/sbin/zoneadm -z $ZNAME halt
+    echo "Halted zone $ZNAME"
+    /usr/sbin/zoneadm -z $ZNAME uninstall -F
+    echo "Uninstalled zone $ZNAME"
+    /usr/sbin/zonecfg -z $ZNAME delete -F
+    echo "Deleted zone $ZNAME"
+else
+    echo "ERROR: No such zone $ZNAME"
+fi

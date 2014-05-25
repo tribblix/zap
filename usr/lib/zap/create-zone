@@ -55,9 +55,23 @@ d)
 esac
 done
 
+THISZONE=`/sbin/zonename`
+if [ "X$THISZONE" != "Xglobal" ]; then
+    echo "ERROR: zone management is only possible in the global zone"
+    exit 1
+fi
+
 if [[ -z $ZNAME ]]; then
    echo "ERROR: zone name must be specified"
    usage
+fi
+
+#
+# you can't create the global zone
+#
+if [ "X$ZNAME" = "Xglobal" ]; then
+    echo "ERROR: global zone is reserved"
+    exit 1
 fi
 
 #
@@ -87,6 +101,16 @@ TRIBsparse)
 	fi
 	;;
 esac
+
+#
+# check if the zone already exists
+#
+/usr/sbin/zoneadm -z $ZNAME list > /dev/null 2>&1
+ZEXISTS=$?
+if [ $ZEXISTS -eq 0 ]; then
+    echo "ERROR: zone $ZNAME already exists"
+    exit 1
+fi
 
 #
 # construct a zone configuration file
