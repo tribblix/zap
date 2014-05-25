@@ -118,6 +118,10 @@ do
   fi
 done
 
-echo Installed $NINSTALLED packages, $NFAILED failed
+if [ $NFAILED -eq 0]; then
+    echo Installed $NINSTALLED packages
+else
+    echo Installed $NINSTALLED packages, $NFAILED failed
+fi
 
 exit $NFAILED
