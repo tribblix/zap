@@ -18,7 +18,7 @@ fi
 #
 # first generate a random hash
 #
-HASH=`$HEAD -c 32 $RAND | $SSL dgst -sha1`
+HASH=`$HEAD -c 32 $RAND | $SSL dgst -sha1 | /usr/bin/awk '{print $NF}'`
 #
 # cut it into pieces
 #
