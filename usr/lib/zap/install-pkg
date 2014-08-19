@@ -118,7 +118,7 @@ do
   fi
 done
 
-if [ $NFAILED -eq 0]; then
+if [ $NFAILED -eq 0 ]; then
     echo Installed $NINSTALLED packages
 else
     echo Installed $NINSTALLED packages, $NFAILED failed
