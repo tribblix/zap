@@ -1,0 +1,84 @@
+ZAP
+===
+
+The zap utility is the primary administration tool for software on
+Tribblix.
+
+The basic usage is:
+
+zap subcommand [arguments ...]
+
+The subcommands are:
+
+retrieve pkg [pkg ...]
+
+  This subcomand will retrieve the package(s) specified from a
+  repository and save it or them to the local cache
+
+install [-R dir] [-s dir] pkg [pkg ...]
+
+  This subcommand will install package or packages specified. The -R
+  flag allows you to specify an alternate root for installation, the -s
+  flag allows you to specify a local directory containing packages (for
+  example, the CD).
+
+update [-R dir] pkg [pkg ...]
+
+  This subcommand will update the given package(s) to the latest
+  available version.
+
+uninstall [-R dir] pkg [pkg ...]
+
+  This subcommand will uninstall the given package(s).
+
+install-overlay [-R dir] [-s dir] overlay
+
+  This subcommand will install the given overlay, and any overlays it
+  depends upon.
+
+update-overlay [-R dir] [-s dir] overlay
+
+  This subcommand will update all the packages in the given overlay to
+  the current version.
+
+uninstall-overlay [-R dir] overlay
+
+  This subcommnd will uninstall the given overlay, and all the
+  packages it contains that are not required by other overlays. If the
+  overlay is required by another overlay, it is not uninstalled.
+
+verify-overlay [-R dir] overlay
+
+  This subcommand checks that all the packages contained in the given
+  installed overlay are in fact installed.
+
+list-packages [args]
+
+  Simply lists the imnstalled packages; this is an alias for the
+  pkginfo utility.
+
+list-overlays [-R dir]
+
+  This subcommand lists the available overlays and whther they are
+  installed.
+
+refresh-overlays [repo ...]
+
+  This subcommand refreshes the list of overlays and their contents for
+  the repositories. With arguments, only refreshes the overlays from the
+  specified overlay repository, otherwise refreshes all overlays.
+
+refresh-catalog [repo ...]
+
+  This subcommand refreshes the package catalog. With arguments, only
+  refreshes the catalog from the specified repository, otherwsie
+  refreshes the catalogs for all repositories.
+
+create-zone [args]
+
+  This subcommand simplifies the creation of non-global zones. Run
+  'zap help create-zone' for more details.
+
+destroy-zone -z zone_name
+
+  This subcommand destroys the given zone.

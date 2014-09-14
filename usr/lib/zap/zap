@@ -76,6 +76,10 @@ destroy-zone)
 	shift
 	exec ${ZAPLIBDIR}/destroy-zone $*
 	;;
+help)
+	shift
+	exec ${ZAPLIBDIR}/zap-help $*
+	;;
 *)
 	echo "Unrecognized subcommand"
 	exit 2

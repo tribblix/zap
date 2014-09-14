@@ -1,0 +1,34 @@
+#!/bin/ksh
+#
+# show help for zap
+#
+
+HELP_DIR=/usr/share/zap
+
+if [ -z $PAGER ]; then
+  ZPAGER=$PAGER
+fi
+if [ ! -x $ZPAGER ]; then
+  ZPAGER=/usr/bin/less
+fi
+if [ ! -x $ZPAGER ]; then
+  ZPAGER=/usr/xpg4/bin/more
+fi
+if [ ! -x $ZPAGER ]; then
+  ZPAGER=/usr/bin/more
+fi
+
+case $# in
+0)
+  HELP_FILE=${HELP_DIR}/help.txt
+  ;;
+*)
+  HELP_FILE=${HELP_DIR}/help.${1}.txt
+  if [ ! -f ${HELP_FILE} ]; then
+    echo "No specific help for ${1}, showing general help"
+    HELP_FILE=${HELP_DIR}/help.txt
+  fi
+  ;;
+esac
+
+exec $ZPAGER $HELP_FILE
