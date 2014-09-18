@@ -9,6 +9,7 @@
 #  -d directory to create [can be multiple]
 #  -o overlay for partial root [can be multiple, passed to install]
 #  -O add overlay [can be multiple, passed to install]
+#  -U share user and their homedir with the zone
 #
 # FIXMES:
 # add IPv6
@@ -25,14 +26,15 @@ ZIP4=""
 ZOVERLAY=""
 ZADDOVERLAY=""
 ZDIRS=""
+ZUSERS=""
 
 usage() {
   echo "Usage: $0 -z zone_name [-t whole|sparse] [-i ip_address]"
-  echo "  [-d extra_dir] [-o overlay] [-O overlay]"
+  echo "  [-d extra_dir] [-o overlay] [-O overlay] [-U user]"
   exit 1
 }
 
-while getopts "t:z:i:o:O:d:" opt; do
+while getopts "t:z:i:o:O:d:U:" opt; do
 case $opt in
 t)
 	ZBRAND="$OPTARG"
@@ -51,6 +53,9 @@ O)
 	;;
 d)
 	ZDIRS="${ZDIRS} $OPTARG"
+	;;
+U)
+	ZUSERS="${ZUSERS} $OPTARG"
 	;;
 esac
 done
@@ -113,6 +118,28 @@ if [ $ZEXISTS -eq 0 ]; then
 fi
 
 #
+# if given users to share, verify they and their home directory exist
+# the assumption is that the user and their home directory
+# are local, hence the explict check against /etc/passwd rather than
+# getent which may select from a nameservice
+#
+if [[ -n $ZUSERS ]]; then
+    for TUSER in $ZUSERS
+    do
+	chk=`grep "^${TUSER}:" /etc/passwd`
+	if [ -z "${chk}" ]; then
+	    echo "ERROR: user $TUSER doesn't exist, cannot share"
+	    exit 1
+	fi
+	DIR=`grep "^${TUSER}:" /etc/passwd | awk -F: '{print $6}'`
+	if [ -z "${DIR}" ]; then
+	    echo "ERROR: home for user $TUSER doesn't exist, cannot share"
+	    exit 1
+	fi
+    done
+fi
+
+#
 # construct a zone configuration file
 #
 
@@ -135,6 +162,19 @@ do
 	echo set dir=${DIR}
 	echo set special=${ZFSBASE}/${ZNAME}${DIR}
 	echo set type=lofs
+	echo end
+done
+for TUSER in $ZUSERS
+do
+	echo add fs
+	DIR=`grep "^${TUSER}:" /etc/passwd | awk -F: '{print $6}'`
+	echo set dir=${DIR}
+	echo set special=${DIR}
+	echo set type=lofs
+	echo end
+	echo add admin
+	echo set user=${TUSER}
+	echo set auths=manage
 	echo end
 done
 echo verify
@@ -177,6 +217,24 @@ ZCFGFILE=/tmp/zap.zcfg.`date '+%F-%T'`.$$
 create_configuration > ${ZCFGFILE}
 
 /usr/sbin/zonecfg -z ${ZNAME} -f ${ZCFGFILE}
+
 /usr/sbin/zoneadm -z ${ZNAME} install `create_install_opts`
+
+#
+# copy the shared user accounts specified into the zone
+# and allow them the root role
+#
+for TUSER in $ZUSERS
+do
+    grep "^${TUSER}:" /etc/passwd >> ${ZROOTBASE}/${ZNAME}/root/etc/passwd
+    grep "^${TUSER}:" /etc/shadow >> ${ZROOTBASE}/${ZNAME}/root/etc/shadow
+    echo "${TUSER}::::roles=root" >> ${ZROOTBASE}/${ZNAME}/root/etc/user_attr
+done
+
+#
+# do some minimalist configuration of the zone
+#
+cp /etc/resolv.conf ${ZROOTBASE}/${ZNAME}/root/etc
+
 /usr/sbin/zoneadm -z ${ZNAME} boot
 rm $ZCFGFILE
