@@ -82,3 +82,10 @@ create-zone [args]
 destroy-zone -z zone_name
 
   This subcommand destroys the given zone.
+
+create-zone-template [args]
+
+  This subcommand allows the construction of an alternate file-system
+  that can be used to provide the basis for an alternative sparse-root
+  zone. Run 'zap help create-zone-template' for more details.
+

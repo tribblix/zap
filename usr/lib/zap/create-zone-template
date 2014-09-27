@@ -1,0 +1,111 @@
+#!/bin/ksh
+#
+# Create a zone
+#
+# Usage:
+#
+#  -T name of template
+#  -d directory to create [can be multiple]
+#  -o overlay for partial root [can be multiple, passed to install]
+#  -O add overlay [can be multiple, passed to install]
+#
+
+ZROOTBASE="/export/zone-templates"
+ZOVERLAY=""
+ZADDOVERLAY=""
+ZDIRS=""
+
+usage() {
+  echo "Usage: $0 -T template_name"
+  echo "  [-d extra_dir] [-o overlay] [-O overlay]"
+  exit 1
+}
+
+while getopts "T:o:O:d:" opt; do
+case $opt in
+T)
+	TNAME="$OPTARG"
+	;;
+o)
+	ZOVERLAY="${ZOVERLAY} $OPTARG"
+	;;
+O)
+	ZADDOVERLAY="${ZADDOVERLAY} $OPTARG"
+	;;
+d)
+	ZDIRS="${ZDIRS} $OPTARG"
+	;;
+esac
+done
+
+THISZONE=`/sbin/zonename`
+if [ "X$THISZONE" != "Xglobal" ]; then
+    echo "ERROR: zone management is only possible in the global zone"
+    exit 1
+fi
+
+if [[ -z $TNAME ]]; then
+   echo "ERROR: template name must be specified"
+   usage
+fi
+
+#
+# the naming convention for the template adds a TRIB prefix
+# check for conflicts
+#
+TBRANDNAME="/etc/zones/TRIB${TNAME}.xml"
+if [ -f "$TBRANDNAME" ]; then
+    echo "ERROR: Template $TBRANDNAME is already in use"
+    exit 1
+fi
+
+create_install_opts() {
+for OVL in $ZOVERLAY
+do
+	printf " -o $OVL"
+done
+for OVL in $ZADDOVERLAY
+do
+	printf " -O $OVL"
+done
+}
+
+#
+# create any missing zfs datasets
+#
+if [[ -n ${ZDIRS} ]]; then
+   ZPARENT=`dirname ${ZFSBASE}`
+   ZDPARENT=`/usr/sbin/zfs list -H ${ZPARENT} | awk '{print $1}'`
+   ZREALNAME=`echo $ZFSBASE | sed s:${ZPARENT}:${ZDPARENT}:`
+   if [[ ! -d ${ZFSBASE} ]]; then
+      /usr/sbin/zfs create ${ZREALNAME}
+   fi
+   if [[ ! -d ${ZFSBASE}/${ZNAME} ]]; then
+      /usr/sbin/zfs create ${ZREALNAME}/${ZNAME}
+   fi
+fi
+if [[ ! -d ${ZROOTBASE} ]]; then
+   ZPARENT=`dirname ${ZROOTBASE}`
+   ZDPARENT=`/usr/sbin/zfs list -H ${ZPARENT} | awk '{print $1}'`
+   ZREALNAME=`echo $ZROOTBASE | sed s:${ZPARENT}:${ZDPARENT}:`
+   /usr/sbin/zfs create ${ZREALNAME}
+fi
+if [[ ! -d ${ZROOTBASE}/${TNAME} ]]; then
+   ZPARENT=`dirname ${ZROOTBASE}`
+   ZDPARENT=`/usr/sbin/zfs list -H ${ZPARENT} | awk '{print $1}'`
+   ZREALNAME=`echo $ZROOTBASE | sed s:${ZPARENT}:${ZDPARENT}:`
+   /usr/sbin/zfs create ${ZREALNAME}/${TNAME}
+fi
+
+#
+# call pkgcreatezone by hand
+# we want to specify just the zone root, but have to supply a zone name
+# as well
+#
+/usr/lib/brand/whole-root/pkgcreatezone -T -R ${ZROOTBASE}/${TNAME} -z template-${TNAME} `create_install_opts`
+
+#
+# Now create a zone xml file that matches the template locations
+# we just populated
+#
+cat /etc/zones/TRIBsparse.xml | sed -e s:special=\"/usr:special=\"${ZROOTBASE}/${TNAME}/usr: -e s:special=\"/sbin:special=\"${ZROOTBASE}/${TNAME}/sbin:  -e s:special=\"/platform:special=\"${ZROOTBASE}/${TNAME}/platform:  -e s:special=\"/zonelib/lib:special=\"${ZROOTBASE}/${TNAME}/lib: > /etc/zones/TRIBtemplate-${TNAME}.xml

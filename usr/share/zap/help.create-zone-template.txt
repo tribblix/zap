@@ -1,0 +1,36 @@
+ZAP and zone creation
+=====================
+
+The zap utility allows you to create zones with a given specification
+and control the software installed in the zone.
+
+The syntax of the subcommand is:
+
+create-zone -T template_name [-d extra_dir] [-o overlay] [-O overlay]
+
+Supplying the template_name is mandatory; other arguments are optional.
+
+The -T flag specifies the name of a template. Once constructed, this
+template can be used as the argument to the -T flag of 'zap
+create-zone' to construct real zones using this template.
+
+The -d flag specifies a directory to be created and mounted inside the
+zone. This flag can be used multiple times to create multiple
+directories in the zone.
+
+The -o flag specifies an overlay to be installed in the template file
+system. This flag can be used multiple times to require multiple
+overlays. The effect of listing overlays here is that the template is
+created from the global zone and only contains the subset of the
+packages that are contained in the given overlays; if you specify an
+overlay that is not present in the global zone then it will not be
+present in the template either.
+
+The -O flag specifies an overlay to be added to the template. This flag
+can be used multiple times to add multiple overlays. Unlike the -O flag
+which specifies that the template contains a subset of the packages in
+the global zone, the -O flag adds extra packages, and does not require
+the overlays or packages to be present in the global zone.
+
+A note on implementation: the templates can be found under
+/export/zone-templates.

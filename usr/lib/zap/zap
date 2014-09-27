@@ -76,6 +76,10 @@ destroy-zone)
 	shift
 	exec ${ZAPLIBDIR}/destroy-zone $*
 	;;
+create-zone-template)
+	shift
+	exec ${ZAPLIBDIR}/create-zone-template $*
+	;;
 help)
 	shift
 	exec ${ZAPLIBDIR}/zap-help $*

@@ -3,6 +3,7 @@
 # Create a zone
 #
 # Usage:
+#  -T template (implies sparse)
 #  -t brand - sparse or whole [default sparse]
 #  -z zone_name - zone name [required]
 #  -i IPv4 address [can be multiple]
@@ -27,15 +28,19 @@ ZOVERLAY=""
 ZADDOVERLAY=""
 ZDIRS=""
 ZUSERS=""
+ZTEMPLATE=""
 
 usage() {
-  echo "Usage: $0 -z zone_name [-t whole|sparse] [-i ip_address]"
-  echo "  [-d extra_dir] [-o overlay] [-O overlay] [-U user]"
+  echo "Usage: $0 -z zone_name [-t whole|sparse] [-T template]"
+  echo "  [-i ip_address] [-d extra_dir] [-o overlay] [-O overlay] [-U user]"
   exit 1
 }
 
-while getopts "t:z:i:o:O:d:U:" opt; do
+while getopts "T:t:z:i:o:O:d:U:" opt; do
 case $opt in
+T)
+	ZTEMPLATE="$OPTARG"
+	;;
 t)
 	ZBRAND="$OPTARG"
 	;;
@@ -105,6 +110,11 @@ TRIBsparse)
 	   usage
 	fi
 	;;
+TRIBwhole)
+	if [[ -n $ZTEMPLATE ]]; then
+	    echo "ERROR: templates must be sparse-root"
+	    usage
+	fi
 esac
 
 #
@@ -142,6 +152,15 @@ fi
 #
 # construct a zone configuration file
 #
+
+#
+# we overload ZBRAND with the template; the actual brand is
+# specified in the template, and note that create -t actually
+# refers to a template
+#
+if [[ -n $ZTEMPLATE ]]; then
+    ZBRAND=TRIBtemplate-${ZTEMPLATE}
+fi
 
 create_configuration() {
 echo create -t $ZBRAND

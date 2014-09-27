@@ -6,8 +6,8 @@ and control the software installed in the zone.
 
 The syntax of the subcommand is:
 
-create-zone -z zone_name [-t whole|sparse] [-i ip_address]
-    [-d extra_dir] [-o overlay] [-O overlay] [-U user]
+create-zone -z zone_name [-t whole|sparse] [-T template]
+    [-i ip_address] [-d extra_dir] [-o overlay] [-O overlay] [-U user]
 
 Supplying the zone_name is mandatory; all other arguments are optional.
 
@@ -15,8 +15,8 @@ The -t flag specifies the zone type, which may be either whole or
 sparse. For a whole-root zone, the zone has its own copy of all
 required file systems; in a sparse-root zone the file systems
 containing the operating system - /lib, /platform, /usr, and /sbin -
-are inherited read-only from the global zone. The default is to create
-a sparse-root zone.
+are inherited read-only from the global zone (or an alternate source -
+see the -T flag). The default is to create a sparse-root zone.
 
 The -i flag specifies an IP address. If supplied, the zone will be
 given this IP address. This flag can be used multiple times to assign
@@ -28,7 +28,7 @@ directories in the zone.
 
 The -o flag specifies an overlay to be installed in the zone. This flag
 can be used multiple times to require multiple overlays. The use of
-this flag requires that the zone type be specified as sparse. The
+this flag requires that the zone type be specified as whole. The
 effect of listing overlays here is that the zone is created from the
 global zone and only contains the subset of the packages that are
 contained in the given overlays; if you specify an overlay that is not
@@ -37,7 +37,7 @@ zone either.
 
 The -O flag specifies an overlay to be added to the zone. This flag can
 be used multiple times to add multiple overlays. The use of this flag
-requires that the zone type be specified as sparse. Unlike the -O flag
+requires that the zone type be specified as whole. Unlike the -O flag
 which specifies that the zone contains a subset of the packages in the
 global zone, the -O flag adds extra packages, and does not require the
 overlays or packages to be present in the global zone.
@@ -46,4 +46,11 @@ The -U flag specifies a user account to be shared with the zone. The
 account will be created in the zone with the same details as in the
 global zone, and the home directory will be shared. In addition, that
 user is delegated management of the zone, including the ability to use
-zlogin to connect to the zone.
+zlogin to connect to the zone. Note that this mechanism gives the
+delegated user full root access to the zone, and potentially full root
+access to the global zone via shared file systems.
+
+The -T flag allows you to use a template to provide the file systems to
+a sparse-root zone  instead of the default inheritance from the global
+zone. Use the zap create-zone-template subcommand to construct such a
+template.
