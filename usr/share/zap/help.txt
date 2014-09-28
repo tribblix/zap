@@ -17,10 +17,10 @@ retrieve pkg [pkg ...]
 
 install [-R dir] [-s dir] pkg [pkg ...]
 
-  This subcommand will install package or packages specified. The -R
-  flag allows you to specify an alternate root for installation, the -s
-  flag allows you to specify a local directory containing packages (for
-  example, the CD).
+  This subcommand will install the package or packages specified. The
+  -R flag allows you to specify an alternate root for installation, the
+  -s flag allows you to specify a local directory containing packages
+  (for example, the CD).
 
 update [-R dir] pkg [pkg ...]
 
@@ -54,12 +54,12 @@ verify-overlay [-R dir] overlay
 
 list-packages [args]
 
-  Simply lists the imnstalled packages; this is an alias for the
+  Simply lists the installed packages; this is an alias for the
   pkginfo utility.
 
 list-overlays [-R dir]
 
-  This subcommand lists the available overlays and whther they are
+  This subcommand lists the available overlays and whether they are
   installed.
 
 refresh-overlays [repo ...]
@@ -71,7 +71,7 @@ refresh-overlays [repo ...]
 refresh-catalog [repo ...]
 
   This subcommand refreshes the package catalog. With arguments, only
-  refreshes the catalog from the specified repository, otherwsie
+  refreshes the catalog from the specified repository, otherwise
   refreshes the catalogs for all repositories.
 
 create-zone [args]
@@ -89,3 +89,12 @@ create-zone-template [args]
   that can be used to provide the basis for an alternative sparse-root
   zone. Run 'zap help create-zone-template' for more details.
 
+list-zone-templates
+
+  This subcommand list the known zone templates, their file system
+  roots, and zones using the template.
+
+destroy-zone-template [-n] -T template_name
+
+  This subcommand destroys a zone template and the file system backing
+  it. The action wil fail if any zones are using the template.

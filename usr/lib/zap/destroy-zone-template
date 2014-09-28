@@ -1,0 +1,71 @@
+#!/bin/ksh
+#
+# destroy zone template, both the template definition and the file system
+# configured for it
+#
+# Usage:
+#
+#  -T name of template
+#  -n show what would be done instead of doing it
+#
+
+while getopts "nT:" opt; do
+case $opt in
+T)
+	TNAME="$OPTARG"
+	;;
+n)
+	DEBUG="echo"
+	;;
+esac
+done
+
+if [[ -z $TNAME ]]; then
+   echo "ERROR: template name must be specified"
+   usage
+fi
+
+#
+# the naming convention for the template adds a TRIBtemplate- prefix
+# check for conflicts
+#
+TBRANDFILE="/etc/zones/TRIBtemplate-${TNAME}.xml"
+if [ ! -f "$TBRANDFILE" ]; then
+    echo "ERROR: Template $TNAME not found"
+    exit 1
+fi
+
+UDIR=`grep 'directory=\"/usr\"' ${TBRANDFILE} | awk '{print $2}' | awk -F= '{print $2}' | sed 's:"::g'`
+UROOT=${UDIR%/usr}
+ZLIST=`grep 'special=\"'${UDIR}'\"' /etc/zones/*.xml | grep -v '^'$TBRANDFILE| awk -F: '{print $1}'`
+
+if [[ -n $ZLIST ]]; then
+  echo "ERROR: template ${TNAME} is used by the following zones:"
+  for ZFILE in $ZLIST
+  do
+    ZNAME=${ZFILE#/etc/zones/}
+    ZNAME=${ZNAME%.xml}
+    echo "  $ZNAME"
+  done
+  exit 2
+fi
+
+#
+# This is the backing zfs dataset
+#
+ZDPARENT=`/usr/sbin/zfs list -H ${UROOT} | awk '{print $1}'`
+
+#
+# Sanity check: the zfs dataset should end in the template name
+#
+ZFNAME=${ZDPARENT##*/}
+if [ "X$ZFNAME" != "X$TNAME" ]; then
+  echo "ERROR: zfs dataset $ZDPARENT does not match the template $TNAME"
+  exit 3
+fi
+
+#
+# remove the template file and destroy the backing dataset
+#
+$DEBUG /bin/rm -f ${TBRANDFILE}
+$DEBUG /usr/sbin/zfs destroy -r $ZDPARENT

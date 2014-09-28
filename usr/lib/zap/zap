@@ -80,6 +80,14 @@ create-zone-template)
 	shift
 	exec ${ZAPLIBDIR}/create-zone-template $*
 	;;
+list-zone-templates)
+	shift
+	exec ${ZAPLIBDIR}/list-zone-template $*
+	;;
+destroy-zone-template)
+	shift
+	exec ${ZAPLIBDIR}/destroy-zone-template $*
+	;;
 help)
 	shift
 	exec ${ZAPLIBDIR}/zap-help $*
