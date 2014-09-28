@@ -156,10 +156,20 @@ fi
 #
 # we overload ZBRAND with the template; the actual brand is
 # specified in the template, and note that create -t actually
-# refers to a template
+# refers to a template. Verify that the template and the file
+# systems it uses exist.
 #
 if [[ -n $ZTEMPLATE ]]; then
     ZBRAND=TRIBtemplate-${ZTEMPLATE}
+    if [ ! -f /etc/zones/${ZBRAND}.xml ]; then
+	echo "ERROR: no such template ${ZTEMPLATE}"
+	exit 1
+    fi
+    UDIR=`grep 'directory=\"/usr\"' /etc/zones/${ZBRAND}.xml | awk '{print $2}' | awk -F= '{print $2}' | sed 's:"::g'`
+    if [ ! -d ${UDIR} ]; then
+	echo "ERROR: unable to find file systems for template ${ZTEMPLATE}"
+	exit 1
+    fi
 fi
 
 create_configuration() {

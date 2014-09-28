@@ -1,0 +1,26 @@
+#!/bin/ksh
+#
+# list zone templates
+#
+
+#
+# this is just the naming convention
+#
+for TFILE in /etc/zones/TRIBtemplate-*.xml
+do
+  TNAME=${TFILE#*-}
+  TNAME=${TNAME%.xml}
+  UDIR=`grep 'directory=\"/usr\"' ${TFILE} | awk '{print $2}' | awk -F= '{print $2}' | sed 's:"::g'`
+  UROOT=${UDIR%/usr}
+  ZLIST=`grep 'special=\"'${UDIR}'\"' /etc/zones/*.xml | grep -v '^'$TFILE| awk -F: '{print $1}'`
+  echo "Template: $TNAME"
+  echo "  Root: $UDIR"
+  echo "  Zones: "
+  for ZFILE in $ZLIST
+  do
+    ZNAME=${ZFILE#/etc/zones/}
+    ZNAME=${ZNAME%.xml}
+    echo "    $ZNAME"
+  done
+  echo ""
+done

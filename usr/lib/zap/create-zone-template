@@ -1,6 +1,6 @@
 #!/bin/ksh
 #
-# Create a zone
+# Create a zone template
 #
 # Usage:
 #
@@ -50,12 +50,12 @@ if [[ -z $TNAME ]]; then
 fi
 
 #
-# the naming convention for the template adds a TRIB prefix
+# the naming convention for the template adds a TRIBtemplate- prefix
 # check for conflicts
 #
-TBRANDNAME="/etc/zones/TRIB${TNAME}.xml"
-if [ -f "$TBRANDNAME" ]; then
-    echo "ERROR: Template $TBRANDNAME is already in use"
+TBRANDFILE="/etc/zones/TRIBtemplate-${TNAME}.xml"
+if [ -f "$TBRANDFILE" ]; then
+    echo "ERROR: Template $TNAME is already in use"
     exit 1
 fi
 
@@ -108,4 +108,4 @@ fi
 # Now create a zone xml file that matches the template locations
 # we just populated
 #
-cat /etc/zones/TRIBsparse.xml | sed -e s:special=\"/usr:special=\"${ZROOTBASE}/${TNAME}/usr: -e s:special=\"/sbin:special=\"${ZROOTBASE}/${TNAME}/sbin:  -e s:special=\"/platform:special=\"${ZROOTBASE}/${TNAME}/platform:  -e s:special=\"/zonelib/lib:special=\"${ZROOTBASE}/${TNAME}/lib: > /etc/zones/TRIBtemplate-${TNAME}.xml
+cat /etc/zones/TRIBsparse.xml | sed -e s:special=\"/usr:special=\"${ZROOTBASE}/${TNAME}/usr: -e s:special=\"/sbin:special=\"${ZROOTBASE}/${TNAME}/sbin:  -e s:special=\"/platform:special=\"${ZROOTBASE}/${TNAME}/platform:  -e s:special=\"/zonelib/lib:special=\"${ZROOTBASE}/${TNAME}/lib: > ${TBRANDFILE}
