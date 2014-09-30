@@ -264,6 +264,7 @@ done
 # do some minimalist configuration of the zone
 #
 cp /etc/resolv.conf ${ZROOTBASE}/${ZNAME}/root/etc
+cp /etc/default/init ${ZROOTBASE}/${ZNAME}/root/etc/default/init
 
 /usr/sbin/zoneadm -z ${ZNAME} boot
 rm $ZCFGFILE
