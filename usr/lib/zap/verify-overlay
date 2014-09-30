@@ -30,16 +30,30 @@ case $# in
 esac
 
 #
+# -a means all (installed) overlays
+#
+case $ONAME in
+-a)
+	cd ${ODIR}/installed
+	for novl in *
+	do
+	    ${ZAPLIBDIR}/verify-overlay ${PKGARGS} ${novl}
+	done
+	exit 0
+	;;
+esac
+
+#
 # An overlay must contain a .ovl file and a .pkgs file
 #
 OVL="${ODIR}/${ONAME}.ovl"
 if [ ! -f "${OVL}" ]; then
-    echo "ERROR: overlay does not exist"
+    echo "ERROR: overlay ${ONAME} does not exist"
     exit 1
 fi
 PLIST="${ODIR}/${ONAME}.pkgs"
 if [ ! -f "${PLIST}" ]; then
-    echo "ERROR: package list missing"
+    echo "ERROR: package list for ${ONAME} missing"
     exit 1
 fi
 

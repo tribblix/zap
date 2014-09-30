@@ -39,7 +39,7 @@ case $# in
 	ONAME="$1"
 	;;
 *)
-	echo "Usage: $0 [-R alt-root] [-s pkg_source] overlay"
+	echo "Usage: $0 [-R alt-root] [-s pkg_source] overlay | -a"
 	exit 1
 	;;
 esac
@@ -47,6 +47,20 @@ esac
 #
 # OK, we're in the installer
 #
+
+#
+# -a means all (installed) overlays
+#
+case $ONAME in
+-a)
+	cd ${DESTROOT}/${ODIR}/installed
+	for novl in *
+	do
+	    ${ZAPLIBDIR}/update-overlay ${PKGARGS} ${SRCARGS} ${novl}
+	done
+	exit 0
+	;;
+esac
 
 #
 # if not installed, just exit

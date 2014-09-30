@@ -36,10 +36,10 @@ install-overlay [-R dir] [-s dir] overlay
   This subcommand will install the given overlay, and any overlays it
   depends upon.
 
-update-overlay [-R dir] [-s dir] overlay
+update-overlay [-R dir] [-s dir] overlay | -a
 
   This subcommand will update all the packages in the given overlay to
-  the current version.
+  the current version. If -a, updates all installed overlays.
 
 uninstall-overlay [-R dir] overlay
 
@@ -47,10 +47,11 @@ uninstall-overlay [-R dir] overlay
   packages it contains that are not required by other overlays. If the
   overlay is required by another overlay, it is not uninstalled.
 
-verify-overlay [-R dir] overlay
+verify-overlay [-R dir] overlay | -a
 
   This subcommand checks that all the packages contained in the given
-  installed overlay are in fact installed.
+  installed overlay are in fact installed. If -a, verifies all
+  installed overlays.
 
 list-packages [args]
 
