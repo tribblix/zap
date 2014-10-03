@@ -172,6 +172,34 @@ if [[ -n $ZTEMPLATE ]]; then
     fi
 fi
 
+get_mask() {
+CIDR=0
+for octet in `echo $1 | sed 's:\.: :g'`
+do
+case $octet in
+255)
+	CIDR=$(($CIDR+8)) ;;
+254)
+	CIDR=$(($CIDR+7)) ; break ;;
+252)
+	CIDR=$(($CIDR+6)) ; break ;;
+248)
+	CIDR=$(($CIDR+5)) ; break ;;
+240)
+	CIDR=$(($CIDR+4)) ; break ;;
+224)
+	CIDR=$(($CIDR+3)) ; break ;;
+192)
+	CIDR=$(($CIDR+2)) ; break ;;
+128)
+	CIDR=$(($CIDR+1)) ; break ;;
+*)
+	;;
+esac
+done
+echo $CIDR
+}
+
 create_configuration() {
 echo create -t $ZBRAND
 echo set autoboot=true
@@ -179,9 +207,11 @@ echo set zonepath=${ZROOTBASE}/${ZNAME}
 for IP in $ZIP4
 do
 	ZIFACE=`/usr/sbin/route -n get $IP | grep interface: | awk '{print $NF}'`
+	ZMASK=`/usr/sbin/route -n get $IP | grep mask: | awk '{print $NF}'`
+	ZCIDR=`get_mask $ZMASK`
 	echo add net
 	echo set physical=$ZIFACE
-	echo set address=${IP}/24
+	echo set address=${IP}/${ZCIDR}
 	echo end
 done
 for DIR in $ZDIRS
