@@ -19,7 +19,7 @@ case $1 in
 	;;
 esac
 
-SRCLIST=`${ZAPLIBDIR}/zap-cfg list-sources`
+SRCLIST=`${ZAPLIBDIR}/zap-cfg cache-dir`
 
 #
 # prepend the given source to the list, so it gets searched first
@@ -46,20 +46,12 @@ esac
 
 #
 # FIXME:
-#  dependency resolution
-#  install in dependency order
-#  map aliases to packages
-#  map packages to package instances (which have the version number)
-#  use repo catalog instead of blind retrieve
-#  add proxy server config to zap-cfg
-#  add (optional) deletion of downloaded files
 #  fail if there are missing packages after first pass
-#  is using /tmp as the fallback cache dir safe?
-#  separate the download dir from the source list
+#  only loop over uninstalled packages in the 2nd pass
 #
 
 #
-# two passes; first looks for and downloads any packages we need
+# first look for and download any packages we need
 #
 for pkg in $*
 do
@@ -86,7 +78,7 @@ do
 done
 
 #
-# OK, now we're in the installer
+# now we're in the installer
 #
 for pkg in $*
 do

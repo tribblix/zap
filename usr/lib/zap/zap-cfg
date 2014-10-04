@@ -6,22 +6,10 @@
 #
 
 CFGDIR="/etc/zap"
-PKG_DIR="/var/zap/pkgs"
 CACHE_DIR="/var/zap/cache"
 CACHE_CFG="${CFGDIR}/cache_dir"
 
 case $1 in
-list-sources)
-	printf "${PKG_DIR} "
-	if [ -f ${CACHE_CFG} ]; then
-	    CACHE_DIR=`cat ${CACHE_CFG}`
-	fi
-	if [ -d "${CACHE_DIR}" ]; then
-	    echo $CACHE_DIR
-	else
-	    echo "/tmp"
-	fi
-	;;
 list-pkg-repos)
 	if [ -f ${CFGDIR}/repo.list ]; then
 	    /usr/bin/sort -k1 -n ${CFGDIR}/repo.list | /usr/bin/awk '{print $2}'
