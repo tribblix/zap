@@ -1,0 +1,71 @@
+#!/bin/ksh
+
+CFGDIR="/etc/zap"
+ZAPLIBDIR="/usr/lib/zap"
+DESTROOT=""
+PKGARGS=""
+EXIT="exit"
+
+case $1 in
+-R)
+	DESTROOT="$2"
+	PKGARGS="-R ${DESTROOT}"
+	shift
+	shift
+	if [ ! -d "$DESTROOT" ]; then
+	    echo "ERROR: alternate root $DESTROOT doesn't exist"
+	    exit 1
+	fi
+	;;
+esac
+
+case $1 in
+-a)
+	shift
+	EXIT=""
+	;;
+esac
+
+case $# in
+1)
+	PKG="$1"
+	;;
+*)
+	echo "Usage: zap search [ -R altroot] [ -a ] search_term"
+	exit 1
+	;;
+esac
+
+#
+# simplistic search, essentially grep
+#
+
+if [ -f ${DESTROOT}/var/sadm/overlays/${PKG}.ovl ]; then
+    echo "Found a matching overlay"
+    ${ZAPLIBDIR}/describe-overlay ${PKGARGS} ${PKG}
+    $EXIT
+fi
+
+# FIXME: search aliases here
+
+#
+# look for packages in overlays
+#
+grep $PKG ${DESTROOT}/var/sadm/overlays/*.pkgs | while read match
+do
+	OVL=${match%%:*}
+	OVL=${OVL##*/}
+	OVL=${OVL%.pkgs}
+	FPKG=${match##*:}
+	if [ -f ${DESTROOT}/var/sadm/overlays/installed/$OVL ]; then
+	   OSTATUS="installed"
+	else
+	   OSTATUS="uninstalled"
+	fi
+	if [ -d ${DESTROOT}/var/sadm/pkg/${FPKG} ]; then
+	   PSTATUS="Installed"
+	else
+	   PSTATUS="Uninstalled"
+	fi
+	echo Match: ${PSTATUS} package $FPKG in ${OSTATUS} overlay $OVL
+done

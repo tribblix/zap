@@ -88,6 +88,10 @@ destroy-zone-template)
 	shift
 	exec ${ZAPLIBDIR}/destroy-zone-template $*
 	;;
+search)
+	shift
+	exec ${ZAPLIBDIR}/search $*
+	;;
 help)
 	shift
 	exec ${ZAPLIBDIR}/zap-help $*
