@@ -5,16 +5,16 @@
 
 HELP_DIR=/usr/share/zap
 
-if [ -z $PAGER ]; then
+if [ -z "$PAGER" ]; then
   ZPAGER=$PAGER
 fi
-if [ ! -x $ZPAGER ]; then
+if [ ! -x "$ZPAGER" ]; then
   ZPAGER=/usr/bin/less
 fi
-if [ ! -x $ZPAGER ]; then
+if [ ! -x "$ZPAGER" ]; then
   ZPAGER=/usr/xpg4/bin/more
 fi
-if [ ! -x $ZPAGER ]; then
+if [ ! -x "$ZPAGER" ]; then
   ZPAGER=/usr/bin/more
 fi
 
