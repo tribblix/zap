@@ -16,15 +16,34 @@ CACHE_DIR=`${ZAPLIBDIR}/zap-cfg cache-dir`
 
 case $1 in
 -R)
-    BFLAGS="-R $2"
-    shift
-    shift
-    ;;
+	DESTROOT="$2"
+	PKGARGS="-R ${DESTROOT}"
+	shift
+	shift
+	if [ ! -d "$DESTROOT" ]; then
+	    echo "ERROR: alternate root $DESTROOT doesn't exist"
+	    exit 1
+	fi
+	;;
+esac
+
+case $1 in
+-s)
+	SRCDIR="$2"
+	SRCARGS="-s ${SRCDIR}"
+	shift
+	shift
+	# FIXME should this be fatal or a warning?
+	if [ ! -d "$SRCDIR" ]; then
+	    echo "ERROR: package source $SRCDIR doesn't exist"
+	    exit 1
+	fi
+	;;
 esac
 
 for pkg in $*
 do
-    IVERSION=`${ZAPLIBDIR}/pkgversion ${BFLAGS} $pkg`
+    IVERSION=`${ZAPLIBDIR}/pkgversion ${PKGARGS} $pkg`
     AFVERSION=`${ZAPLIBDIR}/get-version $pkg`
     AVERSION=${AFVERSION% *}
     AREPO=${AFVERSION#* }
@@ -38,10 +57,10 @@ do
 		${ZAPLIBDIR}/retrieve-pkg ${pkg}
 	    fi
 	    if [ -f ${CACHE_DIR}/${AVERSION}.zap ]; then
-		${ZAPLIBDIR}/delpkg ${BFLAGS} $pkg
-		${ZAPLIBDIR}/install-pkg ${BFLAGS} $pkg
+		${ZAPLIBDIR}/delpkg ${PKGARGS} $pkg
+		${ZAPLIBDIR}/install-pkg ${PKGARGS} ${SRCARGS} $pkg
 	    fi
-	    NVERSION=`${ZAPLIBDIR}/pkgversion ${BFLAGS} $pkg`
+	    NVERSION=`${ZAPLIBDIR}/pkgversion ${PKGARGS} $pkg`
 	    if [ "X${NVERSION}" = "X${RVERSION}" ]; then
 		echo "Update successful."
 	    fi
