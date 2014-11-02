@@ -1,0 +1,52 @@
+ZAP upgrades
+============
+
+The zap utility can upgrade a system to a newer release.
+
+In this process:
+
+ - a new boot environment is created using beadm
+
+ - the version of zap appropriate to the new release is installed in
+   the alternate boot environment
+
+ - all the overlays and packages in the alternate boor environment are
+   updated
+
+ - the alternate boot environment is activated and booted into
+
+The syntax of the upgrade subcommand is:
+
+upgrade list
+
+  Will list known versions that can be upgraded to, and which is the
+  current version
+
+upgrade current
+
+  Will display the current release version.
+
+upgrade version
+
+  Will perform the upgrade. The default is to create a new boot
+  environment matching the initial release of the new version and to
+  not reboot into it.
+
+upgrade [-n] [-F] [-B] version
+
+  You have control over the upgrade process. The valid flags are:
+
+-n
+
+Show the commands that would be executed to perform the upgrade, but do
+not execute them.
+
+-F
+
+Freshen the upgraded release to the latest versions of all overlays and
+packages, rather than the versions available at release.
+
+-B
+
+Automatically reboot into the new boot environment once the upgrade is
+complete.

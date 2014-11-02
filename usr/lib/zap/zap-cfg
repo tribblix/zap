@@ -9,6 +9,26 @@ CFGDIR="/etc/zap"
 CACHE_DIR="/var/zap/cache"
 CACHE_CFG="${CFGDIR}/cache_dir"
 
+#
+# global context switch
+# will force all configuration to be relative to the alternate root
+#
+case $1 in
+-C)
+	ALTROOT="$2"
+	CTXARGS="-C ${ALTROOT}"
+	shift
+	shift
+	if [ ! -d "$ALTROOT" ]; then
+	    echo "ERROR: alternate root $ALTROOT doesn't exist"
+	    exit 1
+	fi
+	CFGDIR="${ALTROOT}/${CFGDIR}"
+	CACHE_DIR="${ALTROOT}/${CACHE_DIR}"
+	CACHE_CFG="${CFGDIR}/cache_dir"
+	;;
+esac
+
 case $1 in
 list-pkg-repos)
 	if [ -f ${CFGDIR}/repo.list ]; then

@@ -6,9 +6,27 @@
 ZAPLIBDIR="/usr/lib/zap"
 CFGDIR="/etc/zap"
 
+#
+# global context switch
+# will force all configuration to be relative to the alternate root
+#
+case $1 in
+-C)
+	ALTROOT="$2"
+	CTXARGS="-C ${ALTROOT}"
+	shift
+	shift
+	if [ ! -d "$ALTROOT" ]; then
+	    echo "ERROR: alternate root $ALTROOT doesn't exist"
+	    exit 1
+	fi
+	CFGDIR="${ALTROOT}/${CFGDIR}"
+	;;
+esac
+
 refresh_repo() {
     frepo="$1"
-    REPO=`${ZAPLIBDIR}/zap-cfg repo-url $frepo`
+    REPO=`${ZAPLIBDIR}/zap-cfg ${CTXARGS} repo-url $frepo`
     /usr/bin/curl -f -s -o ${CFGDIR}/repositories/${frepo}.catalog.tmp ${REPO}/catalog
     if [ -s ${CFGDIR}/repositories/${frepo}.catalog.tmp ]; then
 	mv ${CFGDIR}/repositories/${frepo}.catalog ${CFGDIR}/repositories/${frepo}.catalog.bak

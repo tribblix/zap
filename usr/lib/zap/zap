@@ -11,30 +11,52 @@ case $# in
 	;;
 esac
 
+#
+# global context switch comes before the subcommand
+# will force all configuration to be relative to the alternate root
+#
 case $1 in
+-C)
+	ALTROOT="$2"
+	CTXARGS="-C ${ALTROOT}"
+	PKGARGS="-R ${ALTROOT}"
+	shift
+	shift
+	if [ ! -d "$ALTROOT" ]; then
+	    echo "ERROR: alternate root $ALTROOT doesn't exist"
+	    exit 1
+	fi
+	;;
+esac
+
+case $1 in
+upgrade)
+	shift
+	exec ${ZAPLIBDIR}/upgrade $*
+	;;
 retrieve)
 	shift
-	exec ${ZAPLIBDIR}/retrieve-pkg $*
+	exec ${ZAPLIBDIR}/retrieve-pkg ${CTXARGS} $*
 	;;
 install)
 	shift
-	exec ${ZAPLIBDIR}/install-pkg $*
+	exec ${ZAPLIBDIR}/install-pkg ${CTXARGS} $*
 	;;
 update)
 	shift
-	exec ${ZAPLIBDIR}/update-package $*
+	exec ${ZAPLIBDIR}/update-package ${CTXARGS} $*
 	;;
 uninstall)
 	shift
-	exec ${ZAPLIBDIR}/delpkg $*
+	exec ${ZAPLIBDIR}/delpkg ${PKGARGS} $*
 	;;
 install-overlay)
 	shift
-	exec ${ZAPLIBDIR}/install-overlay $*
+	exec ${ZAPLIBDIR}/install-overlay ${CTXARGS} $*
 	;;
 update-overlay)
 	shift
-	exec ${ZAPLIBDIR}/update-overlay $*
+	exec ${ZAPLIBDIR}/update-overlay ${CTXARGS} $*
 	;;
 uninstall-overlay)
 	shift
@@ -46,7 +68,7 @@ verify-overlay)
 	;;
 list-packages)
 	shift
-	exec /usr/bin/pkginfo $*
+	exec /usr/bin/pkginfo ${PKGARGS} $*
 	;;
 list-overlays)
 	shift
@@ -54,11 +76,11 @@ list-overlays)
 	;;
 refresh-overlays)
 	shift
-	exec ${ZAPLIBDIR}/refresh-overlays $*
+	exec ${ZAPLIBDIR}/refresh-overlays ${CTXARGS} $*
 	;;
 describe-package)
 	shift
-	exec /usr/bin/pkginfo -l $*
+	exec /usr/bin/pkginfo ${PKGARGS} -l $*
 	;;
 describe-overlay)
 	shift
@@ -66,7 +88,7 @@ describe-overlay)
 	;;
 refresh-catalog)
 	shift
-	exec ${ZAPLIBDIR}/refresh-catalog $*
+	exec ${ZAPLIBDIR}/refresh-catalog ${CTXARGS} $*
 	;;
 create-zone)
 	shift

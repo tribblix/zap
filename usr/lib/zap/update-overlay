@@ -3,9 +3,27 @@
 ONAME=""
 ZAPLIBDIR="/usr/lib/zap"
 ODIR="/var/sadm/overlays"
+INSTODIR="S{ODIR}"
+CFGODIR="${ODIR}"
 PKGARGS=""
 DESTROOT=""
 SRCARGS=""
+
+case $1 in
+-C)
+	DESTROOT="$2"
+	PKGARGS="-R ${DESTROOT}"
+	CTXARGS="-C ${DESTROOT}"
+	shift
+	shift
+	if [ ! -d "$DESTROOT" ]; then
+	    echo "ERROR: alternate root $DESTROOT doesn't exist"
+	    exit 1
+	fi
+	CFGODIR="${DESTROOT}/${ODIR}"
+	INSTODIR="${DESTROOT}/${ODIR}"
+	;;
+esac
 
 case $1 in
 -R)
@@ -17,6 +35,7 @@ case $1 in
 	    echo "ERROR: alternate root $DESTROOT doesn't exist"
 	    exit 1
 	fi
+	INSTODIR="${DESTROOT}/${ODIR}"
 	;;
 esac
 
@@ -39,24 +58,20 @@ case $# in
 	ONAME="$1"
 	;;
 *)
-	echo "Usage: $0 [-R alt-root] [-s pkg_source] overlay | -a"
+	echo "Usage: $0 [-R|-C alt-root] [-s pkg_source] overlay | -a"
 	exit 1
 	;;
 esac
-
-#
-# OK, we're in the installer
-#
 
 #
 # -a means all (installed) overlays
 #
 case $ONAME in
 -a)
-	cd ${DESTROOT}/${ODIR}/installed
+	cd ${INSTODIR}/installed
 	for novl in *
 	do
-	    ${ZAPLIBDIR}/update-overlay ${PKGARGS} ${SRCARGS} ${novl}
+	    ${ZAPLIBDIR}/update-overlay ${CTXARGS} ${PKGARGS} ${SRCARGS} ${novl}
 	done
 	exit 0
 	;;
@@ -66,13 +81,13 @@ esac
 # if not installed, just exit
 # if someone has messed with packages behind our back, they suffer
 #
-if [ ! -f ${DESTROOT}/${ODIR}/installed/${ONAME} ]; then
+if [ ! -f ${INSTODIR}/installed/${ONAME} ]; then
     exit 0
 fi
 
-PLIST="${ODIR}/${ONAME}.pkgs"
+PLIST="${CFGODIR}/${ONAME}.pkgs"
 if [ ! -f "${PLIST}" ]; then
-    echo "ERROR: package list missing"
+    echo "ERROR: package list for overlay ${ONAME} missing"
     exit 1
 fi
 
@@ -80,10 +95,10 @@ fi
 # install dependent overlays, if any
 # just in case the overlay dependencies changed
 #
-OVL="${ODIR}/${ONAME}.ovl"
+OVL="${CFGODIR}/${ONAME}.ovl"
 for novl in `/usr/bin/grep '^REQUIRES=' ${OVL} | /usr/bin/sed s:REQUIRES=::`
 do
-    ${ZAPLIBDIR}/install-overlay ${PKGARGS} ${SRCARGS} ${novl}
+    ${ZAPLIBDIR}/install-overlay ${CTXARGS} ${PKGARGS} ${SRCARGS} ${novl}
 done
 
-${ZAPLIBDIR}/update-package ${PKGARGS} ${SRCARGS} `cat ${PLIST}`
+${ZAPLIBDIR}/update-package ${CTXARGS} ${PKGARGS} ${SRCARGS} `cat ${PLIST}`

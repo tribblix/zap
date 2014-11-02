@@ -2,13 +2,26 @@
 
 ZAPLIBDIR="/usr/lib/zap"
 
-CACHE_DIR=`${ZAPLIBDIR}/zap-cfg cache-dir`
+case $1 in
+-C)
+	DESTROOT="$2"
+	CTXARGS="-C ${DESTROOT}"
+	shift
+	shift
+	if [ ! -d "$DESTROOT" ]; then
+	    echo "ERROR: alternate root $DESTROOT doesn't exist"
+	    exit 1
+	fi
+	;;
+esac
+
+CACHE_DIR=`${ZAPLIBDIR}/zap-cfg ${CTXARGS} cache-dir`
 
 for pkg in $*
 do
-    ${ZAPLIBDIR}/get-version $pkg | read fpkg frepo
+    ${ZAPLIBDIR}/get-version ${CTXARGS} $pkg | read fpkg frepo
     if [ -n "$frepo" ]; then
-	REPO=`${ZAPLIBDIR}/zap-cfg repo-url $frepo`
+	REPO=`${ZAPLIBDIR}/zap-cfg ${CTXARGS} repo-url $frepo`
 	echo "Trying to fetch ${REPO}/${fpkg}.zap"
 	/usr/bin/curl -f -s -o ${CACHE_DIR}/${fpkg}.zap ${REPO}/${fpkg}.zap
     fi

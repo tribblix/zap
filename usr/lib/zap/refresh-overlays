@@ -8,16 +8,35 @@ CFGDIR="/etc/zap"
 ODIR="/var/sadm/overlays"
 UPDATED="no"
 
+#
+# global context switch
+# will force all configuration to be relative to the alternate root
+#
+case $1 in
+-C)
+	ALTROOT="$2"
+	CTXARGS="-C ${ALTROOT}"
+	shift
+	shift
+	if [ ! -d "$ALTROOT" ]; then
+	    echo "ERROR: alternate root $ALTROOT doesn't exist"
+	    exit 1
+	fi
+	CFGDIR="${ALTROOT}/${CFGDIR}"
+	ODIR="${ALTROOT}/${ODIR}"
+	;;
+esac
+
 refresh_repo() {
     frepo="$1"
-    REPO=`${ZAPLIBDIR}/zap-cfg overlay-url $frepo`
+    REPO=`${ZAPLIBDIR}/zap-cfg ${CTXARGS} overlay-url $frepo`
     /usr/bin/curl -f -s -o ${CFGDIR}/repositories/${frepo}.overlays.tmp ${REPO}/catalog
     if [ -s ${CFGDIR}/repositories/${frepo}.overlays.tmp ]; then
 	mv ${CFGDIR}/repositories/${frepo}.overlays ${CFGDIR}/repositories/${frepo}.overlays.bak
 	mv ${CFGDIR}/repositories/${frepo}.overlays.tmp ${CFGDIR}/repositories/${frepo}.overlays
 	awk -F'|' '{print $1,$2}' ${CFGDIR}/repositories/${frepo}.overlays | while read novl nver
 	do
-	    iver=`${ZAPLIBDIR}/overlay-version $novl`
+	    iver=`${ZAPLIBDIR}/overlay-version ${CTXARGS} $novl`
 	    if [ "X${nver}" != "X${iver}" ]; then
 		/usr/bin/curl -f -s -o ${ODIR}/${novl}.ovl.tmp ${REPO}/${novl}.ovl
 		/usr/bin/curl -f -s -o ${ODIR}/${novl}.pkgs.tmp ${REPO}/${novl}.pkgs
@@ -35,7 +54,7 @@ refresh_repo() {
 
 case $# in
 0)
-	for repo in `${ZAPLIBDIR}/zap-cfg list-overlay-repos`
+	for repo in `${ZAPLIBDIR}/zap-cfg ${CTXARGS} list-overlay-repos`
 	do
 	    refresh_repo $repo
 	done
@@ -52,5 +71,5 @@ esac
 # if anything changed, refresh the catalog as well
 #
 if [ "X${UPDATED}" != "Xno" ]; then
-    ${ZAPLIBDIR}/refresh-catalog
+    ${ZAPLIBDIR}/refresh-catalog ${CTXARGS}
 fi

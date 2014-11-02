@@ -7,6 +7,20 @@ NINSTALLED=0
 NFAILED=0
 
 case $1 in
+-C)
+	DESTROOT="$2"
+	PKGARGS="-R ${DESTROOT}"
+	CTXARGS="-C ${DESTROOT}"
+	shift
+	shift
+	if [ ! -d "$DESTROOT" ]; then
+	    echo "ERROR: alternate root $DESTROOT doesn't exist"
+	    exit 1
+	fi
+	;;
+esac
+
+case $1 in
 -R)
 	DESTROOT="$2"
 	PKGARGS="-R ${DESTROOT}"
@@ -19,7 +33,7 @@ case $1 in
 	;;
 esac
 
-SRCLIST=`${ZAPLIBDIR}/zap-cfg cache-dir`
+SRCLIST=`${ZAPLIBDIR}/zap-cfg ${CTXARGS} cache-dir`
 
 #
 # prepend the given source to the list, so it gets searched first
@@ -59,7 +73,7 @@ do
   FOUNDPKG=$?
   if [ $FOUNDPKG -ne 0 ]; then
     ISINST="false"
-    fpkg=`${ZAPLIBDIR}/get-version $pkg | /usr/bin/awk '{print $1}'`
+    fpkg=`${ZAPLIBDIR}/get-version ${CTXARGS} $pkg | /usr/bin/awk '{print $1}'`
     for SRCDIR in $SRCLIST
     do
 	if [ -f ${SRCDIR}/${fpkg}.zap ]; then
@@ -72,7 +86,7 @@ do
     done
     # download if we don't have it yet
     if [ "$ISINST" = "false" ]; then
-	${ZAPLIBDIR}/retrieve-pkg ${pkg}
+	${ZAPLIBDIR}/retrieve-pkg ${CTXARGS} ${pkg}
     fi
   fi
 done
@@ -88,7 +102,7 @@ do
     echo "Package $pkg already installed"
   else
     ISINST="false"
-    fpkg=`${ZAPLIBDIR}/get-version $pkg | /usr/bin/awk '{print $1}'`
+    fpkg=`${ZAPLIBDIR}/get-version ${CTXARGS} $pkg | /usr/bin/awk '{print $1}'`
     for SRCDIR in $SRCLIST
     do
 	if [ -f ${SRCDIR}/${fpkg}.zap ]; then

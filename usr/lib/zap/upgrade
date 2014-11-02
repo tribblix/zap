@@ -1,0 +1,178 @@
+#!/bin/sh
+#
+# upgrade to a new version of Tribblix
+#
+
+ZAPLIBDIR="/usr/lib/zap"
+CFGDIR="/etc/zap"
+BEADM="/sbin/beadm"
+DOIT=""
+FRESHEN="false"
+ACTIVATE="false"
+
+#
+# The general strategy here is:
+#  beadm create newver
+#  beadm mount newver /a
+#  update zap on the new be
+#  (in the new context) zap update-overlay -a
+#  beadm activate newver
+#  init 6
+#
+
+#
+# The package TRIBzap-upgrade supplies the files
+#  /etc/zap/version.list
+#  /etc/zap/version.current
+#
+
+VLISTFILE="${CFGDIR}/version.list"
+VINSTFILE="${CFGDIR}/version.current"
+
+if [ ! -f "${VLISTFILE}" ]; then
+   echo "ERROR: upgrade capability not present"
+   exit 1
+fi
+if [ ! -f "${VINSTFILE}" ]; then
+   echo "ERROR: upgrade capability not present"
+   exit 1
+fi
+if [ ! -f "${BEADM}" ]; then
+   echo "ERROR: upgrade capability not present, beadm missing"
+   exit 1
+fi
+
+show_available() {
+  INSTVER=`cat $VINSTFILE`
+  awk -F'|' '{print $1,$2,$3}' $VLISTFILE | while read nver nurl ntext
+  do
+    if [ "X$nver" = "X$INSTVER" ]; then
+      echo "${nver}: (current)"
+    else
+      echo "${nver}: $ntext"
+    fi
+  done
+}
+
+validate() {
+  INSTVER=`cat $VINSTFILE`
+  awk -F'|' '{print $1,$2}' $VLISTFILE | while read nver nurl
+  do
+    if [ "X$1" = "X$INSTVER" ]; then
+      echo "ERROR: $1 is the current version"
+      exit 1
+    elif [ "X$nver" = "X$1" ]; then
+      echo "$nurl"
+      return
+    fi
+  done
+  echo "ERROR: unrecognized version $1"
+  exit 1
+}
+
+bail() {
+  echo $1
+  exit 1
+}
+
+case $# in
+0)
+  echo "Usage: zap upgrade [-n] [-F] [-B] new_version | list | current"
+  exit 1
+  ;;
+esac
+
+case $1 in
+'list')
+  show_available
+  exit 0
+  ;;
+'current')
+  cat $VINSTFILE
+  exit 0
+  ;;
+esac
+
+while getopts "nFB" opt; do
+case $opt in
+n)
+  DOIT="echo"
+  ;;
+F)
+  FRESHEN="true"
+  ;;
+B)
+  ACTIVATE="true"
+  ;;
+esac
+done
+shift $((OPTIND - 1))
+
+#
+# Beyond here is an upgrade, either real or dry-run
+#
+echo $*
+NEWVER="$1"
+
+#
+# validate the requested version, and get the corresponding URL
+#
+NEWURL=$(validate $NEWVER) || bail "$NEWURL"
+
+#
+# find a BE name that is unused
+#
+BENAME="$NEWVER"
+$BEADM list $BENAME > /dev/null 2>&1
+BESTATUS=$?
+BENUM=0
+while [ $BESTATUS -eq 0 ]
+do
+  BENUM=$(($BENUM+1))
+  BENAME="${NEWVER}-${BENUM}"
+  $BEADM list $BENAME > /dev/null 2>&1
+  BESTATUS=$?
+done
+
+echo New BE will be called $BENAME
+echo And will be driven from $NEWURL
+
+NPKG=${NEWURL##*/}
+CACHE_DIR=`${ZAPLIBDIR}/zap-cfg cache-dir`
+$DOIT /usr/bin/curl -f -s -o ${CACHE_DIR}/${NPKG} $NEWURL
+$DOIT $BEADM create $BENAME
+ALTROOT="/a"
+BENUM=0
+while [ -d $ALTROOT ]
+do
+  BENUM=$(($BENUM+1))
+  ALTROOT="/a.${BENUM}"
+done
+
+$DOIT mkdir $ALTROOT
+$DOIT $BEADM mount $BENAME $ALTROOT
+$DOIT zap uninstall -R $ALTROOT TRIBzap
+$DOIT ${ZAPLIBDIR}/install-pkg -R $ALTROOT ${CACHE_DIR}/${NPKG} TRIBzap
+# refresh is optional
+if [ "X${FRESHEN}" = "Xtrue" ]; then
+  $DOIT /usr/bin/zap -C ${ALTROOT} refresh-overlays
+fi
+$DOIT /usr/bin/zap -C ${ALTROOT} update-overlay -a
+# FIXME and any isolated packages?
+# FIXME validate
+$DOIT $BEADM unmount $BENAME
+$DOIT rmdir $ALTROOT
+# activation is optional
+if [ "X${ACTIVATE}" = "Xtrue" ]; then
+  $DOIT $BEADM activate $BENAME
+  $DOIT init 6
+else
+  echo "Upgrade complete"
+  echo ""
+  echo "====================================================="
+  echo "|| To switch to the newly upgraded version, issue  ||"
+  echo "|| the following commands:                         ||"
+  printf "||   beadm activate %-31s||\n" $BENAME
+  echo "||   init 6                                        ||"
+  echo "====================================================="
+fi

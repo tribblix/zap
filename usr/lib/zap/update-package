@@ -12,7 +12,22 @@
 # always show as needing update, so updates are explicitly disabled for oi
 #
 ZAPLIBDIR="/usr/lib/zap"
-CACHE_DIR=`${ZAPLIBDIR}/zap-cfg cache-dir`
+
+case $1 in
+-C)
+	DESTROOT="$2"
+	PKGARGS="-R ${DESTROOT}"
+	CTXARGS="-C ${DESTROOT}"
+	shift
+	shift
+	if [ ! -d "$DESTROOT" ]; then
+	    echo "ERROR: alternate root $DESTROOT doesn't exist"
+	    exit 1
+	fi
+	;;
+esac
+
+CACHE_DIR=`${ZAPLIBDIR}/zap-cfg ${CTXARGS} cache-dir`
 
 case $1 in
 -R)
@@ -44,7 +59,7 @@ esac
 for pkg in $*
 do
     IVERSION=`${ZAPLIBDIR}/pkgversion ${PKGARGS} $pkg`
-    AFVERSION=`${ZAPLIBDIR}/get-version $pkg`
+    AFVERSION=`${ZAPLIBDIR}/get-version ${CTXARGS} $pkg`
     AVERSION=${AFVERSION% *}
     AREPO=${AFVERSION#* }
     RVERSION=${AVERSION#*.}
@@ -54,11 +69,11 @@ do
 	else
 	    echo "Package $pkg is at version $IVERSION and needs updating to $AVERSION"
 	    if [ ! -f ${CACHE_DIR}/${AVERSION}.zap ]; then
-		${ZAPLIBDIR}/retrieve-pkg ${pkg}
+		${ZAPLIBDIR}/retrieve-pkg ${CTXARGS} ${pkg}
 	    fi
 	    if [ -f ${CACHE_DIR}/${AVERSION}.zap ]; then
 		${ZAPLIBDIR}/delpkg ${PKGARGS} $pkg
-		${ZAPLIBDIR}/install-pkg ${PKGARGS} ${SRCARGS} $pkg
+		${ZAPLIBDIR}/install-pkg ${CTXARGS} ${PKGARGS} ${SRCARGS} $pkg
 	    fi
 	    NVERSION=`${ZAPLIBDIR}/pkgversion ${PKGARGS} $pkg`
 	    if [ "X${NVERSION}" = "X${RVERSION}" ]; then

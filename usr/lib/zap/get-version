@@ -4,6 +4,20 @@
 CFGDIR="/etc/zap"
 ZAPLIBDIR="/usr/lib/zap"
 
+case $1 in
+-C)
+	DESTROOT="$2"
+	CTXARGS="-C ${DESTROOT}"
+	shift
+	shift
+	if [ ! -d "$DESTROOT" ]; then
+	    echo "ERROR: alternate root $DESTROOT doesn't exist"
+	    exit 1
+	fi
+	CFGDIR="${DESTROOT}/${CFGDIR}"
+	;;
+esac
+
 case $# in
 1)
 	PKG="$1"
@@ -17,7 +31,7 @@ esac
 # given an unqualified package, return a qualified package and the name
 # of the repo it's contained in
 #
-for repo in `${ZAPLIBDIR}/zap-cfg list-pkg-repos`
+for repo in `${ZAPLIBDIR}/zap-cfg ${CTXARGS} list-pkg-repos`
 do
     if [ -f ${CFGDIR}/repositories/${repo}.catalog ]; then
 	FPKG=`/usr/bin/nawk -F'|' '{if ($1 == npkg) print $1"."$2}' npkg=${PKG} ${CFGDIR}/repositories/${repo}.catalog`
