@@ -74,7 +74,7 @@ list-overlays)
 	shift
 	exec ${ZAPLIBDIR}/list-overlays $*
 	;;
-refresh-overlays)
+refresh|refresh-overlays)
 	shift
 	exec ${ZAPLIBDIR}/refresh-overlays ${CTXARGS} $*
 	;;

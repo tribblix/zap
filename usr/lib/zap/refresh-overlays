@@ -6,7 +6,6 @@
 ZAPLIBDIR="/usr/lib/zap"
 CFGDIR="/etc/zap"
 ODIR="/var/sadm/overlays"
-UPDATED="no"
 
 #
 # global context switch
@@ -41,7 +40,6 @@ refresh_repo() {
 		/usr/bin/curl -f -s -o ${ODIR}/${novl}.ovl.tmp ${REPO}/${novl}.ovl
 		/usr/bin/curl -f -s -o ${ODIR}/${novl}.pkgs.tmp ${REPO}/${novl}.pkgs
 		if [ -s ${ODIR}/${novl}.ovl.tmp -a -s ${ODIR}/${novl}.pkgs.tmp ]; then
-		    UPDATED="yes"
 		    mv ${ODIR}/${novl}.ovl ${ODIR}/${novl}.ovl.bak
 		    mv ${ODIR}/${novl}.ovl.tmp ${ODIR}/${novl}.ovl
 		    mv ${ODIR}/${novl}.pkgs ${ODIR}/${novl}.pkgs.bak
@@ -68,8 +66,6 @@ case $# in
 esac
 
 #
-# if anything changed, refresh the catalog as well
+# refresh the catalog as well
 #
-if [ "X${UPDATED}" != "Xno" ]; then
-    ${ZAPLIBDIR}/refresh-catalog ${CTXARGS}
-fi
+${ZAPLIBDIR}/refresh-catalog ${CTXARGS}

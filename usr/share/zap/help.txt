@@ -66,19 +66,12 @@ list-overlays [-R dir]
 search [-R dir] [-a] search_term
 
   This subcommand searches for overlays and packages matching the given
-  term. With the -a argument, continues to show all matches.
+  search term. With the -a argument, continues to show all matches.
 
-refresh-overlays [repo ...]
+refresh
 
-  This subcommand refreshes the list of overlays and their contents for
-  the repositories. With arguments, only refreshes the overlays from the
-  specified overlay repository, otherwise refreshes all overlays.
-
-refresh-catalog [repo ...]
-
-  This subcommand refreshes the package catalog. With arguments, only
-  refreshes the catalog from the specified repository, otherwise
-  refreshes the catalogs for all repositories.
+  This subcommand refreshes the list of overlays, their contents, and
+  the package catalog.
 
 create-zone [args]
 
