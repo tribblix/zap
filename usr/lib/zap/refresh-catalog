@@ -32,6 +32,11 @@ refresh_repo() {
 	mv ${CFGDIR}/repositories/${frepo}.catalog ${CFGDIR}/repositories/${frepo}.catalog.bak
 	mv ${CFGDIR}/repositories/${frepo}.catalog.tmp ${CFGDIR}/repositories/${frepo}.catalog
     fi
+    /usr/bin/curl -f -s -o ${CFGDIR}/repositories/${frepo}.aliases.tmp ${REPO}/aliases
+    if [ -s ${CFGDIR}/repositories/${frepo}.aliases.tmp ]; then
+	mv ${CFGDIR}/repositories/${frepo}.aliases ${CFGDIR}/repositories/${frepo}.aliases.bak
+	mv ${CFGDIR}/repositories/${frepo}.aliases.tmp ${CFGDIR}/repositories/${frepo}.aliases
+    fi
 }
 
 case $# in

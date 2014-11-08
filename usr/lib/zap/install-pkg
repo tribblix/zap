@@ -67,8 +67,9 @@ esac
 #
 # first look for and download any packages we need
 #
-for pkg in $*
+for inpkg in $*
 do
+  pkg=`${ZAPLIBDIR}/resolve-alias ${CTXARGS} $inpkg`
   /usr/bin/pkginfo ${PKGARGS} -q ${pkg}
   FOUNDPKG=$?
   if [ $FOUNDPKG -ne 0 ]; then
@@ -94,8 +95,9 @@ done
 #
 # now we're in the installer
 #
-for pkg in $*
+for inpkg in $*
 do
+  pkg=`${ZAPLIBDIR}/resolve-alias ${CTXARGS} $inpkg`
   /usr/bin/pkginfo ${PKGARGS} -q ${pkg}
   FOUNDPKG=$?
   if [ $FOUNDPKG -eq 0 ]; then
