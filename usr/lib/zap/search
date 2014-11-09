@@ -37,16 +37,22 @@ case $# in
 esac
 
 #
-# simplistic search, essentially grep
+# simplistic search, start with exact matches on overlays
 #
-
 if [ -f ${DESTROOT}/var/sadm/overlays/${PKG}.ovl ]; then
     echo "Found a matching overlay"
     ${ZAPLIBDIR}/describe-overlay ${PKGARGS} ${PKG}
     $EXIT
 fi
 
-# FIXME: search aliases here
+#
+# try and resolve the term to a package alias
+#
+npkg=`${ZAPLIBDIR}/resolve-alias $PKG`
+if [ "X${PKG}" != "X${npkg}" ]; then
+    echo "Matched package $npkg"
+    PKG="$npkg"
+fi
 
 #
 # look for packages in overlays
