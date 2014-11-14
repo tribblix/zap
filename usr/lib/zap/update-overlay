@@ -3,7 +3,7 @@
 ONAME=""
 ZAPLIBDIR="/usr/lib/zap"
 ODIR="/var/sadm/overlays"
-INSTODIR="S{ODIR}"
+INSTODIR="${ODIR}"
 CFGODIR="${ODIR}"
 PKGARGS=""
 DESTROOT=""
