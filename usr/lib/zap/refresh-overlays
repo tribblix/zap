@@ -40,9 +40,13 @@ refresh_repo() {
 		/usr/bin/curl -f -s -o ${ODIR}/${novl}.ovl.tmp ${REPO}/${novl}.ovl
 		/usr/bin/curl -f -s -o ${ODIR}/${novl}.pkgs.tmp ${REPO}/${novl}.pkgs
 		if [ -s ${ODIR}/${novl}.ovl.tmp -a -s ${ODIR}/${novl}.pkgs.tmp ]; then
-		    mv ${ODIR}/${novl}.ovl ${ODIR}/${novl}.ovl.bak
+		    if [ -f ${ODIR}/${novl}.ovl ]; then
+			mv ${ODIR}/${novl}.ovl ${ODIR}/${novl}.ovl.bak
+		    fi
 		    mv ${ODIR}/${novl}.ovl.tmp ${ODIR}/${novl}.ovl
-		    mv ${ODIR}/${novl}.pkgs ${ODIR}/${novl}.pkgs.bak
+		    if [ -f ${ODIR}/${novl}.pkgs ]; then
+			mv ${ODIR}/${novl}.pkgs ${ODIR}/${novl}.pkgs.bak
+		    fi
 		    mv ${ODIR}/${novl}.pkgs.tmp ${ODIR}/${novl}.pkgs
 		fi
 	    fi
