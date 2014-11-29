@@ -33,7 +33,7 @@ refresh_repo() {
     if [ -s ${CFGDIR}/repositories/${frepo}.overlays.tmp ]; then
 	mv ${CFGDIR}/repositories/${frepo}.overlays ${CFGDIR}/repositories/${frepo}.overlays.bak
 	mv ${CFGDIR}/repositories/${frepo}.overlays.tmp ${CFGDIR}/repositories/${frepo}.overlays
-	awk -F'|' '{print $1,$2}' ${CFGDIR}/repositories/${frepo}.overlays | while read novl nver
+	/usr/bin/awk -F'|' '{print $1,$2}' ${CFGDIR}/repositories/${frepo}.overlays | while read novl nver
 	do
 	    iver=`${ZAPLIBDIR}/overlay-version ${CTXARGS} $novl`
 	    if [ "X${nver}" != "X${iver}" ]; then

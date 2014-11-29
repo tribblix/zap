@@ -44,7 +44,7 @@ fi
 
 show_available() {
   INSTVER=`cat $VINSTFILE`
-  awk -F'|' '{print $1,$2,$3}' $VLISTFILE | while read nver nurl ntext
+  /usr/bin/awk -F'|' '{print $1,$2,$3}' $VLISTFILE | while read nver nurl ntext
   do
     if [ "X$nver" = "X$INSTVER" ]; then
       echo "${nver}: (current)"
@@ -56,7 +56,7 @@ show_available() {
 
 validate() {
   INSTVER=`cat $VINSTFILE`
-  awk -F'|' '{print $1,$2}' $VLISTFILE | while read nver nurl
+  /usr/bin/awk -F'|' '{print $1,$2}' $VLISTFILE | while read nver nurl
   do
     if [ "X$1" = "X$INSTVER" ]; then
       echo "ERROR: $1 is the current version"

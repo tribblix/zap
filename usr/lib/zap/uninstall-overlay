@@ -81,11 +81,11 @@ fi
 # we want to know all the installed overlays
 #
 cd ${DESTROOT}/${ODIR}/installed
-NPKGLIST=`ls -1| awk '{print $1".pkgs"}'`
+NPKGLIST=`ls -1| /usr/bin/awk '{print $1".pkgs"}'`
 cd ${DESTROOT}/${ODIR}
 for pkg in `rev -l ${PLIST}`
 do
-NFOUND=`grep "^${pkg}\$" $NPKGLIST|wc -l|awk '{print $1}'`
+NFOUND=`/usr/bin/grep "^${pkg}\$" $NPKGLIST|wc -l|/usr/bin/awk '{print $1}'`
 # if we find it once then it's only in the overlay we're removing
 # else it's also in other overlays and we must retain it
 case $NFOUND in
@@ -104,7 +104,7 @@ done
 #
 # - this generates a lists of dependencies where the package is either
 #   a dependent or a dependency
-#/usr/bin/grep '^P' /var/sadm/pkg/*/install/depend | awk -F/ '{print $5,$NF}' | awk '{print $1,$3}' | /usr/bin/gfgrep -w -f ${DESTROOT}/${ODIR}/${ONAME}.pkgs
+#/usr/bin/grep '^P' /var/sadm/pkg/*/install/depend | /usr/bin/awk -F/ '{print $5,$NF}' | /usr/bin/awk '{print $1,$3}' | /usr/bin/gfgrep -w -f ${DESTROOT}/${ODIR}/${ONAME}.pkgs
 # - we would remove all our packages from the first column
 # - whatever is left in the 2nd column can't be removed
 #

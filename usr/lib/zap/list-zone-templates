@@ -10,9 +10,9 @@ for TFILE in /etc/zones/TRIBtemplate-*.xml
 do
   TNAME=${TFILE#*-}
   TNAME=${TNAME%.xml}
-  UDIR=`grep 'directory=\"/usr\"' ${TFILE} | awk '{print $2}' | awk -F= '{print $2}' | sed 's:"::g'`
+  UDIR=`/usr/bin/grep 'directory=\"/usr\"' ${TFILE} | /usr/bin/awk '{print $2}' | /usr/bin/awk -F= '{print $2}' | sed 's:"::g'`
   UROOT=${UDIR%/usr}
-  ZLIST=`grep 'special=\"'${UDIR}'\"' /etc/zones/*.xml | grep -v '^'$TFILE| awk -F: '{print $1}'`
+  ZLIST=`/usr/bin/grep 'special=\"'${UDIR}'\"' /etc/zones/*.xml | /usr/bin/grep -v '^'$TFILE| /usr/bin/awk -F: '{print $1}'`
   echo "Template: $TNAME"
   echo "  Root: $UDIR"
   echo "  Zones: "

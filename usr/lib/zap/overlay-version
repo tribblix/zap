@@ -31,7 +31,7 @@ case $# in
 esac
 
 if [ -f ${ALTROOT}/var/sadm/overlays/${oname}.ovl ]; then
-    grep '^VERSION=' ${ALTROOT}/var/sadm/overlays/${oname}.ovl | sed 's:VERSION=::'
+    /usr/bin/grep '^VERSION=' ${ALTROOT}/var/sadm/overlays/${oname}.ovl | sed 's:VERSION=::'
     exit 0
 else
     echo "Error: unable to find overlay $oname"

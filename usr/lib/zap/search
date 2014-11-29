@@ -57,7 +57,7 @@ fi
 #
 # look for packages in overlays
 #
-grep $PKG ${DESTROOT}/var/sadm/overlays/*.pkgs | while read match
+/usr/bin/grep $PKG ${DESTROOT}/var/sadm/overlays/*.pkgs | while read match
 do
 	OVL=${match%%:*}
 	OVL=${OVL##*/}

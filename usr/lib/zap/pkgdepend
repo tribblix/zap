@@ -18,7 +18,7 @@ case $pkgname in
 *.zap)
 	if [ -f ${pkgname} ]; then
 	   thispkg=${pkgname##*/}
-	   zipgrep '^P' ${pkgname} ${thispkg%%.*}/install/depend 2>/dev/null | awk '{print $2}'
+	   zipgrep '^P' ${pkgname} ${thispkg%%.*}/install/depend 2>/dev/null | /usr/bin/awk '{print $2}'
 	   exit 0
 	else
 	   exit 1
@@ -26,7 +26,7 @@ case $pkgname in
 	;;
 *)
 	if [ -f /var/sadm/pkg/${pkgname}/install/depend ]; then
-	   grep '^P' /var/sadm/pkg/${pkgname}/install/depend | awk '{print $2}'
+	   /usr/bin/grep '^P' /var/sadm/pkg/${pkgname}/install/depend | /usr/bin/awk '{print $2}'
 	   exit 0
 	fi
 	;;

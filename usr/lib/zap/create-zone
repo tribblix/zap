@@ -136,12 +136,12 @@ fi
 if [[ -n $ZUSERS ]]; then
     for TUSER in $ZUSERS
     do
-	chk=`grep "^${TUSER}:" /etc/passwd`
+	chk=`/usr/bin/grep "^${TUSER}:" /etc/passwd`
 	if [ -z "${chk}" ]; then
 	    echo "ERROR: user $TUSER doesn't exist, cannot share"
 	    exit 1
 	fi
-	DIR=`grep "^${TUSER}:" /etc/passwd | awk -F: '{print $6}'`
+	DIR=`/usr/bin/grep "^${TUSER}:" /etc/passwd | /usr/bin/awk -F: '{print $6}'`
 	if [ -z "${DIR}" ]; then
 	    echo "ERROR: home for user $TUSER doesn't exist, cannot share"
 	    exit 1
@@ -165,7 +165,7 @@ if [[ -n $ZTEMPLATE ]]; then
 	echo "ERROR: no such template ${ZTEMPLATE}"
 	exit 1
     fi
-    UDIR=`grep 'directory=\"/usr\"' /etc/zones/${ZBRAND}.xml | awk '{print $2}' | awk -F= '{print $2}' | sed 's:"::g'`
+    UDIR=`/usr/bin/grep 'directory=\"/usr\"' /etc/zones/${ZBRAND}.xml | /usr/bin/awk '{print $2}' | /usr/bin/awk -F= '{print $2}' | sed 's:"::g'`
     if [ ! -d ${UDIR} ]; then
 	echo "ERROR: unable to find file systems for template ${ZTEMPLATE}"
 	exit 1
@@ -206,8 +206,8 @@ echo set autoboot=true
 echo set zonepath=${ZROOTBASE}/${ZNAME}
 for IP in $ZIP4
 do
-	ZIFACE=`/usr/sbin/route -n get $IP | grep interface: | awk '{print $NF}'`
-	ZMASK=`/usr/sbin/route -n get $IP | grep mask: | awk '{print $NF}'`
+	ZIFACE=`/usr/sbin/route -n get $IP | /usr/bin/grep interface: | /usr/bin/awk '{print $NF}'`
+	ZMASK=`/usr/sbin/route -n get $IP | /usr/bin/grep mask: | /usr/bin/awk '{print $NF}'`
 	ZCIDR=`get_mask $ZMASK`
 	echo add net
 	echo set physical=$ZIFACE
@@ -226,7 +226,7 @@ done
 for TUSER in $ZUSERS
 do
 	echo add fs
-	DIR=`grep "^${TUSER}:" /etc/passwd | awk -F: '{print $6}'`
+	DIR=`/usr/bin/grep "^${TUSER}:" /etc/passwd | /usr/bin/awk -F: '{print $6}'`
 	echo set dir=${DIR}
 	echo set special=${DIR}
 	echo set type=lofs
@@ -256,7 +256,7 @@ done
 #
 if [[ -n ${ZDIRS} ]]; then
    ZPARENT=`dirname ${ZFSBASE}`
-   ZDPARENT=`/usr/sbin/zfs list -H ${ZPARENT} | awk '{print $1}'`
+   ZDPARENT=`/usr/sbin/zfs list -H ${ZPARENT} | /usr/bin/awk '{print $1}'`
    ZREALNAME=`echo $ZFSBASE | sed s:${ZPARENT}:${ZDPARENT}:`
    if [[ ! -d ${ZFSBASE} ]]; then
       /usr/sbin/zfs create ${ZREALNAME}
@@ -267,7 +267,7 @@ if [[ -n ${ZDIRS} ]]; then
 fi
 if [[ ! -d ${ZROOTBASE} ]]; then
    ZPARENT=`dirname ${ZROOTBASE}`
-   ZDPARENT=`/usr/sbin/zfs list -H ${ZPARENT} | awk '{print $1}'`
+   ZDPARENT=`/usr/sbin/zfs list -H ${ZPARENT} | /usr/bin/awk '{print $1}'`
    ZREALNAME=`echo $ZROOTBASE | sed s:${ZPARENT}:${ZDPARENT}:`
    /usr/sbin/zfs create ${ZREALNAME}
 fi
@@ -285,8 +285,8 @@ create_configuration > ${ZCFGFILE}
 #
 for TUSER in $ZUSERS
 do
-    grep "^${TUSER}:" /etc/passwd >> ${ZROOTBASE}/${ZNAME}/root/etc/passwd
-    grep "^${TUSER}:" /etc/shadow >> ${ZROOTBASE}/${ZNAME}/root/etc/shadow
+    /usr/bin/grep "^${TUSER}:" /etc/passwd >> ${ZROOTBASE}/${ZNAME}/root/etc/passwd
+    /usr/bin/grep "^${TUSER}:" /etc/shadow >> ${ZROOTBASE}/${ZNAME}/root/etc/shadow
     echo "${TUSER}::::roles=root" >> ${ZROOTBASE}/${ZNAME}/root/etc/user_attr
 done
 

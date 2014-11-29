@@ -1,0 +1,44 @@
+#!/bin/sh
+#
+# sync modified files from the current BE to a new BE
+#
+
+ZAPLIBDIR="/usr/lib/zap"
+ZAPLIBDIR="/packages/localsrc/Tribblix/zap/usr/lib/zap"
+SRCROOT=""
+DESTROOT=""
+
+case $1 in
+-C)
+	DESTROOT="$2"
+	if [ ! -d "$DESTROOT" ]; then
+	    echo "ERROR: alternate root $DESTROOT doesn't exist"
+	    exit 1
+	fi
+	;;
+esac
+
+if [ "X${DESTROOT}" = "X${SRCROOT}" ]; then
+	echo "ERROR: source and destination should be different"
+	exit 1
+fi
+
+#
+# preserve-list gives a list of files that differ
+# it's here that we act on that list, ignoring specific files
+# that we know are regenerated correctly in the new BE
+#
+${ZAPLIBDIR}/preserve-list | while read file fpkg
+do
+	if [ -d ${file}.d ]; then
+	    echo "self assembly for $file"
+	    continue
+	fi
+case $file in
+/etc/mnttab|/etc/name_to_major|/etc/name_to_sysnum|/etc/minor_perm)
+	echo "Skipping $file"
+	continue
+	;;
+esac
+	echo "Preserving $file"
+done
