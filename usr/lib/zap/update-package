@@ -63,7 +63,7 @@ do
     AVERSION=${AFVERSION% *}
     AREPO=${AFVERSION#* }
     RVERSION=${AVERSION#*.}
-    if [ "$AREPO" != "oi" ]; then
+    if [ "$AREPO" != "oi" && "$AREPO" != "opensxce" ]; then
 	if [ "X${pkg}.${IVERSION}" = "X${AVERSION}" ]; then
 	    echo "Package $pkg is already at version $IVERSION"
 	else
