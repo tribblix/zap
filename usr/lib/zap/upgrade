@@ -6,8 +6,8 @@
 ZAPLIBDIR="/usr/lib/zap"
 CFGDIR="/etc/zap"
 BEADM="/sbin/beadm"
+ZFSCMD="/usr/sbin/zfs"
 DOIT=""
-FRESHEN="false"
 ACTIVATE="false"
 
 #
@@ -77,7 +77,7 @@ bail() {
 
 case $# in
 0)
-  echo "Usage: zap upgrade [-n] [-F] [-B] new_version | list | current"
+  echo "Usage: zap upgrade [-n] [-B] new_version | list | current"
   exit 1
   ;;
 esac
@@ -93,13 +93,10 @@ case $1 in
   ;;
 esac
 
-while getopts "nFB" opt; do
+while getopts "nB" opt; do
 case $opt in
 n)
   DOIT="echo"
-  ;;
-F)
-  FRESHEN="true"
   ;;
 B)
   ACTIVATE="true"
@@ -120,6 +117,16 @@ NEWVER="$1"
 NEWURL=$(validate $NEWVER) || bail "$NEWURL"
 
 #
+# find the current BE and matching FS dataset
+#
+OLDBE=`$BEADM list -H | awk -F\; '{if ($3=="NR") print $1}'`
+OLDDS=`$BEADM list -Ha | awk -F\; '{if ($3=="NR") print $2}'`
+if [ -z "$OLDBE" ]; then
+    echo "ERROR: Unable to find current BE name"
+    exit 1
+fi
+
+#
 # find a BE name that is unused
 #
 BENAME="$NEWVER"
@@ -133,8 +140,13 @@ do
   $BEADM list $BENAME > /dev/null 2>&1
   BESTATUS=$?
 done
+#
+# and the ZFS dataset it corresponds to
+#
+NEWDS=`$BEADM list -Ha $BENAME | awk -F\; '{if ($3=="NR") print $2}'`
 
 echo New BE will be called $BENAME
+echo Backed by dataset $NEWDS
 echo And will be driven from $NEWURL
 
 NPKG=${NEWURL##*/}
@@ -149,25 +161,72 @@ do
   ALTROOT="/a.${BENUM}"
 done
 
+#
+# update zap in the new BE
+#
 $DOIT mkdir $ALTROOT
 $DOIT $BEADM mount $BENAME $ALTROOT
 $DOIT zap uninstall -R $ALTROOT TRIBzap
 $DOIT ${ZAPLIBDIR}/install-pkg -R $ALTROOT ${CACHE_DIR}/${NPKG} TRIBzap
-# refresh is optional
-if [ "X${FRESHEN}" = "Xtrue" ]; then
-  $DOIT /usr/bin/zap -C ${ALTROOT} refresh-overlays
-fi
+#
+# must refresh the overlays and catalog, as contents and dependencies
+# may have changed
+#
+$DOIT /usr/bin/zap -C ${ALTROOT} refresh-overlays
+#
+# first we must update SUNWcsd
+#
+$DOIT /usr/bin/zap -C ${ALTROOT} update-package SUNWcsd
+#
+# replace the critical state files from the running system
+# the assumption here is that SUNWcsd installs blank files
+#
+/usr/bin/cp -p /etc/devlink.tab ${ALTROOT}/etc/devlink.tab
+/usr/bin/cp -p /etc/driver_classes ${ALTROOT}/etc/driver_classes
+/usr/bin/cp -p /etc/driver_aliases ${ALTROOT}/etc/driver_aliases
+/usr/bin/cp -p /etc/iu.ap ${ALTROOT}/etc/iu.ap
+/usr/bin/cp -p /etc/minor_perm ${ALTROOT}/etc/minor_perm
+/usr/bin/cp -p /etc/name_to_major ${ALTROOT}/etc/name_to_major
+/usr/bin/cp -p /etc/path_to_inst ${ALTROOT}/etc/path_to_inst
+/usr/bin/cp -p /etc/security/device_policy ${ALTROOT}/etc/security/device_policy
+/usr/bin/cp -p /etc/security/extra_privs ${ALTROOT}/etc/security/extra_privs
+#
+# now update the remaining overlays
+#
 $DOIT /usr/bin/zap -C ${ALTROOT} update-overlay -a
+#
+# shut down pkgserv otherwise the BE cannot be unmounted
+#
+$DOIT /usr/bin/pkgadm sync -R ${ALTROOT} -q
+#
+# refresh common administratively modified files
+#
+$DOIT /usr/bin/cp -p /etc/passwd ${ALTROOT}/etc/passwd
+$DOIT /usr/bin/cp -p /etc/shadow ${ALTROOT}/etc/shadow
+$DOIT /usr/bin/cp -p /etc/group ${ALTROOT}/etc/group
+$DOIT /usr/bin/cp -p /etc/nsswitch.conf ${ALTROOT}/etc/nsswitch.conf
+$DOIT /usr/bin/cp -p /etc/user_attr ${ALTROOT}/etc/user_attr
+$DOIT /usr/bin/cp -p /etc/resolv.conf ${ALTROOT}/etc/resolv.conf
+grep /swap /etc/vfstab >> ${ALTROOT}/etc/vfstab
 # FIXME and any isolated packages?
+# FIXME remove obsoleted packages
 # FIXME validate
 $DOIT $BEADM unmount $BENAME
 $DOIT rmdir $ALTROOT
 # activation is optional
+# observation indicates that beadm leaves the old dataset
+# mountable on /, which the system tries to do at boot, which
+# fails then causing the boot to fail, so override that
+echo "Upgrade complete"
 if [ "X${ACTIVATE}" = "Xtrue" ]; then
+  echo "Activating new BE"
   $DOIT $BEADM activate $BENAME
+  $DOIT $ZFSCMD set canmount=noauto $OLDDS
+  $DOIT $ZFSCMD set canmount=on $NEWDS
+  $DOIT $ZFSCMD set mountpoint=none $OLDDS
+  $DOIT $ZFSCMD set mountpoint=/ $NEWDS
   $DOIT init 6
 else
-  echo "Upgrade complete"
   echo ""
   echo "====================================================="
   echo "|| To switch to the newly upgraded version, issue  ||"
