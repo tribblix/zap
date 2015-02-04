@@ -114,6 +114,10 @@ search)
 	shift
 	exec ${ZAPLIBDIR}/search $*
 	;;
+copy-repo)
+	shift
+	exec ${ZAPLIBDIR}/copy-repo $*
+	;;
 help)
 	shift
 	exec ${ZAPLIBDIR}/zap-help $*

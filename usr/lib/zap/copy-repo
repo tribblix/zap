@@ -1,0 +1,122 @@
+#!/bin/sh
+#
+# copy a repo from a source URL to a destination path
+#
+
+CURL=/usr/bin/curl
+WGET=/usr/bin/wget
+
+#
+# usage is
+#  repo destination
+#  url destination
+#
+# destination must be empty or contain a catalog
+# you can either specify a repo by name or url
+#
+usage() {
+	echo "Usage: $0 [-u] repo destination"
+	exit 1
+}
+
+case $# in
+2)
+	REPO=$1
+	DESTDIR=$2
+	;;
+*)
+	usage
+	;;
+esac
+
+#
+# check arguments
+#
+if [ -f /etc/zap/repositories/${REPO}.repo ]; then
+   REPO=`grep '^URL=' /etc/zap/repositories/${REPO}.repo | awk -F= '{print $2}'`
+fi
+case $DESTDIR in
+/*)
+	;;
+*)
+	echo "Destination should be an absolute path"
+	usage
+	;;
+esac
+
+case $REPO in
+http*)
+	;;
+*)
+	echo "Repository should specify a URL"
+	usage
+	;;
+esac
+
+if [ -d "${DESTDIR}" -a ! -f "${DESTDIR}"/catalog ]; then
+   echo "Destination exists but  doesn't look like a valid repository"
+   usage
+fi
+
+PARENTDIR=${DESTDIR%/*}
+
+if [ ! -d "${PARENTDIR}" ]; then
+   echo "Parent directory not found"
+   usage
+fi
+
+#
+# make the directory if necessary
+#
+mkdir -p $DESTDIR
+if [ ! -d "${DESTDIR}" ]; then
+   echo "ERROR: unable to create destination directory"
+   exit 1
+fi
+
+#
+# grab the catalog
+#
+${CURL} -f -s -o ${DESTDIR}/catalog ${REPO}/catalog
+${CURL} -f -s -o ${DESTDIR}/aliases ${REPO}/aliases
+
+if [ ! -f ${DESTDIR}/catalog ]; then
+   echo "ERROR: no catalog retrieved"
+   exit 1
+fi
+
+if [ ! -s ${DESTDIR}/catalog ]; then
+   echo "ERROR: catalog is empty"
+   exit 1
+fi
+
+#
+# and grab all the files
+# first with curl ,then wget if there's a problem
+# we always verify the checksums and delete files that fail to match
+#
+cat ${DESTDIR}/catalog | awk -F'|' '{print $1,$2,$4,$5}' | while read pkg ver fsize fsum
+do
+    if [ ! -f "${DESTDIR}/${pkg}.${ver}.zap" ]; then
+	echo "Getting ${pkg}, $fsize bytes"
+	${CURL} -f -s -o ${DESTDIR}/${pkg}.${ver}.zap ${REPO}/${pkg}.${ver}.zap
+	if [ -f "${DESTDIR}/${pkg}.${ver}.zap" ]; then
+	    rsize=`/usr/bin/stat -c '%s' ${DESTDIR}/${pkg}.${ver}.zap`
+	    if [ $rsize -eq $fsize ]; then
+		echo "Succesful download of ${pkg}.${ver}.zap"
+	    else
+		echo "ERROR: size mismatch for ${pkg}.${ver}.zap, retrying"
+		${WGET} -q -C -O ${DESTDIR}/${pkg}.${ver}.zap ${REPO}/${pkg}.${ver}.zap
+	    fi
+	else
+	    ${WGET} -q -O ${DESTDIR}/${pkg}.${ver}.zap ${REPO}/${pkg}.${ver}.zap
+	fi
+    fi
+    PKGMD5=`openssl md5 ${DESTDIR}/${pkg}.${ver}.zap| /usr/bin/awk '{print $NF}'`
+    if [ "$PKGMD5" = "$fsum" ]; then
+	echo "Checksum verified for ${pkg}"
+    else
+	echo "ERROR: Checksum failure for ${pkg}"
+	/bin/rm -f ${DESTDIR}/${pkg}.${ver}.zap
+    fi
+done
