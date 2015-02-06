@@ -1,5 +1,6 @@
 #!/bin/sh
 
+ZAPLIBDIR="/usr/lib/zap"
 ONAME=""
 ODIR="/var/sadm/overlays"
 PKGARGS=""
@@ -37,6 +38,7 @@ case $ONAME in
 	cd ${ODIR}/installed
 	for novl in *
 	do
+	    echo "Checking overlay ${novl}"
 	    ${ZAPLIBDIR}/verify-overlay ${PKGARGS} ${novl}
 	done
 	exit 0
@@ -73,10 +75,9 @@ STATUS=0
 for novl in `/usr/bin/grep '^REQUIRES=' ${OVL} | /usr/bin/sed s:REQUIRES=::`
 do
     if [ ! -f ${ODIR}/installed/${novl} ]; then
-    echo "ERROR: prerequisite overlay ${novl} is not installed"
-    STATUS=1
-fi
-
+	echo "ERROR: prerequisite overlay ${novl} is not installed"
+	STATUS=1
+    fi
 done
 
 #
@@ -89,6 +90,18 @@ do
   if [ $FOUNDPKG -ne 0 ]; then
       echo "ERROR: member package ${pkg} is not installed"
       STATUS=1
+  else
+      IVERSION=`${ZAPLIBDIR}/pkgversion ${PKGARGS} $pkg`
+      AFVERSION=`${ZAPLIBDIR}/get-version ${CTXARGS} $pkg`
+      AVERSION=${AFVERSION% *}
+      AREPO=${AFVERSION#* }
+      RVERSION=${AVERSION#*.}
+      if [ "$AREPO" != "oi" -a "$AREPO" != "opensxce" ]; then
+	  if [ "X${pkg}.${IVERSION}" != "X${AVERSION}" ]; then
+	      echo "WARN: member package ${pkg} needs updating to ${RVERSION}"
+	      STATUS=2
+	  fi
+      fi
   fi
 done
 

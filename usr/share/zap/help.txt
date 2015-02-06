@@ -50,8 +50,8 @@ uninstall-overlay [-R dir] overlay
 verify-overlay [-R dir] overlay | -a
 
   This subcommand checks that all the packages contained in the given
-  installed overlay are in fact installed. If -a, verifies all
-  installed overlays.
+  installed overlay are in fact installed and are at the current
+  version. If -a, verifies all installed overlays.
 
 list-packages [args]
 
