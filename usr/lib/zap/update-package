@@ -8,8 +8,8 @@
 # note also that if called with multiple packages, they are handled
 # sequentially and in isolation
 #
-# note also that until openindiana packages are reversioned for zap, they will
-# always show as needing update, so updates are explicitly disabled for oi
+# note also that until opensxce packages are reversioned for zap, they will
+# always show as needing update, so updates are explicitly disabled
 #
 ZAPLIBDIR="/usr/lib/zap"
 
@@ -63,7 +63,7 @@ do
     AVERSION=${AFVERSION% *}
     AREPO=${AFVERSION#* }
     RVERSION=${AVERSION#*.}
-    if [ "$AREPO" != "oi" -a "$AREPO" != "opensxce" ]; then
+    if [ "$AREPO" != "opensxce" ]; then
 	if [ "X${pkg}.${IVERSION}" = "X${AVERSION}" ]; then
 	    echo "Package $pkg is already at version $IVERSION"
 	else

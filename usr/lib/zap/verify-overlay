@@ -96,7 +96,7 @@ do
       AVERSION=${AFVERSION% *}
       AREPO=${AFVERSION#* }
       RVERSION=${AVERSION#*.}
-      if [ "$AREPO" != "oi" -a "$AREPO" != "opensxce" ]; then
+      if [ "$AREPO" != "opensxce" ]; then
 	  if [ "X${pkg}.${IVERSION}" != "X${AVERSION}" ]; then
 	      echo "WARN: member package ${pkg} needs updating to ${RVERSION}"
 	      STATUS=2
