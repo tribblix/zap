@@ -176,7 +176,7 @@ $DOIT /usr/bin/zap -C ${ALTROOT} refresh-overlays
 #
 # first we must update SUNWcsd
 #
-$DOIT /usr/bin/zap -C ${ALTROOT} update-package SUNWcsd
+$DOIT /usr/bin/zap -C ${ALTROOT} update SUNWcsd
 #
 # replace the critical state files from the running system
 # the assumption here is that SUNWcsd installs blank files
