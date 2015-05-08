@@ -90,6 +90,10 @@ refresh-catalog)
 	shift
 	exec ${ZAPLIBDIR}/refresh-catalog ${CTXARGS} $*
 	;;
+clean-cache)
+	shift
+	exec ${ZAPLIBDIR}/clean-cache ${CTXARGS} $*
+	;;
 create-zone)
 	shift
 	exec ${ZAPLIBDIR}/create-zone $*

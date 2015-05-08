@@ -73,6 +73,13 @@ refresh
   This subcommand refreshes the list of overlays, their contents, and
   the package catalog.
 
+clean-cache -a | -i | -o | -u
+
+  This subcommand will clean up the cached downloaded zap files. With
+  -a, clean the entire cache. With -i, clean zap files corresponding
+  to installed packages. With -o, clean up old zap files. With -u,
+  clean up zap files for unrecognised packages.
+
 create-zone [args]
 
   This subcommand simplifies the creation of non-global zones. Run
@@ -96,4 +103,4 @@ list-zone-templates
 destroy-zone-template [-n] -T template_name
 
   This subcommand destroys a zone template and the file system backing
-  it. The action wil fail if any zones are using the template.
+  it. The action will fail if any zones are using the template.
