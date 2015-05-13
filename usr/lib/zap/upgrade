@@ -209,9 +209,18 @@ $DOIT /usr/bin/cp -p /etc/user_attr ${ALTROOT}/etc/user_attr
 $DOIT /usr/bin/cp -p /etc/resolv.conf ${ALTROOT}/etc/resolv.conf
 $DOIT /usr/bin/cp -p /etc/default/init ${ALTROOT}/etc/default/init
 grep /swap /etc/vfstab >> ${ALTROOT}/etc/vfstab
+#
+# FIXME: these 2 often get mangled, need fixing properly
+#
+/usr/bin/cp -p /etc/minor_perm ${ALTROOT}/etc/minor_perm
+/usr/bin/cp -p /etc/name_to_major ${ALTROOT}/etc/name_to_major
 # FIXME and any isolated packages?
 # FIXME remove obsoleted packages
 # FIXME validate
+#
+# need to update the boot archive
+#
+$DOIT /usr/sbin/bootadm update-archive -R $ALTROOT
 $DOIT $BEADM unmount $BENAME
 $DOIT rmdir $ALTROOT
 # activation is optional
