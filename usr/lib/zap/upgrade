@@ -191,9 +191,21 @@ $DOIT /usr/bin/zap -C ${ALTROOT} update SUNWcsd
 /usr/bin/cp -p /etc/security/device_policy ${ALTROOT}/etc/security/device_policy
 /usr/bin/cp -p /etc/security/extra_privs ${ALTROOT}/etc/security/extra_privs
 #
+# remove any obsoleted packages
+#
+if [ -f ${ALTROOT}/usr/share/zap/deprecated.pkgs ]; then
+    echo "Removing obsoleted packages"
+    for oldpkg in `cat ${ALTROOT}/usr/share/zap/deprecated.pkgs`
+    do
+	$DOIT /usr/bin/zap uninstall -R ${altroot} ${oldpkg}
+    done
+fi
+#
 # now update the remaining overlays
 #
 $DOIT /usr/bin/zap -C ${ALTROOT} update-overlay -a
+#
+# FIXME and any isolated packages?
 #
 # shut down pkgserv otherwise the BE cannot be unmounted
 #
@@ -214,8 +226,7 @@ grep /swap /etc/vfstab >> ${ALTROOT}/etc/vfstab
 #
 /usr/bin/cp -p /etc/minor_perm ${ALTROOT}/etc/minor_perm
 /usr/bin/cp -p /etc/name_to_major ${ALTROOT}/etc/name_to_major
-# FIXME and any isolated packages?
-# FIXME remove obsoleted packages
+#
 # FIXME validate
 #
 # need to update the boot archive
