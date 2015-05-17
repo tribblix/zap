@@ -12,9 +12,10 @@ case $1 in
     ;;
 esac
 
-for pkg in $*
+for inpkg in $*
 do
-        if /bin/pkginfo ${BFLAGS} -q ${pkg}
+	pkg=`${ZAPLIBDIR}/resolve-alias $inpkg`
+	if /bin/pkginfo ${BFLAGS} -q ${pkg}
 	then
                 echo "Removing $pkg package"
                 /usr/sbin/pkgrm -a ${ZAPLIBDIR}/pkg.default -n ${BFLAGS} $pkg
