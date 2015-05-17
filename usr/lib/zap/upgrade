@@ -201,6 +201,22 @@ if [ -f ${ALTROOT}/usr/share/zap/deprecated.pkgs ]; then
     done
 fi
 #
+# remove any obsoleted overlays
+# note this just removes any metadata, any constituent packages
+# needing removal must be listed in deprecated.pkgs
+#
+if [ -f ${ALTROOT}/usr/share/zap/deprecated.ovl ]; then
+    echo "Removing obsoleted overlays"
+    for oldovl in `cat ${ALTROOT}/usr/share/zap/deprecated.ovl`
+    do
+	$DOIT /usr/bin/rm -f ${altroot}/var/sadm/overlays/${oldovl}.pkgs
+	$DOIT /usr/bin/rm -f ${altroot}/var/sadm/overlays/${oldovl}.ovl
+	$DOIT /usr/bin/rm -f ${altroot}/var/sadm/overlays/${oldovl}.pkgs.bak
+	$DOIT /usr/bin/rm -f ${altroot}/var/sadm/overlays/${oldovl}.ovl.bak
+	$DOIT /usr/bin/rm -f ${altroot}/var/sadm/overlays/installed/${oldovl}
+    done
+fi
+#
 # now update the remaining overlays
 #
 $DOIT /usr/bin/zap -C ${ALTROOT} update-overlay -a
