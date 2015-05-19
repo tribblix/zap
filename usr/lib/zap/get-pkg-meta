@@ -1,0 +1,43 @@
+#!/bin/sh
+#
+
+CFGDIR="/etc/zap"
+ZAPLIBDIR="/usr/lib/zap"
+
+case $1 in
+-C)
+	DESTROOT="$2"
+	CTXARGS="-C ${DESTROOT}"
+	shift
+	shift
+	if [ ! -d "$DESTROOT" ]; then
+	    echo "ERROR: alternate root $DESTROOT doesn't exist"
+	    exit 1
+	fi
+	CFGDIR="${DESTROOT}/${CFGDIR}"
+	;;
+esac
+
+case $# in
+1)
+	PKG="$1"
+	;;
+*)
+	exit 1
+	;;
+esac
+
+#
+# given an unqualified package, return its name, version, size, and hash
+# as given in the catalog
+#
+for repo in `${ZAPLIBDIR}/zap-cfg ${CTXARGS} list-pkg-repos`
+do
+    if [ -f ${CFGDIR}/repositories/${repo}.catalog ]; then
+	FPKG=`/usr/bin/nawk -F'|' '{if ($1 == npkg) print $1,$2,$4,$5}' npkg=${PKG} ${CFGDIR}/repositories/${repo}.catalog`
+	if [ -n "$FPKG" ]; then
+	    echo "${FPKG} ${repo}"
+	    exit 0
+	fi
+    fi
+done

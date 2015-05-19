@@ -1,0 +1,68 @@
+#!/bin/ksh
+#
+# verify a zap file (or files) against the catalog
+#
+# returns a code followed by the name of the file
+# codes are
+#
+#  PKGUNKNOWN - the package is unrecognised
+#  VERUNKNOWN - the package is known, but not at this version
+#  ERRSIZE - size doesn't match catalog
+#  ERRHASH - checksum doesn't match catalog (but size does)
+#  OK - zap file is good
+#
+
+ZAPLIBDIR="/usr/lib/zap"
+
+case $1 in
+-C)
+	DESTROOT="$2"
+	CTXARGS="-C ${DESTROOT}"
+	shift
+	shift
+	if [ ! -d "$DESTROOT" ]; then
+	    echo "ERROR: alternate root $DESTROOT doesn't exist"
+	    exit 1
+	fi
+	;;
+esac
+
+case $# in
+0)
+	echo "Usage: $0 [-C alt-root] file [file ...]"
+	exit 2
+	;;
+esac
+
+for zfile in $*
+do
+	pkg=${zfile%%.*}
+	vpkg=${zfile%.*}
+	pdir=${pkg%/*}
+	pkg=${pkg##*/}
+	vpkg=${vpkg##*/}
+	${ZAPLIBDIR}/get-pkg-meta ${CTXARGS} $pkg | read fpkg fver fsize fhash frepo
+	if [ -n "$fhash" ]; then
+	   #
+	   # the catalog only has current versions, so if it is a known
+	   # package but unknown version then we cannot verify it
+	   #
+	   if [ "X$vpkg" != "X${fpkg}.${fver}" ]; then
+	      	echo "VERUNKNOWN $zfile"
+	   else
+		PSIZE=`/bin/ls -l ${zfile} | /usr/bin/awk '{print $5}'`
+		if [ "X$PSIZE" != "X$fsize" ]; then
+		   echo "ERRSIZE $zfile"
+		else
+		   PKGMD5=`openssl md5 ${zfile}| /usr/bin/awk '{print $NF}'`
+		   if [ "X$PKGMD5" != "X$fhash" ]; then
+		      echo "ERRHASH $zfile"
+		   else
+		      echo "OK $zfile"
+		   fi
+		fi
+	   fi
+	else
+		echo "PKGUNKNOWN $zfile"
+	fi
+done
