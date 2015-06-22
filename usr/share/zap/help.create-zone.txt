@@ -37,7 +37,7 @@ zone either.
 
 The -O flag specifies an overlay to be added to the zone. This flag can
 be used multiple times to add multiple overlays. The use of this flag
-requires that the zone type be specified as whole. Unlike the -O flag
+requires that the zone type be specified as whole. Unlike the -o flag
 which specifies that the zone contains a subset of the packages in the
 global zone, the -O flag adds extra packages, and does not require the
 overlays or packages to be present in the global zone.
@@ -51,6 +51,6 @@ delegated user full root access to the zone, and potentially full root
 access to the global zone via shared file systems.
 
 The -T flag allows you to use a template to provide the file systems to
-a sparse-root zone  instead of the default inheritance from the global
+a sparse-root zone instead of the default inheritance from the global
 zone. Use the zap create-zone-template subcommand to construct such a
 template.
