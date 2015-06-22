@@ -4,9 +4,10 @@
 #
 # Usage:
 #  -T template (implies sparse)
-#  -t brand - sparse or whole [default sparse]
+#  -t brand - sparse, whole, or alien [default sparse]
 #  -z zone_name - zone name [required]
 #  -i IPv4 address [can be multiple]
+#  -I iso image for alien zone
 #  -d directory to create [can be multiple]
 #  -o overlay for partial root [can be multiple, passed to install]
 #  -O add overlay [can be multiple, passed to install]
@@ -24,6 +25,7 @@ ZROOTBASE="/export/zones"
 ZBRAND=TRIBsparse
 ZNAME=""
 ZIP4=""
+ZISOFILE=""
 ZOVERLAY=""
 ZADDOVERLAY=""
 ZDIRS=""
@@ -31,12 +33,13 @@ ZUSERS=""
 ZTEMPLATE=""
 
 usage() {
-  echo "Usage: $0 -z zone_name [-t whole|sparse] [-T template]"
-  echo "  [-i ip_address] [-d extra_dir] [-o overlay] [-O overlay] [-U user]"
+  echo "Usage: $0 -z zone_name [-t whole|sparse|alien]"
+  echo "  [-T template] [-I iso_image] [-i ip_address]"
+  echo "  [-d extra_dir] [-o overlay] [-O overlay] [-U user]"
   exit 1
 }
 
-while getopts "T:t:z:i:o:O:d:U:" opt; do
+while getopts "T:t:z:i:I:o:O:d:U:" opt; do
 case $opt in
 T)
 	ZTEMPLATE="$OPTARG"
@@ -49,6 +52,9 @@ z)
 	;;
 i)
 	ZIP4="${ZIP4} $OPTARG"
+	;;
+I)
+	ZISOFILE="$OPTARG"
 	;;
 o)
 	ZOVERLAY="${ZOVERLAY} $OPTARG"
@@ -94,6 +100,9 @@ sparse|TRIBsparse)
 whole|TRIBwhole)
 	ZBRAND="TRIBwhole"
 	;;
+alien|TRIBalien)
+	ZBRAND="TRIBalien"
+	;;
 *)
 	echo "ERROR: unrecognized brand $ZBRAND"
 	usage
@@ -109,12 +118,35 @@ TRIBsparse)
 	   echo "ERROR: cannot specify overlays for sparse-root zones"
 	   usage
 	fi
+	if [[ -n $ZISOFILE ]]; then
+	    echo "ERROR: cannot install a sparse-root zone from an iso image"
+	    usage
+	fi
 	;;
 TRIBwhole)
 	if [[ -n $ZTEMPLATE ]]; then
 	    echo "ERROR: templates must be sparse-root"
 	    usage
 	fi
+	if [[ -n $ZISOFILE ]]; then
+	    echo "ERROR: cannot install a whole-root zone from an iso image"
+	    usage
+	fi
+	;;
+TRIBalien)
+	if [[ -n $ZTEMPLATE ]]; then
+	    echo "ERROR: templates must be sparse-root"
+	    usage
+	fi
+	if [[ -n $ZOVERLAY || -n $ZADDOVERLAY ]]; then
+	   echo "ERROR: cannot specify overlays for alien zones"
+	   usage
+	fi
+	if [[ -z $ZISOFILE ]]; then
+	    echo "ERROR: an alien zone requires an iso image to be specified"
+	    usage
+	fi
+	;;
 esac
 
 #
@@ -249,6 +281,9 @@ for OVL in $ZADDOVERLAY
 do
 	printf " -O $OVL"
 done
+if [[ -n $ZISOFILE ]]; then
+    printf " -i $ZISOFILE"
+fi
 }
 
 #

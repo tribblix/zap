@@ -6,17 +6,20 @@ and control the software installed in the zone.
 
 The syntax of the subcommand is:
 
-create-zone -z zone_name [-t whole|sparse] [-T template]
-    [-i ip_address] [-d extra_dir] [-o overlay] [-O overlay] [-U user]
+create-zone -z zone_name [-t whole|sparse|alien]
+    [-T template] [-I iso_image] [-i ip_address]
+    [-d extra_dir] [-o overlay] [-O overlay] [-U user]
 
 Supplying the zone_name is mandatory; all other arguments are optional.
 
-The -t flag specifies the zone type, which may be either whole or
-sparse. For a whole-root zone, the zone has its own copy of all
-required file systems; in a sparse-root zone the file systems
+The -t flag specifies the zone type, which may be whole, sparse, or
+alien. For a whole-root zone, the zone has its own copy of all
+required file systems. In a sparse-root zone the file systems
 containing the operating system - /lib, /platform, /usr, and /sbin -
 are inherited read-only from the global zone (or an alternate source -
-see the -T flag). The default is to create a sparse-root zone.
+see the -T flag). An alien-root zone contains file systems derived
+from an ISO image of an alternative illumos distribution. The default
+is to create a sparse-root zone.
 
 The -i flag specifies an IP address. If supplied, the zone will be
 given this IP address. This flag can be used multiple times to assign
@@ -54,3 +57,6 @@ The -T flag allows you to use a template to provide the file systems to
 a sparse-root zone instead of the default inheritance from the global
 zone. Use the zap create-zone-template subcommand to construct such a
 template.
+
+The -I flag is required for an alien zone, and specifies the iso image
+that will be used to install the zone.
