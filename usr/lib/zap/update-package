@@ -56,8 +56,9 @@ case $1 in
 	;;
 esac
 
-for pkg in $*
+for inpkg in $*
 do
+    pkg=`${ZAPLIBDIR}/resolve-alias ${CTXARGS} $inpkg`
     IVERSION=`${ZAPLIBDIR}/pkgversion ${PKGARGS} $pkg`
     AFVERSION=`${ZAPLIBDIR}/get-version ${CTXARGS} $pkg`
     AVERSION=${AFVERSION% *}
