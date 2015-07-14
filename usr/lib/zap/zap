@@ -94,6 +94,10 @@ clean-cache)
 	shift
 	exec ${ZAPLIBDIR}/clean-cache ${CTXARGS} $*
 	;;
+set-hostname)
+	shift
+	exec ${ZAPLIBDIR}/set-hostname ${CTXARGS} $*
+	;;
 create-zone)
 	shift
 	exec ${ZAPLIBDIR}/create-zone $*

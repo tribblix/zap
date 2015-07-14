@@ -80,6 +80,11 @@ clean-cache -a | -i | -o | -u
   to installed packages. With -o, clean up old zap files. With -u,
   clean up zap files for unrecognised packages.
 
+set-hostname hostname | -d domainname
+
+  This subcommand updates the current hostname (and the /etc/nodename
+  file) or, with -d, the current domainname.
+
 create-zone [args]
 
   This subcommand simplifies the creation of non-global zones. Run

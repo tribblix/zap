@@ -1,0 +1,68 @@
+#!/bin/sh
+#
+# set hostname (or domainname)
+#
+
+DESTROOT=""
+case $1 in
+-C)
+	DESTROOT="$2"
+	shift
+	shift
+	if [ ! -d "$DESTROOT" ]; then
+	    echo "ERROR: alternate root $DESTROOT doesn't exist"
+	    exit 1
+	fi
+	;;
+esac
+case $1 in
+-R)
+	DESTROOT="$2"
+	shift
+	shift
+	if [ ! -d "$DESTROOT" ]; then
+	    echo "ERROR: alternate root $DESTROOT doesn't exist"
+	    exit 1
+	fi
+	;;
+esac
+
+#
+# if -d, then set the domainname
+#
+case $1 in
+-d)
+	DNAME=$2
+	if [ -n "$DNAME" ]; then
+	   echo $DNAME > ${DESTROOT}/etc/defaultdomain
+	   if [ -z "$DESTROOT" ]; then
+	      /usr/bin/domainname $DNAME
+	   fi
+	fi
+	exit 0
+	;;
+esac
+
+case $# in
+1)
+	NODENAME="$1"
+	;;
+*)
+	echo "Usage: set-hostname hostname"
+	echo "       set-hostname -d domainname"
+	exit 1
+	;;
+esac
+
+#
+# update /etc/nodename
+# if a live environment, update the current hostname
+# and restart mdnsd so the new name gets registered
+#
+if [ -n "$NODENAME" ]; then
+   echo $NODENAME > ${DESTROOT}/etc/nodename
+   if [ -z "$DESTROOT" ]; then
+       /usr/bin/hostname $NODENAME
+       /usr/sbin/svcadm restart svc:/network/dns/multicast:default > /dev/null 2>&1
+   fi
+fi
