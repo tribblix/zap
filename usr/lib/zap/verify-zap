@@ -2,7 +2,7 @@
 #
 # verify a zap file (or files) against the catalog
 #
-# returns a code followed by the name of the file
+# prints a code followed by the name of the file
 # codes are
 #
 #  PKGUNKNOWN - the package is unrecognised
@@ -10,6 +10,13 @@
 #  ERRSIZE - size doesn't match catalog
 #  ERRHASH - checksum doesn't match catalog (but size does)
 #  OK - zap file is good
+#
+# exit status
+#
+#  0 - everything passed
+#  1 - something failed
+#
+# the exit code has no information about what failed or why
 #
 
 ZAPLIBDIR="/usr/lib/zap"
@@ -34,6 +41,8 @@ case $# in
 	;;
 esac
 
+EXITSTATUS=0
+
 for zfile in $*
 do
 	pkg=${zfile%%.*}
@@ -49,14 +58,17 @@ do
 	   #
 	   if [ "X$vpkg" != "X${fpkg}.${fver}" ]; then
 	      	echo "VERUNKNOWN $zfile"
+		EXITSTATUS=1
 	   else
 		PSIZE=`/bin/ls -l ${zfile} | /usr/bin/awk '{print $5}'`
 		if [ "X$PSIZE" != "X$fsize" ]; then
 		   echo "ERRSIZE $zfile"
+		   EXITSTATUS=1
 		else
 		   PKGMD5=`openssl md5 ${zfile}| /usr/bin/awk '{print $NF}'`
 		   if [ "X$PKGMD5" != "X$fhash" ]; then
 		      echo "ERRHASH $zfile"
+		      EXITSTATUS=1
 		   else
 		      echo "OK $zfile"
 		   fi
@@ -64,5 +76,7 @@ do
 	   fi
 	else
 		echo "PKGUNKNOWN $zfile"
+		EXITSTATUS=1
 	fi
 done
+exit $EXITSTATUS
