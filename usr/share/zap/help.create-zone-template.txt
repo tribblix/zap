@@ -22,12 +22,12 @@ The -o flag specifies an overlay to be installed in the template file
 system. This flag can be used multiple times to require multiple
 overlays. The effect of listing overlays here is that the template is
 created from the global zone and only contains the subset of the
-packages that are contained in the given overlays; if you specify an
-overlay that is not present in the global zone then it will not be
-present in the template either.
+packages that are contained in the given overlays; specifying an
+overlay that is not present in the global zone will generate an
+error.
 
 The -O flag specifies an overlay to be added to the template. This flag
-can be used multiple times to add multiple overlays. Unlike the -O flag
+can be used multiple times to add multiple overlays. Unlike the -o flag
 which specifies that the template contains a subset of the packages in
 the global zone, the -O flag adds extra packages, and does not require
 the overlays or packages to be present in the global zone.

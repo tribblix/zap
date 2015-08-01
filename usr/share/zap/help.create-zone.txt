@@ -34,9 +34,8 @@ can be used multiple times to require multiple overlays. The use of
 this flag requires that the zone type be specified as whole. The
 effect of listing overlays here is that the zone is created from the
 global zone and only contains the subset of the packages that are
-contained in the given overlays; if you specify an overlay that is not
-present in the global zone then it will not be present in the new
-zone either.
+contained in the given overlays; specifying an overlay that is not
+present in the global zone will generate an error.
 
 The -O flag specifies an overlay to be added to the zone. This flag can
 be used multiple times to add multiple overlays. The use of this flag

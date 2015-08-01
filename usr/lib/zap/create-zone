@@ -182,6 +182,30 @@ if [[ -n $ZUSERS ]]; then
 fi
 
 #
+# check any overlays are valid
+# -o - error if this overlay isn't installed
+# -o/-O - error if this is not a valid overlay 
+#
+for OVL in $ZOVERLAY
+do
+	if [ ! -f /var/sadm/overlays/${OVL}.ovl ]; then
+	    echo "ERROR: unrecognized overlay ${OVL}"
+	    exit 1
+	fi
+	if [ ! -f /var/sadm/overlays/installed/${OVL} ]; then
+	    echo "ERROR: overlay ${OVL} is not installed in the global zone"
+	    exit 1
+	fi
+done
+for OVL in $ZADDOVERLAY
+do
+	if [ ! -f /var/sadm/overlays/${OVL}.ovl ]; then
+	    echo "ERROR: unrecognized overlay ${OVL}"
+	    exit 1
+	fi
+done
+
+#
 # construct a zone configuration file
 #
 
