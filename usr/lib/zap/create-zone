@@ -12,6 +12,7 @@
 #  -o overlay for partial root [can be multiple, passed to install]
 #  -O add overlay [can be multiple, passed to install]
 #  -U share user and their homedir with the zone
+#  -B blank boot
 #
 # FIXMES:
 # add IPv6
@@ -31,16 +32,20 @@ ZADDOVERLAY=""
 ZDIRS=""
 ZUSERS=""
 ZTEMPLATE=""
+ZBLANK=""
 
 usage() {
   echo "Usage: $0 -z zone_name [-t whole|sparse|alien]"
-  echo "  [-T template] [-I iso_image] [-i ip_address]"
+  echo "  [-T template] [-I iso_image] [-i ip_address] [-B]"
   echo "  [-d extra_dir] [-o overlay] [-O overlay] [-U user]"
   exit 1
 }
 
-while getopts "T:t:z:i:I:o:O:d:U:" opt; do
+while getopts "BT:t:z:i:I:o:O:d:U:" opt; do
 case $opt in
+B)
+	ZBLANK="Y"
+	;;
 T)
 	ZTEMPLATE="$OPTARG"
 	;;
@@ -348,6 +353,17 @@ do
     /usr/bin/grep "^${TUSER}:" /etc/shadow >> ${ZROOTBASE}/${ZNAME}/root/etc/shadow
     echo "${TUSER}::::roles=root" >> ${ZROOTBASE}/${ZNAME}/root/etc/user_attr
 done
+
+#
+# blank the zone if requested; init requires the smf entry to be present in
+# inittab but doesn't check waht it actually runs
+#
+if [[ -n ${ZBLANK} ]]; then
+    if [ -f ${ZROOTBASE}/${ZNAME}/root/etc/inittab ]; then
+	mv ${ZROOTBASE}/${ZNAME}/root/etc/inittab ${ZROOTBASE}/${ZNAME}/root/etc/inittab.full
+	cat ${ZROOTBASE}/${ZNAME}/root/etc/inittab.full | /usr/bin/sed 's:/lib/svc/bin/svc.startd:/usr/bin/sleep Inf:'  > ${ZROOTBASE}/${ZNAME}/root/etc/inittab
+    fi
+fi
 
 #
 # do some minimalist configuration of the zone

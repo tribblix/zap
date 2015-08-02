@@ -7,7 +7,7 @@ and control the software installed in the zone.
 The syntax of the subcommand is:
 
 create-zone -z zone_name [-t whole|sparse|alien]
-    [-T template] [-I iso_image] [-i ip_address]
+    [-T template] [-I iso_image] [-i ip_address] [-B]
     [-d extra_dir] [-o overlay] [-O overlay] [-U user]
 
 Supplying the zone_name is mandatory; all other arguments are optional.
@@ -59,3 +59,7 @@ template.
 
 The -I flag is required for an alien zone, and specifies the iso image
 that will be used to install the zone.
+
+The -B flag boots the zone as a blank system, with no processes (other
+than init) running. It's the responsibility of the user to run any
+applications as necessary, using zlogin to connect to the zone.
