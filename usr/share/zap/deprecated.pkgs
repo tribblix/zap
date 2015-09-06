@@ -6,6 +6,7 @@ TRIBv-firefox-27
 TRIBv-firefox-28
 TRIBv-firefox-29
 TRIBv-firefox-30
+TRIBv-thunderbird-24
 TRIBv-apache-ant-184
 TRIBv-apache-ant-193
 TRIBv-clojure-151
@@ -18,11 +19,14 @@ TRIBopenjdk7u65
 TRIBopenjdk7u71
 TRIBopenjdk8u20
 TRIBopenjdk8u25
+TRIBopenjdk8u31
 TRIBlibxml2-python-276
 TRIBv-python-276
 TRIBv-python-335
 TRIBv-scala-2103
 TRIBv-gcc-472
+TRIBv-gcc-473
+TRIBv-gfortran-473
 TRIBe17-eina
 TRIBe17-eet
 TRIBe17-evas
@@ -39,3 +43,9 @@ TRIBe17-enlightenment
 TRIBv-perl-518
 TRIBsqueak
 TRIBscratch
+TRIBlightdm
+TRIBlightdm-gtk
+TRIBtali
+TRIBxfce-parole
+TRIBv-go-13
+TRIBgnu-ghostscript
