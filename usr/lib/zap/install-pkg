@@ -80,9 +80,6 @@ do
 	if [ -f ${SRCDIR}/${fpkg}.zap ]; then
 	    ISINST="true"
 	    break
-	elif [ -f ${SRCDIR}/${fpkg}.pkg ]; then
-	    ISINST="true"
-	    break
 	fi
     done
     # download if we don't have it yet
@@ -109,10 +106,6 @@ do
     do
 	if [ -f ${SRCDIR}/${fpkg}.zap ]; then
             ${ZAPLIBDIR}/instzap ${PKGARGS} ${SRCDIR}/${fpkg}.zap ${pkg}
-	    ISINST="true"
-	    break
-	elif [ -f ${SRCDIR}/${fpkg}.pkg ]; then
-	    ${ZAPLIBDIR}/instpkg ${PKGARGS} ${SRCDIR}/${fpkg}.pkg ${pkg}
 	    ISINST="true"
 	    break
 	fi
