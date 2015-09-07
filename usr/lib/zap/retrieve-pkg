@@ -16,6 +16,7 @@ case $1 in
 esac
 
 CACHE_DIR=`${ZAPLIBDIR}/zap-cfg ${CTXARGS} cache-dir`
+USER_AGENT="zap"/`${ZAPLIBDIR}/pkgversion TRIBzap`
 
 for pkg in $*
 do
@@ -23,6 +24,6 @@ do
     if [ -n "$frepo" ]; then
 	REPO=`${ZAPLIBDIR}/zap-cfg ${CTXARGS} repo-url $frepo`
 	echo "Fetching ${REPO}/${fpkg}.zap"
-	/usr/bin/curl -f -s -o ${CACHE_DIR}/${fpkg}.zap ${REPO}/${fpkg}.zap
+	/usr/bin/curl -A ${USER_AGENT} -f -s -o ${CACHE_DIR}/${fpkg}.zap ${REPO}/${fpkg}.zap
     fi
 done
