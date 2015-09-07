@@ -8,6 +8,7 @@
 CFGDIR="/etc/zap"
 CACHE_DIR="/var/zap/cache"
 CACHE_CFG="${CFGDIR}/cache_dir"
+PROXY_CFG="${CFGDIR}/proxy_cfg"
 
 #
 # global context switch
@@ -26,6 +27,7 @@ case $1 in
 	CFGDIR="${ALTROOT}/${CFGDIR}"
 	CACHE_DIR="${ALTROOT}/${CACHE_DIR}"
 	CACHE_CFG="${CFGDIR}/cache_dir"
+	PROXY_CFG="${CFGDIR}/proxy_cfg"
 	;;
 esac
 
@@ -54,6 +56,11 @@ cache-dir)
 	    echo $CACHE_DIR
 	else
 	    echo "/tmp"
+	fi
+	;;
+proxy)
+	if [ -f ${PROXY_CFG} ]; then
+	    echo -x `cat ${PROXY_CFG}`
 	fi
 	;;
 esac

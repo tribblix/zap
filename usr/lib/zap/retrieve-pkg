@@ -17,6 +17,7 @@ esac
 
 CACHE_DIR=`${ZAPLIBDIR}/zap-cfg ${CTXARGS} cache-dir`
 USER_AGENT="zap"/`${ZAPLIBDIR}/pkgversion TRIBzap`
+ZAP_PROXY=`/export/packages/localsrc/Tribblix/zap${ZAPLIBDIR}/zap-cfg ${CTXARGS} proxy`
 
 for pkg in $*
 do
@@ -24,6 +25,6 @@ do
     if [ -n "$frepo" ]; then
 	REPO=`${ZAPLIBDIR}/zap-cfg ${CTXARGS} repo-url $frepo`
 	echo "Fetching ${REPO}/${fpkg}.zap"
-	/usr/bin/curl -A ${USER_AGENT} -f -s -o ${CACHE_DIR}/${fpkg}.zap ${REPO}/${fpkg}.zap
+	/usr/bin/curl -A ${USER_AGENT} ${ZAP_PROXY} -f -s -o ${CACHE_DIR}/${fpkg}.zap ${REPO}/${fpkg}.zap
     fi
 done
