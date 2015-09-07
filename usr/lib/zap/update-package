@@ -27,8 +27,6 @@ case $1 in
 	;;
 esac
 
-CACHE_DIR=`${ZAPLIBDIR}/zap-cfg ${CTXARGS} cache-dir`
-
 case $1 in
 -R)
 	DESTROOT="$2"
@@ -42,23 +40,33 @@ case $1 in
 	;;
 esac
 
+SRCLIST=`${ZAPLIBDIR}/zap-cfg ${CTXARGS} cache-dir`
+
+#
+# prepend the given source to the list, so it gets searched first
+#
 case $1 in
 -s)
-	SRCDIR="$2"
-	SRCARGS="-s ${SRCDIR}"
+	SRCEXTRA="$2"
+	SRCARGS="-s ${SRCEXTRA}"
 	shift
 	shift
-	# FIXME should this be fatal or a warning?
-	if [ ! -d "$SRCDIR" ]; then
-	    echo "ERROR: package source $SRCDIR doesn't exist"
+	if [ ! -d "$SRCEXTRA" ]; then
+	    echo "ERROR: package source $SRCEXTRA doesn't exist"
 	    exit 1
 	fi
+	SRCLIST="$SRCEXTRA $SRCLIST"
 	;;
 esac
 
 for inpkg in $*
 do
     pkg=`${ZAPLIBDIR}/resolve-alias ${CTXARGS} $inpkg`
+    /usr/bin/pkginfo ${PKGARGS} -q ${pkg}
+    FOUNDPKG=$?
+    if [ $FOUNDPKG -ne 0 ]; then
+	${ZAPLIBDIR}/install-pkg ${CTXARGS} ${PKGARGS} ${SRCARGS} $pkg
+    fi
     IVERSION=`${ZAPLIBDIR}/pkgversion ${PKGARGS} $pkg`
     AFVERSION=`${ZAPLIBDIR}/get-version ${CTXARGS} $pkg`
     AVERSION=${AFVERSION% *}
@@ -69,13 +77,26 @@ do
 	    echo "Package $pkg is already at version $IVERSION"
 	else
 	    echo "Package $pkg is at version $IVERSION and needs updating to $AVERSION"
-	    if [ ! -f ${CACHE_DIR}/${AVERSION}.zap ]; then
+	    ISINST="false"
+	    for SRCDIR in $SRCLIST
+	    do
+		if [ -f ${SRCDIR}/${AVERSION}.zap ]; then
+		    ISINST="true"
+		    break
+		fi
+	    done
+	    # download if we don't have it yet
+	    if [ "$ISINST" = "false" ]; then
 		${ZAPLIBDIR}/retrieve-pkg ${CTXARGS} ${pkg}
 	    fi
-	    if [ -f ${CACHE_DIR}/${AVERSION}.zap ]; then
-		${ZAPLIBDIR}/delpkg ${PKGARGS} $pkg
-		${ZAPLIBDIR}/install-pkg ${CTXARGS} ${PKGARGS} ${SRCARGS} $pkg
-	    fi
+	    for SRCDIR in $SRCLIST
+	    do
+		if [ -f ${SRCDIR}/${AVERSION}.zap ]; then
+		    ${ZAPLIBDIR}/delpkg ${PKGARGS} $pkg
+		    ${ZAPLIBDIR}/instzap ${PKGARGS} ${SRCDIR}/${AVERSION}.zap ${pkg}
+		    break
+		fi
+	    done
 	    NVERSION=`${ZAPLIBDIR}/pkgversion ${PKGARGS} $pkg`
 	    if [ "X${NVERSION}" = "X${RVERSION}" ]; then
 		echo "Update successful."
