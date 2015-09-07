@@ -73,9 +73,7 @@ do
     AREPO=${AFVERSION#* }
     RVERSION=${AVERSION#*.}
     if [ "$AREPO" != "opensxce" ]; then
-	if [ "X${pkg}.${IVERSION}" = "X${AVERSION}" ]; then
-	    echo "Package $pkg is already at version $IVERSION"
-	else
+	if [ "X${pkg}.${IVERSION}" != "X${AVERSION}" ]; then
 	    echo "Package $pkg is at version $IVERSION and needs updating to $AVERSION"
 	    ISINST="false"
 	    for SRCDIR in $SRCLIST
@@ -99,7 +97,7 @@ do
 	    done
 	    NVERSION=`${ZAPLIBDIR}/pkgversion ${PKGARGS} $pkg`
 	    if [ "X${NVERSION}" = "X${RVERSION}" ]; then
-		echo "Update successful."
+		echo "Update of $pkg successful."
 	    fi
 	fi
     fi
