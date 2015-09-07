@@ -22,7 +22,7 @@ do
     ${ZAPLIBDIR}/get-version ${CTXARGS} $pkg | read fpkg frepo
     if [ -n "$frepo" ]; then
 	REPO=`${ZAPLIBDIR}/zap-cfg ${CTXARGS} repo-url $frepo`
-	echo "Trying to fetch ${REPO}/${fpkg}.zap"
+	echo "Fetching ${REPO}/${fpkg}.zap"
 	/usr/bin/curl -f -s -o ${CACHE_DIR}/${fpkg}.zap ${REPO}/${fpkg}.zap
     fi
 done
