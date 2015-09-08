@@ -40,7 +40,17 @@ else
     rm -fr ${ZTMP}
     mkdir ${ZTMP}
     cd ${ZTMP}
-    unzip -q ${DIR}
+    #
+    # prefer unzip, as it is quieter and quicker, but fall back on
+    # alternatives if necessary
+    #
+    if [ -x /usr/bin/unzip ]; then
+	/usr/bin/unzip -q ${DIR}
+    elif [ -x /usr/bin/7z ]; then
+	/usr/bin/7z x ${DIR}
+    else
+	jar xf $DIR
+    fi
     cd /
     /usr/sbin/pkgadd -n -a ${ZAPLIBDIR}/pkg.force ${BFLAGS} -d ${ZTMP} ${PKG}
     rm -fr $ZTMP
