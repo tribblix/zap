@@ -41,6 +41,7 @@ TRIBe17-ethumb
 TRIBe17-elementary
 TRIBe17-enlightenment
 TRIBv-perl-518
+TRIBv-perl-522
 TRIBsqueak
 TRIBscratch
 TRIBlightdm
@@ -49,3 +50,6 @@ TRIBtali
 TRIBxfce-parole
 TRIBv-go-13
 TRIBgnu-ghostscript
+TRIBperl-510
+TRIBperl-510-extra
+TRIBperl-510-module-sun-solaris
