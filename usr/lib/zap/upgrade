@@ -181,15 +181,15 @@ $DOIT /usr/bin/zap -C ${ALTROOT} update SUNWcsd
 # replace the critical state files from the running system
 # the assumption here is that SUNWcsd installs blank files
 #
-/usr/bin/cp -p /etc/devlink.tab ${ALTROOT}/etc/devlink.tab
-/usr/bin/cp -p /etc/driver_classes ${ALTROOT}/etc/driver_classes
-/usr/bin/cp -p /etc/driver_aliases ${ALTROOT}/etc/driver_aliases
-/usr/bin/cp -p /etc/iu.ap ${ALTROOT}/etc/iu.ap
-/usr/bin/cp -p /etc/minor_perm ${ALTROOT}/etc/minor_perm
-/usr/bin/cp -p /etc/name_to_major ${ALTROOT}/etc/name_to_major
-/usr/bin/cp -p /etc/path_to_inst ${ALTROOT}/etc/path_to_inst
-/usr/bin/cp -p /etc/security/device_policy ${ALTROOT}/etc/security/device_policy
-/usr/bin/cp -p /etc/security/extra_privs ${ALTROOT}/etc/security/extra_privs
+$DOIT /usr/bin/cp -p /etc/devlink.tab ${ALTROOT}/etc/devlink.tab
+$DOIT /usr/bin/cp -p /etc/driver_classes ${ALTROOT}/etc/driver_classes
+$DOIT /usr/bin/cp -p /etc/driver_aliases ${ALTROOT}/etc/driver_aliases
+$DOIT /usr/bin/cp -p /etc/iu.ap ${ALTROOT}/etc/iu.ap
+$DOIT /usr/bin/cp -p /etc/minor_perm ${ALTROOT}/etc/minor_perm
+$DOIT /usr/bin/cp -p /etc/name_to_major ${ALTROOT}/etc/name_to_major
+$DOIT /usr/bin/cp -p /etc/path_to_inst ${ALTROOT}/etc/path_to_inst
+$DOIT /usr/bin/cp -p /etc/security/device_policy ${ALTROOT}/etc/security/device_policy
+$DOIT /usr/bin/cp -p /etc/security/extra_privs ${ALTROOT}/etc/security/extra_privs
 #
 # remove any obsoleted packages
 #
@@ -240,8 +240,8 @@ grep /swap /etc/vfstab >> ${ALTROOT}/etc/vfstab
 #
 # FIXME: these 2 often get mangled, need fixing properly
 #
-/usr/bin/cp -p /etc/minor_perm ${ALTROOT}/etc/minor_perm
-/usr/bin/cp -p /etc/name_to_major ${ALTROOT}/etc/name_to_major
+$DOIT /usr/bin/cp -p /etc/minor_perm ${ALTROOT}/etc/minor_perm
+$DOIT /usr/bin/cp -p /etc/name_to_major ${ALTROOT}/etc/name_to_major
 #
 # FIXME validate
 #
