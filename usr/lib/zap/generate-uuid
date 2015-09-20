@@ -5,16 +5,10 @@
 # xxxxxxxx-xxxx-5xxx-Yxxx-xxxxxxxxxxxx
 # and Y is one of 8,9,A,B
 #
-HEAD=/usr/gnu/bin/head
+HEAD=/usr/bin/head
 RAND=/dev/random
 SSL=/usr/bin/openssl 
 
-if [ ! -x $HEAD ]; then
-   HEAD=/opt/sfw/bin/ghead
-fi
-if [ ! -x $SSL ]; then
-   SSL=/usr/sfw/bin/openssl
-fi
 #
 # first generate a random hash
 #
