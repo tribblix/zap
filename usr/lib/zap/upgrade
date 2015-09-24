@@ -167,7 +167,7 @@ done
 $DOIT mkdir $ALTROOT
 $DOIT $BEADM mount $BENAME $ALTROOT
 $DOIT zap uninstall -R $ALTROOT TRIBzap
-$DOIT ${ZAPLIBDIR}/install-pkg -R $ALTROOT ${CACHE_DIR}/${NPKG} TRIBzap
+$DOIT ${ZAPLIBDIR}/instzap -R $ALTROOT ${CACHE_DIR}/${NPKG} TRIBzap
 #
 # must refresh the overlays and catalog, as contents and dependencies
 # may have changed
@@ -197,7 +197,7 @@ if [ -f ${ALTROOT}/usr/share/zap/deprecated.pkgs ]; then
     echo "Removing obsoleted packages"
     for oldpkg in `cat ${ALTROOT}/usr/share/zap/deprecated.pkgs`
     do
-	$DOIT /usr/bin/zap uninstall -R ${altroot} ${oldpkg}
+	$DOIT /usr/bin/zap uninstall -R ${ALTROOT} ${oldpkg}
     done
 fi
 #
@@ -209,15 +209,20 @@ if [ -f ${ALTROOT}/usr/share/zap/deprecated.ovl ]; then
     echo "Removing obsoleted overlays"
     for oldovl in `cat ${ALTROOT}/usr/share/zap/deprecated.ovl`
     do
-	$DOIT /usr/bin/rm -f ${altroot}/var/sadm/overlays/${oldovl}.pkgs
-	$DOIT /usr/bin/rm -f ${altroot}/var/sadm/overlays/${oldovl}.ovl
-	$DOIT /usr/bin/rm -f ${altroot}/var/sadm/overlays/${oldovl}.pkgs.bak
-	$DOIT /usr/bin/rm -f ${altroot}/var/sadm/overlays/${oldovl}.ovl.bak
-	$DOIT /usr/bin/rm -f ${altroot}/var/sadm/overlays/installed/${oldovl}
+	$DOIT /usr/bin/rm -f ${ALTROOT}/var/sadm/overlays/${oldovl}.pkgs
+	$DOIT /usr/bin/rm -f ${ALTROOT}/var/sadm/overlays/${oldovl}.ovl
+	$DOIT /usr/bin/rm -f ${ALTROOT}/var/sadm/overlays/${oldovl}.pkgs.bak
+	$DOIT /usr/bin/rm -f ${ALTROOT}/var/sadm/overlays/${oldovl}.ovl.bak
+	$DOIT /usr/bin/rm -f ${ALTROOT}/var/sadm/overlays/installed/${oldovl}
     done
 fi
 #
 # now update the remaining overlays
+#
+$DOIT /usr/bin/zap -C ${ALTROOT} update-overlay -a
+#
+# do it again, because the overlay structure might have changed and
+# we need to be sure that any newly added overlays get updated too
 #
 $DOIT /usr/bin/zap -C ${ALTROOT} update-overlay -a
 #
@@ -250,18 +255,22 @@ $DOIT /usr/bin/cp -p /etc/name_to_major ${ALTROOT}/etc/name_to_major
 $DOIT /usr/sbin/bootadm update-archive -R $ALTROOT
 $DOIT $BEADM unmount $BENAME
 $DOIT rmdir $ALTROOT
+#
 # activation is optional
-# observation indicates that beadm leaves the old dataset
-# mountable on /, which the system tries to do at boot, which
-# fails then causing the boot to fail, so override that
+# observation indicates that beadm might leave the old dataset mountable
+# on /, which the system tries to do at boot, which fails then causing the
+# whole boot to fail, so override that just in case it's wrong. The correct
+# setting for canmount is 'noauto' but some older Tribblix installs didn't
+# set it that way
+#
 echo "Upgrade complete"
+$DOIT $ZFSCMD set canmount=noauto $OLDDS
+$DOIT $ZFSCMD set canmount=noauto $NEWDS
+$DOIT $ZFSCMD set mountpoint=/ $OLDDS
+$DOIT $ZFSCMD set mountpoint=/ $NEWDS
 if [ "X${ACTIVATE}" = "Xtrue" ]; then
   echo "Activating new BE"
   $DOIT $BEADM activate $BENAME
-  $DOIT $ZFSCMD set canmount=noauto $OLDDS
-  $DOIT $ZFSCMD set canmount=on $NEWDS
-  $DOIT $ZFSCMD set mountpoint=none $OLDDS
-  $DOIT $ZFSCMD set mountpoint=/ $NEWDS
   $DOIT init 6
 else
   echo ""
