@@ -17,7 +17,7 @@ esac
 
 CACHE_DIR=`${ZAPLIBDIR}/zap-cfg ${CTXARGS} cache-dir`
 USER_AGENT="zap"/`${ZAPLIBDIR}/pkgversion TRIBzap`
-ZAP_PROXY=`/export/packages/localsrc/Tribblix/zap${ZAPLIBDIR}/zap-cfg ${CTXARGS} proxy`
+ZAP_PROXY=`${ZAPLIBDIR}/zap-cfg ${CTXARGS} proxy`
 
 for pkg in $*
 do
