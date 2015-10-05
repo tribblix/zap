@@ -240,6 +240,8 @@ $DOIT /usr/bin/cp -p /etc/group ${ALTROOT}/etc/group
 $DOIT /usr/bin/cp -p /etc/nsswitch.conf ${ALTROOT}/etc/nsswitch.conf
 $DOIT /usr/bin/cp -p /etc/user_attr ${ALTROOT}/etc/user_attr
 $DOIT /usr/bin/cp -p /etc/resolv.conf ${ALTROOT}/etc/resolv.conf
+$DOIT /usr/bin/cp -p /etc/inet/hosts ${ALTROOT}/etc/inet/hosts
+$DOIT /usr/bin/cp -p /etc/zones/index ${ALTROOT}/etc/zones/index.pre-upgrade
 $DOIT /usr/bin/cp -p /etc/default/init ${ALTROOT}/etc/default/init
 grep /swap /etc/vfstab >> ${ALTROOT}/etc/vfstab
 #
