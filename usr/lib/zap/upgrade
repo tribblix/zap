@@ -250,6 +250,16 @@ grep /swap /etc/vfstab >> ${ALTROOT}/etc/vfstab
 $DOIT /usr/bin/cp -p /etc/minor_perm ${ALTROOT}/etc/minor_perm
 $DOIT /usr/bin/cp -p /etc/name_to_major ${ALTROOT}/etc/name_to_major
 #
+# if there is a zonelib hierarchy for sparse root zones, it needs
+# to be cleaned out (at this point zones aren't supported but at
+# least cleaning out zonelib will ensure that any newly created
+# zones will work)
+#
+if [ -d ${ALTROOT}/zonelib/lib/svc ]; then
+    $DOIT /usr/bin/rm -fr ${ALTROOT}/zonelib/lib
+    $DOIT /usr/bin/mkdir -p ${ALTROOT}/zonelib/lib
+fi
+#
 # FIXME validate
 #
 # need to update the boot archive
