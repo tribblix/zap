@@ -6,7 +6,8 @@
 #  -T template (implies sparse)
 #  -t brand - sparse, whole, or alien [default sparse]
 #  -z zone_name - zone name [required]
-#  -i IPv4 address [can be multiple]
+#  -i IPv4 address [can be multiple, for shared-ip]
+#  -x IPv4 address [can be multiple, for exclusive-ip]
 #  -I iso image for alien zone
 #  -d directory to create [can be multiple]
 #  -o overlay for partial root [can be multiple, passed to install]
@@ -23,9 +24,11 @@
 
 ZFSBASE="/export/zonedata"
 ZROOTBASE="/export/zones"
+ZSDIR="/var/zap/zones"
 ZBRAND=TRIBsparse
 ZNAME=""
 ZIP4=""
+XIP4=""
 ZISOFILE=""
 ZOVERLAY=""
 ZADDOVERLAY=""
@@ -36,12 +39,12 @@ ZBLANK=""
 
 usage() {
   echo "Usage: $0 -z zone_name [-t whole|sparse|alien]"
-  echo "  [-T template] [-I iso_image] [-i ip_address] [-B]"
-  echo "  [-d extra_dir] [-o overlay] [-O overlay] [-U user]"
+  echo "  [-T template] [-I iso_image] [-i ip_address] [-x ip_address]"
+  echo "  [-B] [-d extra_dir] [-o overlay] [-O overlay] [-U user]"
   exit 1
 }
 
-while getopts "BT:t:z:i:I:o:O:d:U:" opt; do
+while getopts "BT:t:z:i:x:I:o:O:d:U:" opt; do
 case $opt in
 B)
 	ZBLANK="Y"
@@ -57,6 +60,9 @@ z)
 	;;
 i)
 	ZIP4="${ZIP4} $OPTARG"
+	;;
+x)
+	XIP4="${XIP4} $OPTARG"
 	;;
 I)
 	ZISOFILE="$OPTARG"
@@ -91,7 +97,7 @@ fi
 # you can't create the global zone
 #
 if [ "X$ZNAME" = "Xglobal" ]; then
-    echo "ERROR: global zone is reserved"
+    echo "ERROR: the name global is reserved"
     exit 1
 fi
 
@@ -153,6 +159,14 @@ TRIBalien)
 	fi
 	;;
 esac
+
+#
+# ip-type cannot be both shared and exclusive
+#
+if [[ -n $XIP4 && -n $ZIP4 ]]; then
+    echo "ERROR: cannot specify both -i and -x"
+    usage
+fi
 
 #
 # check if the zone already exists
@@ -265,6 +279,12 @@ create_configuration() {
 echo create -t $ZBRAND
 echo set autoboot=true
 echo set zonepath=${ZROOTBASE}/${ZNAME}
+if [[ -n $XIP4 ]]; then
+    echo set ip-type=exclusive
+fi
+#
+# shared ip addresses
+#
 for IP in $ZIP4
 do
 	ZIFACE=`/usr/sbin/route -n get $IP | /usr/bin/grep interface: | /usr/bin/awk '{print $NF}'`
@@ -273,6 +293,40 @@ do
 	echo add net
 	echo set physical=$ZIFACE
 	echo set address=${IP}/${ZCIDR}
+	echo end
+done
+#
+# exclusive-ip addresses
+# the address is used to construct the topology, it's up to the
+# zone to manage it (if using dhcp, then any address on the correct
+# subnet will do the right thing)
+#
+# we set up the vnic here, and save details so that we can remove it
+# when the zone is destroyed
+#
+ZENUM=0
+for IP in $XIP4
+do
+	ZIFACE=`/usr/sbin/route -n get $IP | /usr/bin/grep interface: | /usr/bin/awk '{print $NF}'`
+	/usr/sbin/dladm show-vnic znic$ZENUM > /dev/null 2>&1
+	ZESTATUS=$?
+	while [ $ZESTATUS -eq 0 ]
+	do
+	    ZENUM=$(($ZENUM+1))
+	    /usr/sbin/dladm show-vnic znic$ZENUM > /dev/null 2>&1
+	    ZESTATUS=$?
+	done
+	/usr/sbin/dladm create-vnic -l $ZIFACE znic$ZENUM
+	if [ ! -d $ZSDIR ]; then
+	    mkdir -p $ZSDIR
+	fi
+	if [ ! -f ${ZSDIR}/destroy.${ZNAME} ]; then
+	    echo "#!/bin/sh" > ${ZSDIR}/destroy.${ZNAME}
+	    chmod a+x ${ZSDIR}/destroy.${ZNAME}
+	fi
+	echo "/usr/sbin/dladm delete-vnic znic$ZENUM" >> ${ZSDIR}/destroy.${ZNAME}
+	echo add net
+	echo set physical=znic$ZENUM
 	echo end
 done
 for DIR in $ZDIRS
@@ -356,7 +410,7 @@ done
 
 #
 # blank the zone if requested; init requires the smf entry to be present in
-# inittab but doesn't check waht it actually runs
+# inittab but doesn't check what it actually runs
 #
 if [[ -n ${ZBLANK} ]]; then
     if [ -f ${ZROOTBASE}/${ZNAME}/root/etc/inittab ]; then

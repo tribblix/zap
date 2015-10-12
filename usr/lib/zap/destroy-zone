@@ -3,6 +3,7 @@
 # stop, delete, and unconfigure a zone
 #
 ZNAME=""
+ZSDIR="/var/zap/zones"
 
 while getopts "z:" opt; do
 case $opt in
@@ -43,6 +44,11 @@ if [ $ZEXISTS -eq 0 ]; then
     echo "Uninstalled zone $ZNAME"
     /usr/sbin/zonecfg -z $ZNAME delete -F
     echo "Deleted zone $ZNAME"
+    if [ -x ${ZSDIR}/destroy.${ZNAME} ]; then
+	${ZSDIR}/destroy.${ZNAME}
+	echo "Cleaned up after zone $ZNAME"
+	/usr/bin/rm -f ${ZSDIR}/destroy.${ZNAME}
+    fi
 else
     echo "ERROR: No such zone $ZNAME"
 fi

@@ -6,7 +6,7 @@ and control the software installed in the zone.
 
 The syntax of the subcommand is:
 
-create-zone -T template_name [-d extra_dir] [-o overlay] [-O overlay]
+create-zone-template -T template_name [-d extra_dir] [-o overlay] [-O overlay]
 
 Supplying the template_name is mandatory; other arguments are optional.
 
