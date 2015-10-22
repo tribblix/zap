@@ -17,9 +17,12 @@ TRIBopenjdk7u51
 TRIBopenjdk7u60
 TRIBopenjdk7u65
 TRIBopenjdk7u71
+TRIBopenjdk7u75
 TRIBopenjdk8u20
 TRIBopenjdk8u25
 TRIBopenjdk8u31
+TRIBopenjdk8u45
+TRIBopenjdk8u60
 TRIBlibxml2-python-276
 TRIBv-python-276
 TRIBv-python-335
@@ -53,3 +56,4 @@ TRIBgnu-ghostscript
 TRIBperl-510
 TRIBperl-510-extra
 TRIBperl-510-module-sun-solaris
+TRIBblix-php-55
