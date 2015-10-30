@@ -65,7 +65,7 @@ do
 		   echo "ERRSIZE $zfile"
 		   EXITSTATUS=1
 		else
-		   PKGMD5=`openssl md5 ${zfile}| /usr/bin/awk '{print $NF}'`
+		   PKGMD5=`/usr/bin/openssl md5 ${zfile}| /usr/bin/awk '{print $NF}'`
 		   if [ "X$PKGMD5" != "X$fhash" ]; then
 		      echo "ERRHASH $zfile"
 		      EXITSTATUS=1

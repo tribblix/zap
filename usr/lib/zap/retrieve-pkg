@@ -19,12 +19,28 @@ CACHE_DIR=`${ZAPLIBDIR}/zap-cfg ${CTXARGS} cache-dir`
 USER_AGENT="zap"/`${ZAPLIBDIR}/pkgversion TRIBzap`
 ZAP_PROXY=`${ZAPLIBDIR}/zap-cfg ${CTXARGS} proxy`
 
+#
+# the verification here is mostly for debugging at this time
+#
 for pkg in $*
 do
-    ${ZAPLIBDIR}/get-version ${CTXARGS} $pkg | read fpkg frepo
+    ${ZAPLIBDIR}/get-pkg-meta ${CTXARGS} $pkg | read fpkg fver fsize fhash frepo
     if [ -n "$frepo" ]; then
+	fpkgname="${fpkg}.${fver}.zap"
+	zfile="${CACHE_DIR}/${fpkgname}"
 	REPO=`${ZAPLIBDIR}/zap-cfg ${CTXARGS} repo-url $frepo`
-	echo "Fetching ${REPO}/${fpkg}.zap"
-	/usr/bin/curl -A ${USER_AGENT} ${ZAP_PROXY} -f -s -o ${CACHE_DIR}/${fpkg}.zap ${REPO}/${fpkg}.zap
+	echo "Fetching ${REPO}/${fpkgname}"
+	/usr/bin/curl -A ${USER_AGENT} ${ZAP_PROXY} -f -s -o ${zfile} ${REPO}/${fpkgname}
+	PSIZE=`/bin/ls -l ${zfile} | /usr/bin/awk '{print $5}'`
+	if [ "X$PSIZE" != "X$fsize" ]; then
+	    echo "Download $zfile has wrong size"
+	else
+	    PKGMD5=`/usr/bin/openssl md5 ${zfile}| /usr/bin/awk '{print $NF}'`
+	    if [ "X$PKGMD5" != "X$fhash" ]; then
+		echo "Download $zfile has wrong checksum"
+	    else
+		echo "Download $zfile verified"
+	    fi
+	fi
     fi
 done
