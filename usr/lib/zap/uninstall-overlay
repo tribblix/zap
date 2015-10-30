@@ -81,11 +81,11 @@ fi
 # we want to know all the installed overlays
 #
 cd ${DESTROOT}/${ODIR}/installed
-NPKGLIST=`ls -1| /usr/bin/awk '{print $1".pkgs"}'`
+NPKGLIST=`/usr/bin/ls -1| /usr/bin/awk '{print $1".pkgs"}'`
 cd ${DESTROOT}/${ODIR}
-for pkg in `rev -l ${PLIST}`
+for pkg in `/usr/bin/rev -l ${PLIST}`
 do
-NFOUND=`/usr/bin/grep "^${pkg}\$" $NPKGLIST|wc -l|/usr/bin/awk '{print $1}'`
+NFOUND=`/usr/bin/grep "^${pkg}\$" $NPKGLIST|/usr/bin/wc -l|/usr/bin/awk '{print $1}'`
 # if we find it once then it's only in the overlay we're removing
 # else it's also in other overlays and we must retain it
 case $NFOUND in
@@ -113,4 +113,4 @@ done
 # book keeping
 #
 echo "Overlay ${ONAME} uninstalled"
-rm ${DESTROOT}/${ODIR}/installed/${ONAME}
+/usr/bin/rm ${DESTROOT}/${ODIR}/installed/${ONAME}

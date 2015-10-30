@@ -15,9 +15,9 @@ esac
 for inpkg in $*
 do
 	pkg=`${ZAPLIBDIR}/resolve-alias $inpkg`
-	if /bin/pkginfo ${BFLAGS} -q ${pkg}
+	if /usr/bin/pkginfo ${BFLAGS} -q ${pkg}
 	then
                 echo "Removing $pkg package"
-                /usr/sbin/pkgrm -a ${ZAPLIBDIR}/pkg.default -n ${BFLAGS} $pkg
+                /usr/sbin/pkgrm -n -a ${ZAPLIBDIR}/pkg.default ${BFLAGS} $pkg
         fi
 done

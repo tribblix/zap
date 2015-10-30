@@ -240,7 +240,7 @@ if [[ -n $ZTEMPLATE ]]; then
 	echo "ERROR: no such template ${ZTEMPLATE}"
 	exit 1
     fi
-    UDIR=`/usr/bin/grep 'directory=\"/usr\"' /etc/zones/${ZBRAND}.xml | /usr/bin/awk '{print $2}' | /usr/bin/awk -F= '{print $2}' | sed 's:"::g'`
+    UDIR=`/usr/bin/grep 'directory=\"/usr\"' /etc/zones/${ZBRAND}.xml | /usr/bin/awk '{print $2}' | /usr/bin/awk -F= '{print $2}' | /usr/bin/sed 's:"::g'`
     if [ ! -d ${UDIR} ]; then
 	echo "ERROR: unable to find file systems for template ${ZTEMPLATE}"
 	exit 1
@@ -249,7 +249,7 @@ fi
 
 get_mask() {
 CIDR=0
-for octet in `echo $1 | sed 's:\.: :g'`
+for octet in `echo $1 | /usr/bin/sed 's:\.: :g'`
 do
 case $octet in
 255)
@@ -318,11 +318,11 @@ do
 	done
 	/usr/sbin/dladm create-vnic -l $ZIFACE znic$ZENUM
 	if [ ! -d $ZSDIR ]; then
-	    mkdir -p $ZSDIR
+	    /usr/bin/mkdir -p $ZSDIR
 	fi
 	if [ ! -f ${ZSDIR}/destroy.${ZNAME} ]; then
 	    echo "#!/bin/sh" > ${ZSDIR}/destroy.${ZNAME}
-	    chmod a+x ${ZSDIR}/destroy.${ZNAME}
+	    /usr/bin/chmod a+x ${ZSDIR}/destroy.${ZNAME}
 	fi
 	echo "/usr/sbin/dladm delete-vnic znic$ZENUM" >> ${ZSDIR}/destroy.${ZNAME}
 	echo add net
@@ -331,7 +331,7 @@ do
 done
 for DIR in $ZDIRS
 do
-	mkdir -p ${ZFSBASE}/${ZNAME}${DIR}
+	/usr/bin/mkdir -p ${ZFSBASE}/${ZNAME}${DIR}
 	echo add fs
 	echo set dir=${DIR}
 	echo set special=${ZFSBASE}/${ZNAME}${DIR}
@@ -375,7 +375,7 @@ fi
 if [[ -n ${ZDIRS} ]]; then
    ZPARENT=`dirname ${ZFSBASE}`
    ZDPARENT=`/usr/sbin/zfs list -H ${ZPARENT} | /usr/bin/awk '{print $1}'`
-   ZREALNAME=`echo $ZFSBASE | sed s:${ZPARENT}:${ZDPARENT}:`
+   ZREALNAME=`echo $ZFSBASE | /usr/bin/sed s:${ZPARENT}:${ZDPARENT}:`
    if [[ ! -d ${ZFSBASE} ]]; then
       /usr/sbin/zfs create ${ZREALNAME}
    fi
@@ -386,7 +386,7 @@ fi
 if [[ ! -d ${ZROOTBASE} ]]; then
    ZPARENT=`dirname ${ZROOTBASE}`
    ZDPARENT=`/usr/sbin/zfs list -H ${ZPARENT} | /usr/bin/awk '{print $1}'`
-   ZREALNAME=`echo $ZROOTBASE | sed s:${ZPARENT}:${ZDPARENT}:`
+   ZREALNAME=`echo $ZROOTBASE | /usr/bin/sed s:${ZPARENT}:${ZDPARENT}:`
    /usr/sbin/zfs create ${ZREALNAME}
 fi
 
@@ -414,16 +414,16 @@ done
 #
 if [[ -n ${ZBLANK} ]]; then
     if [ -f ${ZROOTBASE}/${ZNAME}/root/etc/inittab ]; then
-	mv ${ZROOTBASE}/${ZNAME}/root/etc/inittab ${ZROOTBASE}/${ZNAME}/root/etc/inittab.full
-	cat ${ZROOTBASE}/${ZNAME}/root/etc/inittab.full | /usr/bin/sed 's:/lib/svc/bin/svc.startd:/usr/bin/sleep Inf:'  > ${ZROOTBASE}/${ZNAME}/root/etc/inittab
+	/usr/bin/mv ${ZROOTBASE}/${ZNAME}/root/etc/inittab ${ZROOTBASE}/${ZNAME}/root/etc/inittab.full
+	/usr/bin/cat ${ZROOTBASE}/${ZNAME}/root/etc/inittab.full | /usr/bin/sed 's:/lib/svc/bin/svc.startd:/usr/bin/sleep Inf:'  > ${ZROOTBASE}/${ZNAME}/root/etc/inittab
     fi
 fi
 
 #
 # do some minimalist configuration of the zone
 #
-cp /etc/resolv.conf ${ZROOTBASE}/${ZNAME}/root/etc
-cp /etc/default/init ${ZROOTBASE}/${ZNAME}/root/etc/default/init
+/usr/bin/cp /etc/resolv.conf ${ZROOTBASE}/${ZNAME}/root/etc
+/usr/bin/cp /etc/default/init ${ZROOTBASE}/${ZNAME}/root/etc/default/init
 
 /usr/sbin/zoneadm -z ${ZNAME} boot
-rm $ZCFGFILE
+/usr/bin/rm $ZCFGFILE

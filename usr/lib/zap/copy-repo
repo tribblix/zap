@@ -117,6 +117,6 @@ do
 	echo "Checksum verified for ${pkg}"
     else
 	echo "ERROR: Checksum failure for ${pkg}"
-	/bin/rm -f ${DESTDIR}/${pkg}.${ver}.zap
+	/usr/bin/rm -f ${DESTDIR}/${pkg}.${ver}.zap
     fi
 done

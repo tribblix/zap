@@ -27,7 +27,7 @@ case $pkgname in
 *.zap)
 	if [ -f ${pkgname} ]; then
 	   thispkg=${pkgname##*/}
-	   zipgrep VERSION= ${pkgname} ${thispkg%%.*}/pkginfo | /usr/bin/awk -F= '{print $2}' | sed 's="==g'
+	   /usr/bin/zipgrep VERSION= ${pkgname} ${thispkg%%.*}/pkginfo | /usr/bin/awk -F= '{print $2}' | /usr/bin/sed 's="==g'
 	   exit 0
 	else
 	   echo "Error: unable to find package file $pkgname"
@@ -36,7 +36,7 @@ case $pkgname in
 	;;
 *.pkg)
 	if [ -f ${pkgname} ]; then
-	   /usr/bin/pkginfo -l -d ${pkgname} | /usr/bin/grep VERSION: | /usr/bin/awk '{print $NF}' | sed 's="==g'
+	   /usr/bin/pkginfo -l -d ${pkgname} | /usr/bin/grep VERSION: | /usr/bin/awk '{print $NF}' | /usr/bin/sed 's="==g'
 	   exit 0
 	else
 	   echo "Error: unable to find package file $pkgname"
@@ -45,7 +45,7 @@ case $pkgname in
 	;;
 *)
 	if [ -f ${ALTROOT}/var/sadm/pkg/${pkgname}/pkginfo ]; then
-	   /usr/bin/grep '^VERSION=' ${ALTROOT}/var/sadm/pkg/${pkgname}/pkginfo | sed 's:VERSION=::'
+	   /usr/bin/grep '^VERSION=' ${ALTROOT}/var/sadm/pkg/${pkgname}/pkginfo | /usr/bin/sed 's:VERSION=::'
 	   exit 0
 	else
 	   echo "Error: unable to find package $pkgname"

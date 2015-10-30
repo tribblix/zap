@@ -37,8 +37,8 @@ else
     fi
     echo "Installing $PKG"
     ZTMP=/tmp/zap.tmp.`date '+%F-%T'`.$$
-    rm -fr ${ZTMP}
-    mkdir ${ZTMP}
+    /usr/bin/rm -fr ${ZTMP}
+    /usr/bin/mkdir ${ZTMP}
     cd ${ZTMP}
     #
     # prefer unzip, as it is quieter and quicker, but fall back on
@@ -53,5 +53,5 @@ else
     fi
     cd /
     /usr/sbin/pkgadd -n -a ${ZAPLIBDIR}/pkg.force ${BFLAGS} -d ${ZTMP} ${PKG}
-    rm -fr $ZTMP
+    /usr/bin/rm -fr $ZTMP
 fi
