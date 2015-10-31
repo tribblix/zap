@@ -18,6 +18,6 @@ do
 	if /usr/bin/pkginfo ${BFLAGS} -q ${pkg}
 	then
                 echo "Removing $pkg package"
-                /usr/sbin/pkgrm -n -a ${ZAPLIBDIR}/pkg.default ${BFLAGS} $pkg
+                /usr/sbin/pkgrm -n -a ${ZAPLIBDIR}/pkg.force ${BFLAGS} $pkg
         fi
 done
