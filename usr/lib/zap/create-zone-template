@@ -98,7 +98,7 @@ done
 # create any missing zfs datasets
 #
 if [[ -n ${ZDIRS} ]]; then
-   ZPARENT=`dirname ${ZFSBASE}`
+   ZPARENT=${ZFSBASE%/*}
    ZDPARENT=`/usr/sbin/zfs list -H ${ZPARENT} | /usr/bin/awk '{print $1}'`
    ZREALNAME=`echo $ZFSBASE | /usr/bin/sed s:${ZPARENT}:${ZDPARENT}:`
    if [[ ! -d ${ZFSBASE} ]]; then
@@ -109,13 +109,13 @@ if [[ -n ${ZDIRS} ]]; then
    fi
 fi
 if [[ ! -d ${ZROOTBASE} ]]; then
-   ZPARENT=`dirname ${ZROOTBASE}`
+   ZPARENT=${ZROOTBASE%/*}
    ZDPARENT=`/usr/sbin/zfs list -H ${ZPARENT} | /usr/bin/awk '{print $1}'`
    ZREALNAME=`echo $ZROOTBASE | /usr/bin/sed s:${ZPARENT}:${ZDPARENT}:`
    /usr/sbin/zfs create ${ZREALNAME}
 fi
 if [[ ! -d ${ZROOTBASE}/${TNAME} ]]; then
-   ZPARENT=`dirname ${ZROOTBASE}`
+   ZPARENT=${ZROOTBASE%/*}
    ZDPARENT=`/usr/sbin/zfs list -H ${ZPARENT} | /usr/bin/awk '{print $1}'`
    ZREALNAME=`echo $ZROOTBASE | /usr/bin/sed s:${ZPARENT}:${ZDPARENT}:`
    /usr/sbin/zfs create ${ZREALNAME}/${TNAME}
