@@ -35,7 +35,7 @@ refresh_repo() {
 	mv ${CFGDIR}/repositories/${frepo}.overlays.tmp ${CFGDIR}/repositories/${frepo}.overlays
 	/usr/bin/awk -F'|' '{print $1,$2}' ${CFGDIR}/repositories/${frepo}.overlays | while read novl nver
 	do
-	    iver=`${ZAPLIBDIR}/overlay-version ${CTXARGS} $novl`
+	    iver=`/usr/bin/grep '^VERSION=' ${ODIR}/${novl}.ovl | /usr/bin/sed 's:VERSION=::'`
 	    if [ "X${nver}" != "X${iver}" ]; then
 		/usr/bin/curl -f -s -o ${ODIR}/${novl}.ovl.tmp ${REPO}/${novl}.ovl
 		/usr/bin/curl -f -s -o ${ODIR}/${novl}.pkgs.tmp ${REPO}/${novl}.pkgs

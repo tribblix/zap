@@ -41,7 +41,7 @@ refresh_repo() {
 
 case $# in
 0)
-	for repo in `/usr/bin/sort -k1 -n ${CFGDIR}/repo.list | /usr/bin/awk '{print $2}`
+	for repo in `/usr/bin/awk '{print $2}' ${CFGDIR}/repo.list`
 	do
 	    refresh_repo $repo
 	done
