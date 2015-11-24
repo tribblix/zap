@@ -20,7 +20,7 @@ esac
 
 case $# in
 1)
-	PKG="$1"
+	OVL="$1"
 	;;
 *)
 	exit 1
@@ -28,15 +28,15 @@ case $# in
 esac
 
 #
-# given a package, return its name, version, size, hash, and repo
+# given an overlay, return its name, version, and repo
 # as given in the catalog
 #
-for repo in `${ZAPLIBDIR}/zap-cfg ${CTXARGS} list-pkg-repos`
+for repo in `${ZAPLIBDIR}/zap-cfg ${CTXARGS} list-overlay-repos`
 do
-    if [ -f ${CFGDIR}/repositories/${repo}.catalog ]; then
-	FPKG=`/usr/bin/nawk -F'|' '{if ($1 == npkg) print $1,$2,$4,$5}' npkg=${PKG} ${CFGDIR}/repositories/${repo}.catalog`
-	if [ -n "$FPKG" ]; then
-	    echo "${FPKG} ${repo}"
+    if [ -f ${CFGDIR}/repositories/${repo}.overlays ]; then
+	FOVL=`/usr/bin/nawk -F'|' '{if ($1 == novl) print $1,$2}' novl=${OVL} ${CFGDIR}/repositories/${repo}.overlays`
+	if [ -n "$FOVL" ]; then
+	    echo "${FOVL} ${repo}"
 	    exit 0
 	fi
     fi

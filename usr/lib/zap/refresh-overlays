@@ -33,21 +33,27 @@ refresh_repo() {
     if [ -s ${CFGDIR}/repositories/${frepo}.overlays.tmp ]; then
 	mv ${CFGDIR}/repositories/${frepo}.overlays ${CFGDIR}/repositories/${frepo}.overlays.bak
 	mv ${CFGDIR}/repositories/${frepo}.overlays.tmp ${CFGDIR}/repositories/${frepo}.overlays
-	/usr/bin/awk -F'|' '{print $1,$2}' ${CFGDIR}/repositories/${frepo}.overlays | while read novl nver
+	/usr/bin/awk -F'|' '{print $1}' ${CFGDIR}/repositories/${frepo}.overlays | while read novl
 	do
-	    iver=`/usr/bin/grep '^VERSION=' ${ODIR}/${novl}.ovl | /usr/bin/sed 's:VERSION=::'`
-	    if [ "X${nver}" != "X${iver}" ]; then
-		/usr/bin/curl -f -s -o ${ODIR}/${novl}.ovl.tmp ${REPO}/${novl}.ovl
-		/usr/bin/curl -f -s -o ${ODIR}/${novl}.pkgs.tmp ${REPO}/${novl}.pkgs
-		if [ -s ${ODIR}/${novl}.ovl.tmp -a -s ${ODIR}/${novl}.pkgs.tmp ]; then
-		    if [ -f ${ODIR}/${novl}.ovl ]; then
-			mv ${ODIR}/${novl}.ovl ${ODIR}/${novl}.ovl.bak
+	    ${ZAPLIBDIR}/get-overlay-meta $novl | read tovl nver trepo
+	    #
+	    # check that this repo is the authoritative source for this overlay
+	    #
+	    if [ "X$frepo" = "X$trepo" ]; then
+		iver=`/usr/bin/grep '^VERSION=' ${ODIR}/${novl}.ovl | /usr/bin/sed 's:VERSION=::'`
+		if [ "X${nver}" != "X${iver}" ]; then
+		    /usr/bin/curl -f -s -o ${ODIR}/${novl}.ovl.tmp ${REPO}/${novl}.ovl
+		    /usr/bin/curl -f -s -o ${ODIR}/${novl}.pkgs.tmp ${REPO}/${novl}.pkgs
+		    if [ -s ${ODIR}/${novl}.ovl.tmp -a -s ${ODIR}/${novl}.pkgs.tmp ]; then
+			if [ -f ${ODIR}/${novl}.ovl ]; then
+			    mv ${ODIR}/${novl}.ovl ${ODIR}/${novl}.ovl.bak
+			fi
+			mv ${ODIR}/${novl}.ovl.tmp ${ODIR}/${novl}.ovl
+			if [ -f ${ODIR}/${novl}.pkgs ]; then
+			    mv ${ODIR}/${novl}.pkgs ${ODIR}/${novl}.pkgs.bak
+			fi
+			mv ${ODIR}/${novl}.pkgs.tmp ${ODIR}/${novl}.pkgs
 		    fi
-		    mv ${ODIR}/${novl}.ovl.tmp ${ODIR}/${novl}.ovl
-		    if [ -f ${ODIR}/${novl}.pkgs ]; then
-			mv ${ODIR}/${novl}.pkgs ${ODIR}/${novl}.pkgs.bak
-		    fi
-		    mv ${ODIR}/${novl}.pkgs.tmp ${ODIR}/${novl}.pkgs
 		fi
 	    fi
 	done
