@@ -2,12 +2,14 @@ ZAP and zone creation
 =====================
 
 The zap utility allows you to create zones with a given specification
-and control the software installed in the zone.
+and control the software installed in and the network configuration of
+the zone.
 
 The syntax of the subcommand is:
 
 create-zone -z zone_name [-t whole|sparse|alien]
-    [-T template] [-I iso_image] [-i ip_address] [-x ip_address]
+    [-T template] [-I iso_image]
+    [-i ip_address] [-x ip_address] [-R ip_network/prefix]
     [-B] [-d extra_dir] [-o overlay] [-O overlay] [-U user]
 
 Supplying the zone_name is mandatory; all other arguments are optional.
@@ -26,13 +28,16 @@ given this IP address. This flag can be used multiple times to assign
 multiple IP addresses.
 
 The -x flag specifies an IP address. If supplied, the zone will be an
-exclusive-ip zone, and a vnic will be created for the zone's use. The
-ip address given as an argument will be used to establish the network
-topology, but it is the responsibility of the created zone to manage
-its own networking.
+exclusive-ip zone, and a vnic will be created for the zone's use.
 
 As shared-ip and exclusive-ip are incompatible, attempting to supply
 both the -i and -x flags is an error.
+
+The -R flag specifies a network and prefix, for which this zone will
+proxy network traffic. A public-facing address should be specified
+with the -x flag. Zones subsequently created with addresses in the
+given network range will be connected topologically behind this zone
+and will use it to route (NAT) traffic.
 
 The -d flag specifies a directory to be created and mounted inside the
 zone. This flag can be used multiple times to create multiple
