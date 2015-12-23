@@ -46,6 +46,7 @@ TRIBe17-elementary
 TRIBe17-enlightenment
 TRIBv-perl-518
 TRIBv-perl-522
+TRIBv-ruby-200
 TRIBsqueak
 TRIBscratch
 TRIBlightdm
@@ -53,6 +54,8 @@ TRIBlightdm-gtk
 TRIBtali
 TRIBxfce-parole
 TRIBv-go-13
+TRIBv-go-14
+TRIBv-go-14-lint
 TRIBgnu-ghostscript
 TRIBperl-510
 TRIBperl-510-extra
