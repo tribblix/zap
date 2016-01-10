@@ -1,0 +1,45 @@
+#!/bin/ksh
+#
+# this is the zone configurator
+# we are supplied with:
+#  the name of the zone, via the -z flag
+#  an action and arguments, separated by an = sign
+#
+
+ZAPLIBDIR="/usr/lib/zap"
+ZNAME=""
+
+usage() {
+  echo "Usage: $0 -z zone_name action=arg[=arg...]"
+  exit 1
+}
+
+while getopts "z:" opt; do
+case $opt in
+z)
+	ZNAME="$OPTARG"
+	;;
+esac
+done
+shift $((OPTIND - 1))
+
+if [[ -z $ZNAME ]]; then
+   echo "ERROR: zone name must be specified"
+   usage
+fi
+
+case $# in
+0)
+	usage
+	;;
+esac
+
+echo $* | sed 's:=: :' | read action args
+echo action := $action
+echo args := $args
+
+if [ -x ${ZAPLIBDIR}/konfigure-$action ]; then
+    exec ${ZAPLIBDIR}/konfigure-$action -z ${ZNAME} $args
+else
+    echo "WARN: unrecognized action $action"
+fi

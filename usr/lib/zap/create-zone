@@ -15,6 +15,7 @@
 #  -O add overlay [can be multiple, passed to install]
 #  -U share user and their homedir with the zone
 #  -B blank boot
+#  -K konfigurator arguments
 #
 # FIXMES:
 # add IPv6
@@ -39,6 +40,7 @@ ZDIRS=""
 ZUSERS=""
 ZTEMPLATE=""
 ZBLANK=""
+KARGS=""
 
 #
 # these associative arrays track the interface to address mapping
@@ -51,10 +53,11 @@ usage() {
   echo "  [-T template] [-I iso_image]"
   echo "  [-i ip_address] [-x ip_address] [-R ip_network/prefix]"
   echo "  [-B] [-d extra_dir] [-o overlay] [-O overlay] [-U user]"
+  echo "  [-K action=arg[=arg...]]"
   exit 1
 }
 
-while getopts "BT:t:z:i:x:R:I:o:O:d:U:" opt; do
+while getopts "BT:t:z:i:x:R:I:o:O:d:U:K:" opt; do
 case $opt in
 B)
 	ZBLANK="Y"
@@ -91,6 +94,9 @@ d)
 	;;
 U)
 	ZUSERS="${ZUSERS} $OPTARG"
+	;;
+K)
+	KARGS="${KARGS} $OPTARG"
 	;;
 esac
 done
@@ -456,6 +462,28 @@ get_net_details() {
 }
 
 #
+# return the parent zone if routed
+#
+get_parent_zone() {
+    IIP=$1
+    NIP=`get_short_net ${IIP}/24`
+    if [ -f ${ZSDIR}/rconfig.${NIP} ] ; then
+	/usr/bin/grep zone: ${ZSDIR}/rconfig.${NIP} | /usr/bin/awk '{print $NF}'
+	return
+    fi
+    NIP=`get_short_net ${IIP}/16`
+    if [ -f ${ZSDIR}/rconfig.${NIP} ] ; then
+	/usr/bin/grep zone: ${ZSDIR}/rconfig.${NIP} | /usr/bin/awk '{print $NF}'
+	return
+    fi
+    NIP=`get_short_net ${IIP}/8`
+    if [ -f ${ZSDIR}/rconfig.${NIP} ] ; then
+        /usr/bin/grep zone: ${ZSDIR}/rconfig.${NIP} | /usr/bin/awk '{print $NF}'
+	return
+    fi
+}
+
+#
 # return the default gateway for the given address
 #
 get_gateway() {
@@ -501,6 +529,17 @@ get_short_net() {
 }
 
 create_configuration() {
+if [ ! -d $ZSDIR ]; then
+    /usr/bin/mkdir -p $ZSDIR
+fi
+touch ${ZSDIR}/zconfig.${ZNAME}
+if [ ! -f ${ZSDIR}/destroy.${ZNAME} ]; then
+    echo "#!/bin/sh" > ${ZSDIR}/destroy.${ZNAME}
+    /usr/bin/chmod a+x ${ZSDIR}/destroy.${ZNAME}
+fi
+echo "/bin/rm -f ${ZSDIR}/zconfig.${ZNAME}" >> ${ZSDIR}/destroy.${ZNAME}
+echo "brand: $ZBRAND" >> ${ZSDIR}/zconfig.${ZNAME}
+echo "zone: $ZNAME" >> ${ZSDIR}/zconfig.${ZNAME}
 echo create -t $ZBRAND
 echo set autoboot=true
 echo set zonepath=${ZROOTBASE}/${ZNAME}
@@ -539,19 +578,16 @@ do
 	    ZESTATUS=$?
 	done
 	/usr/sbin/dladm create-vnic -l $ZIFACE znic$ZENUM
-	if [ ! -d $ZSDIR ]; then
-	    /usr/bin/mkdir -p $ZSDIR
-	fi
-	if [ ! -f ${ZSDIR}/destroy.${ZNAME} ]; then
-	    echo "#!/bin/sh" > ${ZSDIR}/destroy.${ZNAME}
-	    /usr/bin/chmod a+x ${ZSDIR}/destroy.${ZNAME}
-	fi
 	echo "/usr/sbin/dladm delete-vnic znic$ZENUM" >> ${ZSDIR}/destroy.${ZNAME}
 	ifipmap[znic$ZENUM]=$IP/$ZCIDR
 	xifipmap[znic$ZENUM]=$IP/$ZCIDR
 	echo add net
 	echo set physical=znic$ZENUM
 	echo end
+	ZROUTER=`get_parent_zone $IP`
+	if [[ -n $ZROUTER ]]; then
+	    echo "parent_zone: $ZROUTER" >> ${ZSDIR}/zconfig.${ZNAME}
+	fi
 done
 #
 # For router/proxy zones we create an etherstub for the internal virtual
@@ -732,6 +768,14 @@ fi
 #
 /usr/bin/cp /etc/resolv.conf ${ZROOTBASE}/${ZNAME}/root/etc
 /usr/bin/cp /etc/default/init ${ZROOTBASE}/${ZNAME}/root/etc/default/init
+
+#
+# apply any konfiguration requests
+#
+for KARG in $KARGS
+do
+    /usr/lib/zap/zone-konfigurator -z ${ZNAME} $KARG
+done
 
 /usr/sbin/zoneadm -z ${ZNAME} boot
 /usr/bin/rm $ZCFGFILE

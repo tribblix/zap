@@ -33,6 +33,20 @@ if [ "X$ZNAME" = "Xglobal" ]; then
 fi
 
 #
+# check if this zone is a parent of any other zones
+#
+PZCHECK=`grep "^parent_zone: $ZNAME\$" ${ZSDIR}/zconfig.*`
+if [[ -n $PZCHECK ]]; then
+    echo "Zone $ZNAME is a parent for the following zones, and cannot be deleted"
+    echo "until all the child zones have been deleted"
+    for pzc in `grep "^parent_zone: $ZNAME\$" ${ZSDIR}/zconfig.* | awk -F: '{print $1}'`
+    do
+	grep '^zone:' $pzc | awk '{print "  "$NF}'
+    done
+    exit 1
+fi
+
+#
 # check it exists, otherwise behaviour is correct but messy
 #
 /usr/sbin/zoneadm -z $ZNAME list > /dev/null 2>&1
@@ -48,6 +62,9 @@ if [ $ZEXISTS -eq 0 ]; then
 	${ZSDIR}/destroy.${ZNAME}
 	echo "Cleaned up after zone $ZNAME"
 	/usr/bin/rm -f ${ZSDIR}/destroy.${ZNAME}
+    fi
+    if [ -f ${ZSDIR}/zconfig.${ZNAME} ]; then
+	/usr/bin/rm -f ${ZSDIR}/zconfig.${ZNAME}
     fi
 else
     echo "ERROR: No such zone $ZNAME"
