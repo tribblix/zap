@@ -62,6 +62,10 @@ uninstall-overlay)
 	shift
 	exec ${ZAPLIBDIR}/uninstall-overlay $*
 	;;
+list-overlays)
+	shift
+	exec ${ZAPLIBDIR}/list-overlays $*
+	;;
 verify-overlay)
 	shift
 	exec ${ZAPLIBDIR}/verify-overlay $*
@@ -70,9 +74,9 @@ list-packages)
 	shift
 	exec /usr/bin/pkginfo ${PKGARGS} $*
 	;;
-list-overlays)
+verify-packages)
 	shift
-	exec ${ZAPLIBDIR}/list-overlays $*
+	exec ${ZAPLIBDIR}/verify-packages $*
 	;;
 refresh|refresh-overlays)
 	shift

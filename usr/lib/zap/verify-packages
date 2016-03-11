@@ -1,0 +1,47 @@
+#!/bin/sh
+
+ZAPLIBDIR="/usr/lib/zap"
+ONAME=""
+ODIR="/var/sadm/overlays"
+PKGARGS=""
+DESTROOT=""
+
+case $1 in
+-R)
+	DESTROOT="$2"
+	PKGARGS="-R ${DESTROOT}"
+	ODIR="${DESTROOT}/${ODIR}"
+	shift
+	shift
+	if [ ! -d "$DESTROOT" ]; then
+	    echo "ERROR: alternate root $DESTROOT doesn't exist"
+	    exit 1
+	fi
+	;;
+esac
+
+STATUS=0
+
+#
+# then check packages
+#
+for pkg in `/bin/ls -1 ${DESTROOT}/var/sadm/pkg`
+do
+      IVERSION=`${ZAPLIBDIR}/pkgversion ${PKGARGS} $pkg`
+      AFVERSION=`${ZAPLIBDIR}/get-version ${CTXARGS} $pkg`
+      if [ "$AFVERSION" != "$pkg" ]; then
+	  AVERSION=${AFVERSION% *}
+	  AREPO=${AFVERSION#* }
+	  RVERSION=${AVERSION#*.}
+	  if [ "$AREPO" != "opensxce" ]; then
+	      if [ "X${pkg}.${IVERSION}" != "X${AVERSION}" ]; then
+		  echo "WARN: package ${pkg} needs updating to ${RVERSION}"
+		  STATUS=2
+	      fi
+	  fi
+      else
+	  echo "DEBUG: package $pkg not in catalog"
+      fi
+done
+
+exit $STATUS
