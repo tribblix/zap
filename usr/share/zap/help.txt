@@ -63,10 +63,10 @@ list-overlays [-R dir]
   This subcommand lists the available overlays and whether they are
   installed.
 
-search [-R dir] [-a] search_term
+search [-R dir] search_term
 
   This subcommand searches for overlays and packages matching the given
-  search term. With the -a argument, continues to show all matches.
+  search term.
 
 refresh
 

@@ -4,7 +4,6 @@ CFGDIR="/etc/zap"
 ZAPLIBDIR="/usr/lib/zap"
 DESTROOT=""
 PKGARGS=""
-EXIT="exit"
 
 case $1 in
 -R)
@@ -19,22 +18,21 @@ case $1 in
 	;;
 esac
 
-case $1 in
--a)
-	shift
-	EXIT=""
-	;;
-esac
-
 case $# in
 1)
 	PKG="$1"
 	;;
 *)
-	echo "Usage: zap search [ -R altroot] [ -a ] search_term"
+	echo "Usage: zap search [ -R altroot] search_term"
 	exit 1
 	;;
 esac
+
+#
+# keep track of packages we have found
+# so as not to repeat them
+#
+typeset -A pmap
 
 #
 # simplistic search, start with exact matches on overlays
@@ -42,7 +40,6 @@ esac
 if [ -f ${DESTROOT}/var/sadm/overlays/${PKG}.ovl ]; then
     echo "Found a matching overlay"
     ${ZAPLIBDIR}/describe-overlay ${PKGARGS} ${PKG}
-    $EXIT
 fi
 
 #
@@ -50,8 +47,13 @@ fi
 #
 npkg=`${ZAPLIBDIR}/resolve-alias $PKG`
 if [ "X${PKG}" != "X${npkg}" ]; then
-    echo "Matched package $npkg"
-    PKG="$npkg"
+    if [ -d ${DESTROOT}/var/sadm/pkg/${npkg} ]; then
+	PSTATUS="Installed"
+    else
+	PSTATUS="Uninstalled"
+    fi
+    echo "Match: ${PSTATUS} package $npkg"
+    pmap[$npkg]="$PSTATUS"
 fi
 
 #
@@ -59,10 +61,11 @@ fi
 #
 /usr/bin/grep $PKG ${DESTROOT}/var/sadm/overlays/*.pkgs | while read match
 do
-	OVL=${match%%:*}
-	OVL=${OVL##*/}
-	OVL=${OVL%.pkgs}
-	FPKG=${match##*:}
+    OVL=${match%%:*}
+    OVL=${OVL##*/}
+    OVL=${OVL%.pkgs}
+    FPKG=${match##*:}
+    if [[ -z ${pmap[$FPKG]} ]]; then
 	if [ -f ${DESTROOT}/var/sadm/overlays/installed/$OVL ]; then
 	   OSTATUS="installed"
 	else
@@ -74,4 +77,21 @@ do
 	   PSTATUS="Uninstalled"
 	fi
 	echo Match: ${PSTATUS} package $FPKG in ${OSTATUS} overlay $OVL
+	pmap[$FPKG]="$PSTATUS"
+    fi
+done
+
+#
+# then search the catalogs
+#
+cat ${DESTROOT}/etc/zap/repositories/*.catalog | awk -F'|' '{print $1}' | /usr/bin/grep $PKG | while read FPKG
+do
+    if [[ -z ${pmap[$FPKG]} ]]; then
+	if [ -d ${DESTROOT}/var/sadm/pkg/${FPKG} ]; then
+	   PSTATUS="Installed"
+	else
+	   PSTATUS="Uninstalled"
+	fi
+	echo Match: ${PSTATUS} package $FPKG
+    fi
 done
