@@ -15,6 +15,42 @@ case $1 in
 	;;
 esac
 
+INST=""
+UNINST=""
+VERBOSE=""
+
+while getopts "iuv" opt; do
+case $opt in
+i)
+  INST="y"
+  ;;
+u)
+  UNINST="y"
+  ;;
+v)
+  VERBOSE="y"
+  ;;
+esac
+done
+shift $((OPTIND - 1))
+
+#
+# it makes no sense to have both -i and -u
+#
+if [[ -n "$INST" && -n "$UNINST" ]]; then
+    echo "ERROR: both -i and -u supplied"
+    exit 1
+fi
+
+print_verbose() {
+    if [[ -n "$VERBOSE" ]]; then
+	DESC=`awk -F= '{if ($1 == "NAME") print $2}' ${DESTROOT}/${ODIR}/${OVL}.ovl`
+	echo "${1} [${DESC}] ${2}"
+    else
+	echo "${1} ${2}"
+    fi
+}
+
 #
 # default: list all overlays
 #
@@ -22,13 +58,35 @@ if [ ! -d ${DESTROOT}/${ODIR} ]; then
     exit 0
 fi
 cd ${DESTROOT}/${ODIR}
-for FOVL in *.ovl
-do
-    OVL=${FOVL%.ovl}
-    if [ -f ${DESTROOT}/${ODIR}/installed/$OVL ]; then
-	STATUS="Installed"
-    else
-	STATUS="Not installed"
-    fi
-    echo "$OVL ($STATUS)"
-done
+
+#
+# loop through all overlays
+#
+if [[ -n "$INST" ]]; then
+    for FOVL in *.ovl
+    do
+	OVL=${FOVL%.ovl}
+	if [ -f ${DESTROOT}/${ODIR}/installed/$OVL ]; then
+	    print_verbose "$OVL"
+	fi
+    done
+elif [[ -n "$UNINST" ]]; then
+    for FOVL in *.ovl
+    do
+	OVL=${FOVL%.ovl}
+	if [ ! -f ${DESTROOT}/${ODIR}/installed/$OVL ]; then
+	    print_verbose "$OVL"
+	fi
+    done
+else
+    for FOVL in *.ovl
+    do
+	OVL=${FOVL%.ovl}
+	if [ -f ${DESTROOT}/${ODIR}/installed/$OVL ]; then
+	    STATUS="Installed"
+	else
+	    STATUS="Not installed"
+	fi
+	print_verbose "$OVL" "($STATUS)"
+    done
+fi

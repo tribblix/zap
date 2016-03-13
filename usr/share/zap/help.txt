@@ -58,10 +58,12 @@ list-packages [args]
   Simply lists the installed packages; this is an alias for the
   pkginfo utility.
 
-list-overlays [-R dir]
+list-overlays [-R dir] [-i|-u] [-v]
 
-  This subcommand lists the available overlays and whether they are
-  installed.
+  This subcommand lists the available overlays. With -i, just shows
+  installed overlays. With -u, just shows uninstalled overlays.
+  Without -i or -u, indicates whether the overlay is installed.
+  With -v, also shows the short description of the overlay
 
 search [-R dir] search_term
 
