@@ -26,10 +26,17 @@ case $1 in
 	;;
 esac
 
+WCLIENT=/usr/bin/curl
+WARGS="-f -s -o"
+if [ ! -x $WCLIENT ]; then
+    WCLIENT=/usr/bin/wget
+    WARGS="-q -O"
+fi
+
 refresh_repo() {
     frepo="$1"
     REPO=`${ZAPLIBDIR}/zap-cfg ${CTXARGS} overlay-url $frepo`
-    /usr/bin/curl -f -s -o ${CFGDIR}/repositories/${frepo}.overlays.tmp ${REPO}/catalog
+    ${WCLIENT} ${WARGS} ${CFGDIR}/repositories/${frepo}.overlays.tmp ${REPO}/catalog
     if [ -s ${CFGDIR}/repositories/${frepo}.overlays.tmp ]; then
 	mv ${CFGDIR}/repositories/${frepo}.overlays ${CFGDIR}/repositories/${frepo}.overlays.bak
 	mv ${CFGDIR}/repositories/${frepo}.overlays.tmp ${CFGDIR}/repositories/${frepo}.overlays
@@ -42,8 +49,8 @@ refresh_repo() {
 	    if [ "X$frepo" = "X$trepo" ]; then
 		iver=`/usr/bin/grep '^VERSION=' ${ODIR}/${novl}.ovl | /usr/bin/sed 's:VERSION=::'`
 		if [ "X${nver}" != "X${iver}" ]; then
-		    /usr/bin/curl -f -s -o ${ODIR}/${novl}.ovl.tmp ${REPO}/${novl}.ovl
-		    /usr/bin/curl -f -s -o ${ODIR}/${novl}.pkgs.tmp ${REPO}/${novl}.pkgs
+		    ${WCLIENT} ${WARGS} ${ODIR}/${novl}.ovl.tmp ${REPO}/${novl}.ovl
+		    ${WCLIENT} ${WARGS} ${ODIR}/${novl}.pkgs.tmp ${REPO}/${novl}.pkgs
 		    if [ -s ${ODIR}/${novl}.ovl.tmp -a -s ${ODIR}/${novl}.pkgs.tmp ]; then
 			if [ -f ${ODIR}/${novl}.ovl ]; then
 			    mv ${ODIR}/${novl}.ovl ${ODIR}/${novl}.ovl.bak

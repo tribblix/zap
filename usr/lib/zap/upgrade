@@ -149,9 +149,16 @@ echo New BE will be called $BENAME
 echo Backed by dataset $NEWDS
 echo And will be driven from $NEWURL
 
+WCLIENT=/usr/bin/curl
+WARGS="-f -s -o"
+if [ ! -x $WCLIENT ]; then
+    WCLIENT=/usr/bin/wget
+    WARGS="-q -O"
+fi
+
 NPKG=${NEWURL##*/}
 CACHE_DIR=`${ZAPLIBDIR}/zap-cfg cache-dir`
-$DOIT /usr/bin/curl -f -s -o ${CACHE_DIR}/${NPKG} $NEWURL
+$DOIT ${WCLIENT} ${WARGS} ${CACHE_DIR}/${NPKG} $NEWURL
 $DOIT $BEADM create $BENAME
 ALTROOT="/a"
 BENUM=0

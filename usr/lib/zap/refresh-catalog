@@ -24,15 +24,22 @@ case $1 in
 	;;
 esac
 
+WCLIENT=/usr/bin/curl
+WARGS="-f -s -o"
+if [ ! -x $WCLIENT ]; then
+    WCLIENT=/usr/bin/wget
+    WARGS="-q -O"
+fi
+
 refresh_repo() {
     frepo="$1"
     REPO=`${ZAPLIBDIR}/zap-cfg ${CTXARGS} repo-url $frepo`
-    /usr/bin/curl -f -s -o ${CFGDIR}/repositories/${frepo}.catalog.tmp ${REPO}/catalog
+    ${WCLIENT} ${WARGS} ${CFGDIR}/repositories/${frepo}.catalog.tmp ${REPO}/catalog
     if [ -s ${CFGDIR}/repositories/${frepo}.catalog.tmp ]; then
 	mv ${CFGDIR}/repositories/${frepo}.catalog ${CFGDIR}/repositories/${frepo}.catalog.bak
 	mv ${CFGDIR}/repositories/${frepo}.catalog.tmp ${CFGDIR}/repositories/${frepo}.catalog
     fi
-    /usr/bin/curl -f -s -o ${CFGDIR}/repositories/${frepo}.aliases.tmp ${REPO}/aliases
+    ${WCLIENT} ${WARGS} ${CFGDIR}/repositories/${frepo}.aliases.tmp ${REPO}/aliases
     if [ -s ${CFGDIR}/repositories/${frepo}.aliases.tmp ]; then
 	mv ${CFGDIR}/repositories/${frepo}.aliases ${CFGDIR}/repositories/${frepo}.aliases.bak
 	mv ${CFGDIR}/repositories/${frepo}.aliases.tmp ${CFGDIR}/repositories/${frepo}.aliases

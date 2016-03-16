@@ -60,7 +60,7 @@ cache-dir)
 	;;
 proxy)
 	if [ -f ${PROXY_CFG} ]; then
-	    echo -x `cat ${PROXY_CFG}`
+	    cat ${PROXY_CFG}
 	fi
 	;;
 esac

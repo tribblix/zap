@@ -19,6 +19,18 @@ CACHE_DIR=`${ZAPLIBDIR}/zap-cfg ${CTXARGS} cache-dir`
 USER_AGENT="zap"/`${ZAPLIBDIR}/pkgversion TRIBzap`
 ZAP_PROXY=`${ZAPLIBDIR}/zap-cfg ${CTXARGS} proxy`
 
+if [ -n "$ZAP_PROXY" ]; then
+    http_proxy=$ZAP_PROXY
+    export http_proxy
+fi
+
+WCLIENT=/usr/bin/curl
+WARGS="-A ${USER_AGENT} -f -s -o"
+if [ ! -x $WCLIENT ]; then
+    WCLIENT=/usr/bin/wget
+    WARGS="-U ${USER_AGENT} -q -O"
+fi
+
 #
 # the verification here is mostly for debugging at this time
 #
@@ -30,7 +42,7 @@ do
 	zfile="${CACHE_DIR}/${fpkgname}"
 	REPO=`${ZAPLIBDIR}/zap-cfg ${CTXARGS} repo-url $frepo`
 	echo "Fetching ${REPO}/${fpkgname}"
-	/usr/bin/curl -A ${USER_AGENT} ${ZAP_PROXY} -f -s -o ${zfile} ${REPO}/${fpkgname}
+	${WCLIENT} ${WARGS} ${zfile} ${REPO}/${fpkgname}
 	PSIZE=`/bin/ls -l ${zfile} | /usr/bin/awk '{print $5}'`
 	if [ "X$PSIZE" != "X$fsize" ]; then
 	    echo "Download $zfile has wrong size"
