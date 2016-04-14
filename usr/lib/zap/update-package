@@ -74,7 +74,7 @@ do
     RVERSION=${AVERSION#*.}
     if [ "$AREPO" != "opensxce" ]; then
 	if [ "X${pkg}.${IVERSION}" != "X${AVERSION}" ]; then
-	    echo "Package $pkg is at version $IVERSION and needs updating to $AVERSION"
+	    echo "Package $pkg is at version $IVERSION and needs updating to $RVERSION"
 	    ISINST="false"
 	    for SRCDIR in $SRCLIST
 	    do
