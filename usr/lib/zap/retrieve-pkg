@@ -1,6 +1,7 @@
 #!/bin/ksh
 
 ZAPLIBDIR="/usr/lib/zap"
+ZAPLIBDIR="/packages/localsrc/Tribblix/zap/usr/lib/zap"
 
 case $1 in
 -C)
@@ -18,6 +19,12 @@ esac
 CACHE_DIR=`${ZAPLIBDIR}/zap-cfg ${CTXARGS} cache-dir`
 USER_AGENT="zap"/`${ZAPLIBDIR}/pkgversion TRIBzap`
 ZAP_PROXY=`${ZAPLIBDIR}/zap-cfg ${CTXARGS} proxy`
+# signed package verification requires gnupg be installed
+if [ ! -x /usr/bin/gpg ]; then
+    SIGN_POLICY="no"
+else
+    SIGN_POLICY=`${ZAPLIBDIR}/zap-cfg ${CTXARGS} sign-policy`
+fi
 
 if [ -n "$ZAP_PROXY" ]; then
     http_proxy=$ZAP_PROXY
@@ -51,7 +58,24 @@ do
 	    if [ "X$PKGMD5" != "X$fhash" ]; then
 		echo "Download $zfile has wrong checksum"
 	    else
-		echo "Download $zfile verified"
+		echo "Download $zfile checksum verified"
+		if [ "X$SIGN_POLICY" != "Xno" ]; then
+		    SIGNER=`${ZAPLIBDIR}/zap-cfg ${CTXARGS} repo-signer $frepo`
+		    if [ "X$SIGNER" != "Xno" ]; then
+			${WCLIENT} ${WARGS} ${zfile}.sig ${REPO}/${fpkgname}.sig
+			if [ -f ${zfile}.sig ]; then
+			    /usr/bin/gpg --no-options --homedir /etc/zap/sign/${SIGNER} --verify ${zfile}.sig ${zfile}
+			    SIGN_OK=$?
+			    if [ $SIGN_OK -eq o ]; then
+				echo "Signature verified"
+			    else
+				echo "Signature verification failed"
+			    fi
+			else
+			    echo "ERROR: missing signature ${zfile}.sig"
+			fi
+		    fi
+		fi
 	    fi
 	fi
     fi
