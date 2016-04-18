@@ -1,7 +1,6 @@
 #!/bin/ksh
 
 ZAPLIBDIR="/usr/lib/zap"
-ZAPLIBDIR="/packages/localsrc/Tribblix/zap/usr/lib/zap"
 
 case $1 in
 -C)
