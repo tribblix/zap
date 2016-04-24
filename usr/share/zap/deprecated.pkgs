@@ -67,3 +67,5 @@ TRIBlib-nspr-header-nspr
 TRIBsys-lib-mozilla-nss-header
 TRIBsys-prerequisite-gnu
 TRIBv-subversion-17
+SUNWgnu-mpfr
+SUNWgnu-mp
