@@ -6,8 +6,12 @@
 # and Y is one of 8,9,A,B
 #
 HEAD=/usr/bin/head
-RAND=/dev/random
 SSL=/usr/bin/openssl 
+#
+# Don't use /dev/random as it will block if entropy is low
+# for example, under Xen
+#
+RAND=/dev/urandom
 
 #
 # first generate a random hash
