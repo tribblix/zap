@@ -37,6 +37,7 @@ ZISOFILE=""
 ZOVERLAY=""
 ZADDOVERLAY=""
 ZDIRS=""
+ZSHARED=""
 ZUSERS=""
 ZTEMPLATE=""
 ZBLANK=""
@@ -52,12 +53,13 @@ usage() {
   echo "Usage: $0 -z zone_name [-t whole|sparse|alien]"
   echo "  [-T template] [-I iso_image]"
   echo "  [-i ip_address] [-x ip_address] [-R ip_network/prefix]"
-  echo "  [-B] [-d extra_dir] [-o overlay] [-O overlay] [-U user]"
+  echo "  [-B] [-d extra_dir] [-o overlay] [-O overlay]"
+  echo "  [-S shared_dir] [-U user]"
   echo "  [-K action=arg[=arg...]]"
   exit 1
 }
 
-while getopts "BT:t:z:i:x:R:I:o:O:d:U:K:" opt; do
+while getopts "BT:t:z:i:x:R:I:o:O:d:S:U:K:" opt; do
 case $opt in
 B)
 	ZBLANK="Y"
@@ -91,6 +93,9 @@ O)
 	;;
 d)
 	ZDIRS="${ZDIRS} $OPTARG"
+	;;
+S)
+	ZSHARED="${ZSHARED} $OPTARG"
 	;;
 U)
 	ZUSERS="${ZUSERS} $OPTARG"
@@ -333,6 +338,19 @@ if [[ -n $RIP4 ]]; then
 fi
 
 #
+# if given any directories to share, verify they exist
+#
+if [[ -n $ZSHARED ]]; then
+    for DIR in $ZSHARED
+    do
+	if [ ! -d "${DIR}" ]; then
+	    echo "ERROR: shared directory $DIR not found"
+	    exit 1
+	fi
+    done
+fi
+
+#
 # if given users to share, verify they and their home directory exist
 # the assumption is that the user and their home directory
 # are local, hence the explict check against /etc/passwd rather than
@@ -349,6 +367,10 @@ if [[ -n $ZUSERS ]]; then
 	DIR=`/usr/bin/grep "^${TUSER}:" /etc/passwd | /usr/bin/awk -F: '{print $6}'`
 	if [ -z "${DIR}" ]; then
 	    echo "ERROR: home for user $TUSER doesn't exist, cannot share"
+	    exit 1
+	fi
+	if [ ! -d "${DIR}" ]; then
+	    echo "ERROR: shared home directory $DIR not found"
 	    exit 1
 	fi
     done
@@ -642,6 +664,14 @@ do
 	echo add fs
 	echo set dir=${DIR}
 	echo set special=${ZFSBASE}/${ZNAME}${DIR}
+	echo set type=lofs
+	echo end
+done
+for DIR in $ZSHARED
+do
+	echo add fs
+	echo set dir=${DIR}
+	echo set special=${DIR}
 	echo set type=lofs
 	echo end
 done
