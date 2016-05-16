@@ -1,3 +1,4 @@
 NAME=oi
 DESC=Tribblix packages from OpenIndiana
 URL=http://pkgs.tribblix.org/oi-151a9/
+SIGNED=tribblix

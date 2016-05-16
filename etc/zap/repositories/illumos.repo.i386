@@ -1,3 +1,4 @@
 NAME=illumos
 DESC=Tribblix Illumos packages
 URL=http://pkgs.tribblix.org/illumos-m17/
+SIGNED=tribblix

@@ -1,3 +1,4 @@
 NAME=tribblix
 DESC=Tribblix packages
 URL=http://pkgs.tribblix.org/tribblix-m17/
+SIGNED=tribblix
