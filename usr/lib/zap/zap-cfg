@@ -12,8 +12,6 @@ PROXY_CFG="${CFGDIR}/proxy_cfg"
 SIGN_POLICY="if-signed"
 SIGN_CFG="${CFGDIR}/sign_cfg"
 
-builtin echo
-
 #
 # global context switch
 # will force all configuration to be relative to the alternate root
