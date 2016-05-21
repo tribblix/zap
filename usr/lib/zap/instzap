@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/ksh
 #
 # installs a package from a zap file if not already installed
 #

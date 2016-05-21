@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/ksh
 #
 # set hostname (or domainname)
 #

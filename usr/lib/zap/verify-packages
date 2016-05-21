@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/ksh
 
 ZAPLIBDIR="/usr/lib/zap"
 ONAME=""

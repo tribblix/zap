@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/ksh
 #
 # generate a list of system files that should be preserved
 # these are files of type 'e' (editable) in SVR4 packaging

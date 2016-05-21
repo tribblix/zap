@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/ksh
 #
 # upgrade to a new version of Tribblix
 #

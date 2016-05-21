@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/ksh
 #
 # sync modified files from the current BE to a new BE
 #

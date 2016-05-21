@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/ksh
 #
 # copy a repo from a source URL to a destination path
 #

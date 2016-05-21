@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/ksh
 #
 # deletes those packages passed on the command line
 #

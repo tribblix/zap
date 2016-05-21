@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/ksh
 #
 # update a package (if necessary)
 #
