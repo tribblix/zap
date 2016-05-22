@@ -10,6 +10,16 @@ zap subcommand [arguments ...]
 
 The subcommands are:
 
+refresh
+
+  This subcommand refreshes the list of overlays, their contents, and
+  the package catalog.
+
+search [-R dir] search_term
+
+  This subcommand searches for overlays and packages matching the given
+  search term.
+
 retrieve pkg [pkg ...]
 
   This subcomand will retrieve the package(s) specified from a
@@ -30,6 +40,23 @@ update [-R dir] pkg [pkg ...]
 uninstall [-R dir] pkg [pkg ...]
 
   This subcommand will uninstall the given package(s).
+
+list-packages [args]
+
+  Simply lists the installed packages; this is an alias for the
+  pkginfo utility.
+
+check-package pkg [pkg ...]
+
+  Checks that the contents of an installed package are correct. This
+  is essentially a wrapper round the pkgchk utility.
+
+list-overlays [-R dir] [-i|-u] [-v]
+
+  This subcommand lists the available overlays. With -i, just shows
+  installed overlays. With -u, just shows uninstalled overlays.
+  Without -i or -u, indicates whether the overlay is installed.
+  With -v, also shows the short description of the overlay
 
 install-overlay [-R dir] [-s dir] overlay
 
@@ -52,28 +79,6 @@ verify-overlay [-R dir] overlay | -a
   This subcommand checks that all the packages contained in the given
   installed overlay are in fact installed and are at the current
   version. If -a, verifies all installed overlays.
-
-list-packages [args]
-
-  Simply lists the installed packages; this is an alias for the
-  pkginfo utility.
-
-list-overlays [-R dir] [-i|-u] [-v]
-
-  This subcommand lists the available overlays. With -i, just shows
-  installed overlays. With -u, just shows uninstalled overlays.
-  Without -i or -u, indicates whether the overlay is installed.
-  With -v, also shows the short description of the overlay
-
-search [-R dir] search_term
-
-  This subcommand searches for overlays and packages matching the given
-  search term.
-
-refresh
-
-  This subcommand refreshes the list of overlays, their contents, and
-  the package catalog.
 
 clean-cache -a | -i | -o | -u
 
