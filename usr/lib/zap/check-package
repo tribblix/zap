@@ -1,0 +1,28 @@
+#!/bin/ksh
+#
+# verifies the contents of an installed package
+#
+# For now, use pkgchk. Later, should use a digitally signed package manifest
+# with stronger checksums
+#
+# In the global zone, we use the individual package's pkgmap file
+# else verify using the contents file. It's better to use the pkgmap
+# as it will detect a file being modified by another package.
+#
+
+ZAPLIBDIR="/usr/lib/zap"
+
+for inpkg in $*
+do
+  pkg=`${ZAPLIBDIR}/resolve-alias $inpkg`
+  if [ -d /var/sadm/pkg/${pkg} ]; then
+    echo "Checking $pkg"
+    if [ -f /var/sadm/pkg/${pkg}/save/pspool/${pkg}/pkgmap ]; then
+      /usr/sbin/pkgchk -m /var/sadm/pkg/${pkg}/save/pspool/${pkg}/pkgmap
+    else
+      /usr/sbin/pkgchk ${pkg}
+    fi
+  else
+    echo "No such package $pkg"
+  fi
+done

@@ -78,6 +78,10 @@ verify-packages)
 	shift
 	exec ${ZAPLIBDIR}/verify-packages $*
 	;;
+check-package)
+	shift
+	exec ${ZAPLIBDIR}/check-package $*
+	;;
 refresh|refresh-overlays)
 	shift
 	exec ${ZAPLIBDIR}/refresh-overlays ${CTXARGS} $*
