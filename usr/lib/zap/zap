@@ -126,6 +126,22 @@ destroy-zone-template)
 	shift
 	exec ${ZAPLIBDIR}/destroy-zone-template $*
 	;;
+list-services)
+	shift
+	exec ${ZAPLIBDIR}/zap-service -list $*
+	;;
+show-services)
+	shift
+	exec ${ZAPLIBDIR}/zap-service -show $*
+	;;
+enable-services)
+	shift
+	exec ${ZAPLIBDIR}/zap-service -enable $*
+	;;
+disable-services)
+	shift
+	exec ${ZAPLIBDIR}/zap-service -disable $*
+	;;
 search)
 	shift
 	exec ${ZAPLIBDIR}/search $*

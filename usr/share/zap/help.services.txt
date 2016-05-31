@@ -1,0 +1,26 @@
+ZAP and SMF services
+====================
+
+The zap utility can enable and disable SMF services associated with an
+overlay. The possible zap subcommands related to services are:
+
+list-services overlay_name
+
+  Will list any services declared by an overlay.
+
+show-services overlay_name
+
+  Will show the status (using the svcs command) of those services
+  declared by an overlay.
+
+enable-services overlay_name
+
+  Will synchronously enable all services declared by an overlay, in the
+  order they are declared. Any services required as dependencies will
+  also be enabled.
+
+disable-services overlay_name
+
+  Will synchronously disable all services declared by an overlay, in the
+  reverse order they are declared. Note that any services enabled in order
+  to satisfy dependencies will not be automatically disabled.
