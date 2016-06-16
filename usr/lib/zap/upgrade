@@ -142,8 +142,10 @@ do
 done
 #
 # and the ZFS dataset it corresponds to
+# -a could return multiple lines, one with a dataset and possibly
+# multiple snapshots; match the dataset by looking for a /
 #
-NEWDS=`$BEADM list -Ha $BENAME | awk -F\; '{if ($3=="NR") print $2}'`
+NEWDS=`$BEADM list -Ha $BENAME | awk -F\; '{if ($2~/\//) print $2}'`
 
 echo New BE will be called $BENAME
 echo Backed by dataset $NEWDS
