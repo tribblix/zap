@@ -157,6 +157,9 @@ TRIBsparse)
 	    echo "ERROR: cannot install a sparse-root zone from an iso image"
 	    usage
 	fi
+	if [ ! -d /zonelib/lib ]; then
+	    /usr/bin/mkdir -p /zonelib/lib
+	fi
 	;;
 TRIBwhole)
 	if [[ -n $ZTEMPLATE ]]; then
