@@ -5,6 +5,7 @@ PKGARGS=""
 DESTROOT=""
 NINSTALLED=0
 NFAILED=0
+DOPKGS=""
 
 case $1 in
 -C)
@@ -61,7 +62,6 @@ esac
 #
 # FIXME:
 #  fail if there are missing packages after first pass
-#  only loop over uninstalled packages in the 2nd pass
 #
 
 #
@@ -72,7 +72,10 @@ do
   pkg=`${ZAPLIBDIR}/resolve-alias ${CTXARGS} $inpkg`
   /usr/bin/pkginfo ${PKGARGS} -q ${pkg}
   FOUNDPKG=$?
-  if [ $FOUNDPKG -ne 0 ]; then
+  if [ $FOUNDPKG -eq 0 ]; then
+    echo "Package $pkg already installed"
+  else
+    DOPKGS="${DOPKGS} $pkg"
     ISINST="false"
     fpkg=`${ZAPLIBDIR}/get-version ${CTXARGS} $pkg | /usr/bin/awk '{print $1}'`
     for SRCDIR in $SRCLIST
@@ -90,32 +93,26 @@ do
 done
 
 #
-# now we're in the installer
+# we have resolved all names and only have uninstalled packages,
+# so no need to check again
 #
-for inpkg in $*
+for pkg in $DOPKGS
 do
-  pkg=`${ZAPLIBDIR}/resolve-alias ${CTXARGS} $inpkg`
-  /usr/bin/pkginfo ${PKGARGS} -q ${pkg}
-  FOUNDPKG=$?
-  if [ $FOUNDPKG -eq 0 ]; then
-    echo "Package $pkg already installed"
-  else
-    ISINST="false"
-    fpkg=`${ZAPLIBDIR}/get-version ${CTXARGS} $pkg | /usr/bin/awk '{print $1}'`
-    for SRCDIR in $SRCLIST
-    do
-	if [ -f ${SRCDIR}/${fpkg}.zap ]; then
-            ${ZAPLIBDIR}/instzap ${PKGARGS} ${SRCDIR}/${fpkg}.zap ${pkg}
-	    ISINST="true"
-	    break
-	fi
-    done
-    if [ "$ISINST" = "false" ]; then
-        echo "No source for package ${pkg}"
-	NFAILED=$(($NFAILED+1))
-    else
-	NINSTALLED=$(($NINSTALLED+1))
+  ISINST="false"
+  fpkg=`${ZAPLIBDIR}/get-version ${CTXARGS} $pkg | /usr/bin/awk '{print $1}'`
+  for SRCDIR in $SRCLIST
+  do
+    if [ -f ${SRCDIR}/${fpkg}.zap ]; then
+      ${ZAPLIBDIR}/instzap ${PKGARGS} ${SRCDIR}/${fpkg}.zap ${pkg}
+      ISINST="true"
+      break
     fi
+  done
+  if [ "$ISINST" = "false" ]; then
+    echo "No source for package ${pkg}"
+    NFAILED=$(($NFAILED+1))
+  else
+    NINSTALLED=$(($NINSTALLED+1))
   fi
 done
 
