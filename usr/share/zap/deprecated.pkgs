@@ -6,7 +6,9 @@ TRIBv-firefox-27
 TRIBv-firefox-28
 TRIBv-firefox-29
 TRIBv-firefox-30
+TRIBv-firefox-31
 TRIBv-thunderbird-24
+TRIBv-thunderbird-31
 TRIBv-apache-ant-184
 TRIBv-apache-ant-193
 TRIBv-clojure-151
@@ -15,6 +17,8 @@ TRIBv-clojure-170
 TRIBv-cmake-2810
 TRIBv-cmake-2811
 TRIBv-cmake-32
+TRIBv-cmake-33
+TRIBv-cmake-34
 TRIBv-emacs-223
 TRIBopenjdk7u51
 TRIBopenjdk7u60
@@ -27,6 +31,7 @@ TRIBopenjdk8u31
 TRIBopenjdk8u45
 TRIBopenjdk8u60
 TRIBopenjdk8u66
+TRIBopenjdk8u72
 TRIBlibxml2-python-276
 TRIBv-python-276
 TRIBv-python-335
@@ -68,5 +73,6 @@ TRIBlib-nspr-header-nspr
 TRIBsys-lib-mozilla-nss-header
 TRIBsys-prerequisite-gnu
 TRIBv-subversion-17
+TRIBv-tomcat-6
 SUNWgnu-mpfr
 SUNWgnu-mp
