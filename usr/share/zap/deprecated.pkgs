@@ -33,6 +33,9 @@ TRIBopenjdk8u45
 TRIBopenjdk8u60
 TRIBopenjdk8u66
 TRIBopenjdk8u72
+TRIBopenjdk8u92
+TRIBopenjdk8u102
+TRIBopenjdk8u112
 TRIBlibxml2-python-276
 TRIBv-python-276
 TRIBv-python-335
@@ -101,3 +104,10 @@ SUNWlibffi
 SUNWfontconfig
 SUNWfreetype2
 TRIBxfce-mixer
+SUNWlibpopt-devel
+SUNWlibpopt
+SUNWlexpt
+SUNWdbus-devel
+SUNWdbus
+SUNWdbus-root
+SUNWdbus-libs
