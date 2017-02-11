@@ -144,16 +144,6 @@ do
   $BEADM list $BENAME > /dev/null 2>&1
   BESTATUS=$?
 done
-#
-# and the ZFS dataset it corresponds to
-# -a could return multiple lines, one with a dataset and possibly
-# multiple snapshots; match the dataset by looking for a /
-#
-NEWDS=`$BEADM list -Ha $BENAME | awk -F\; '{if ($2~/\//) print $2}'`
-
-echo New BE will be called $BENAME
-echo Backed by dataset $NEWDS
-echo And will be driven from $NEWURL
 
 WCLIENT=/usr/bin/curl
 WARGS="-f -s -o"
@@ -173,6 +163,17 @@ do
   BENUM=$(($BENUM+1))
   ALTROOT="/a.${BENUM}"
 done
+
+#
+# and the ZFS dataset it corresponds to
+# -a could return multiple lines, one with a dataset and possibly
+# multiple snapshots; match the dataset by looking for a /
+#
+NEWDS=`$BEADM list -Ha $BENAME | awk -F\; '{if ($2~/\//) print $2}'`
+
+echo New BE will be called $BENAME
+echo Backed by dataset $NEWDS
+echo And will be driven from $NEWURL
 
 #
 # update zap in the new BE
@@ -238,6 +239,13 @@ $DOIT /usr/bin/zap -C ${ALTROOT} update-overlay -a
 # we need to be sure that any newly added overlays get updated too
 #
 $DOIT /usr/bin/zap -C ${ALTROOT} update-overlay -a
+#
+# this is a manual hack for m19 and the new loader
+# we need to be absolutely sure that the loader and
+# agpgart packages get installed
+#
+$DOIT /usr/bin/zap -C ${ALTROOT} install TRIBsys-boot-loader
+$DOIT /usr/bin/zap -C ${ALTROOT} install TRIBdrv-graphics-agpgart
 #
 # FIXME and any isolated packages?
 #
