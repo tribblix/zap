@@ -7,8 +7,10 @@ TRIBv-firefox-28
 TRIBv-firefox-29
 TRIBv-firefox-30
 TRIBv-firefox-31
+TRIBv-firefox-38
 TRIBv-thunderbird-24
 TRIBv-thunderbird-31
+TRIBv-thunderbird-38
 TRIBv-apache-ant-184
 TRIBv-apache-ant-193
 TRIBv-clojure-151
@@ -19,6 +21,7 @@ TRIBv-cmake-2811
 TRIBv-cmake-32
 TRIBv-cmake-33
 TRIBv-cmake-34
+TRIBv-cmake-35
 TRIBv-emacs-223
 TRIBv-node-v5
 TRIBopenjdk7u51
@@ -39,6 +42,7 @@ TRIBopenjdk8u112
 TRIBlibxml2-python-276
 TRIBv-python-276
 TRIBv-python-335
+TRIBv-python-35
 TRIBboto-python-35
 TRIBboto3-python-35
 TRIBdjango-python-35
@@ -46,6 +50,7 @@ TRIBmeson-python-35
 TRIBnose-python-35
 TRIBpycairo-python-35
 TRIBv-scala-2103
+TRIBv-scala-211
 TRIBv-gcc-472
 TRIBv-gcc-473
 TRIBv-gfortran-473
@@ -111,3 +116,5 @@ SUNWdbus-devel
 SUNWdbus
 SUNWdbus-root
 SUNWdbus-libs
+SUNWdesktop-cache
+SUNWdesktop-cache-root
