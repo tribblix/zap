@@ -82,6 +82,8 @@ TRIBxfce-parole
 TRIBv-go-13
 TRIBv-go-14
 TRIBv-go-14-lint
+TRIBv-go-15
+TRIBv-go-15-gox
 TRIBgnu-ghostscript
 TRIBperl-510
 TRIBperl-510-extra
