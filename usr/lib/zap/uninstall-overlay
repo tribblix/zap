@@ -76,6 +76,18 @@ if [ $DEPCLEAN -eq 1 ]; then
 fi
 
 #
+# if this overlay declares services and we're not uninstalling from an
+# alternate root, disable the services before removing packages
+#
+if [ -z "${DESTROOT}" ]; then
+    SVCLIST=`${ZAPLIBDIR}/zap-service -list ${ONAME}`
+    if [ -n "${SVCLIST}" ]; then
+	echo "Disabling services associated with overlay ${ONAME}"
+	${ZAPLIBDIR}/zap-service -disable ${ONAME}
+    fi
+fi
+
+#
 # don't uninstall packages that are in other installed overlays
 #
 # we want to know all the installed overlays
