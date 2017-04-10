@@ -78,7 +78,7 @@ verify-packages)
 	shift
 	exec ${ZAPLIBDIR}/verify-packages $*
 	;;
-check-package)
+check-package|pkgchk)
 	shift
 	exec ${ZAPLIBDIR}/check-package $*
 	;;

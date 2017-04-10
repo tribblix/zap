@@ -18,9 +18,9 @@ do
   if [ -d /var/sadm/pkg/${pkg} ]; then
     echo "Checking $pkg"
     if [ -f /var/sadm/pkg/${pkg}/save/pspool/${pkg}/pkgmap ]; then
-      /usr/sbin/pkgchk -m /var/sadm/pkg/${pkg}/save/pspool/${pkg}/pkgmap
+      /usr/sbin/pkgchk -n -m /var/sadm/pkg/${pkg}/save/pspool/${pkg}/pkgmap
     else
-      /usr/sbin/pkgchk ${pkg}
+      /usr/sbin/pkgchk -n ${pkg}
     fi
   else
     echo "No such package $pkg"
