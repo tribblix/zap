@@ -47,7 +47,16 @@ refresh_repo() {
 	    # check that this repo is the authoritative source for this overlay
 	    #
 	    if [ "X$frepo" = "X$trepo" ]; then
-		iver=`/usr/bin/grep '^VERSION=' ${ODIR}/${novl}.ovl | /usr/bin/sed 's:VERSION=::'`
+		#
+		# if the overlay file does not exist then this must be a new
+		# overlay, set version 0 to force a download and don't try to
+		# grep it otherwise we get a confusing error
+		#
+		if [ -f ${ODIR}/${novl}.ovl ]; then
+		    iver=`/usr/bin/grep '^VERSION=' ${ODIR}/${novl}.ovl | /usr/bin/sed 's:VERSION=::'`
+		else
+		    iver="0"
+		fi
 		if [ "X${nver}" != "X${iver}" ]; then
 		    ${WCLIENT} ${WARGS} ${ODIR}/${novl}.ovl.tmp ${REPO}/${novl}.ovl
 		    ${WCLIENT} ${WARGS} ${ODIR}/${novl}.pkgs.tmp ${REPO}/${novl}.pkgs
