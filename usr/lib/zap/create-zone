@@ -4,12 +4,12 @@
 #
 # Usage:
 #  -T template (implies sparse)
-#  -t brand - sparse, whole, or alien [default sparse]
+#  -t brand - sparse, whole, alien, or lx [default sparse]
 #  -z zone_name - zone name [required]
 #  -i IPv4 address [can be multiple, for shared-ip]
 #  -x IPv4 address [can be multiple, for exclusive-ip]
 #  -R Ipv4 network to proxy, in CIDR notation
-#  -I iso image for alien zone
+#  -I image file to install for alien or lx zone
 #  -d directory to create [can be multiple]
 #  -o overlay for partial root [can be multiple, passed to install]
 #  -O add overlay [can be multiple, passed to install]
@@ -34,6 +34,7 @@ RIP4=""
 NRIP4=""
 ORIP4=""
 ZISOFILE=""
+IMGFLAG="-i"
 ZOVERLAY=""
 ZADDOVERLAY=""
 ZDIRS=""
@@ -50,13 +51,17 @@ typeset -A ifipmap
 typeset -A xifipmap
 
 usage() {
-  echo "Usage: $0 -z zone_name [-t whole|sparse|alien]"
-  echo "  [-T template] [-I iso_image]"
-  echo "  [-i ip_address] [-x ip_address] [-R ip_network/prefix]"
-  echo "  [-B] [-d extra_dir] [-o overlay] [-O overlay]"
-  echo "  [-S shared_dir] [-U user]"
-  echo "  [-K action=arg[=arg...]]"
-  exit 1
+    if [ -f /etc/zones/SUNWlx.xml ]; then
+	echo "Usage: $0 -z zone_name [-t whole|sparse|alien|lx]"
+    else
+	echo "Usage: $0 -z zone_name [-t whole|sparse|alien]"
+    fi
+    echo "  [-T template] [-I image_file]"
+    echo "  [-i ip_address] [-x ip_address] [-R ip_network/prefix]"
+    echo "  [-B] [-d extra_dir] [-o overlay] [-O overlay]"
+    echo "  [-S shared_dir] [-U user]"
+    echo "  [-K action=arg[=arg...]]"
+    exit 1
 }
 
 while getopts "BT:t:z:i:x:R:I:o:O:d:S:U:K:" opt; do
@@ -138,6 +143,9 @@ whole|TRIBwhole)
 alien|TRIBalien)
 	ZBRAND="TRIBalien"
 	;;
+lx|SUNWlx)
+	ZBRAND="SUNWlx"
+	;;
 *)
 	echo "ERROR: unrecognized brand $ZBRAND"
 	usage
@@ -154,7 +162,7 @@ TRIBsparse)
 	   usage
 	fi
 	if [[ -n $ZISOFILE ]]; then
-	    echo "ERROR: cannot install a sparse-root zone from an iso image"
+	    echo "ERROR: cannot install a sparse-root zone from an image"
 	    usage
 	fi
 	if [ ! -d /zonelib/lib ]; then
@@ -167,7 +175,7 @@ TRIBwhole)
 	    usage
 	fi
 	if [[ -n $ZISOFILE ]]; then
-	    echo "ERROR: cannot install a whole-root zone from an iso image"
+	    echo "ERROR: cannot install a whole-root zone from an image"
 	    usage
 	fi
 	;;
@@ -181,9 +189,48 @@ TRIBalien)
 	   usage
 	fi
 	if [[ -z $ZISOFILE ]]; then
-	    echo "ERROR: an alien zone requires an iso image to be specified"
+	    echo "ERROR: an alien zone requires an image to be specified"
 	    usage
 	fi
+	if [ ! -f $ZISOFILE ]; then
+	    echo "ERROR: specified image not found"
+	    usage
+	fi
+	;;
+SUNWlx)
+	if [ ! -f /etc/zones/SUNWlx.xml ]; then
+	    echo "ERROR: lx not found - is it available?"
+	    usage
+	fi
+	if [[ -n $ZTEMPLATE ]]; then
+	    echo "ERROR: templates must be sparse-root"
+	    usage
+	fi
+	if [[ -n $ZOVERLAY || -n $ZADDOVERLAY ]]; then
+	   echo "ERROR: cannot specify overlays for lx zones"
+	   usage
+	fi
+	if [[ -z $ZISOFILE ]]; then
+	    echo "ERROR: an lx zone requires an image to be specified"
+	    usage
+	fi
+	if [ ! -f $ZISOFILE ]; then
+	    echo "ERROR: specified image not found"
+	    usage
+	fi
+	if [[ -n $ZIP4 ]]; then
+	    echo "ERROR: lx zones must be exclusive-ip"
+	    usage
+	fi
+	if [[ -n $ZBLANK ]]; then
+	    echo "ERROR: lx zones cannot be blank (yet)"
+	    usage
+	fi
+	#
+	# the zone installation script expects a different flag
+	# from my alien installer: -s for zfs streams, -t for tarballs
+	#
+	IMGFLAG="-t"
 	;;
 esac
 
@@ -198,7 +245,7 @@ fi
 #
 # if the zone is a router/proxy (-R option) then the primary interface
 # must be of type exclusive, not shared, a primary interface must be
-# defined, and the zone type must not be alien
+# defined, and the zone type must be whole or sparse
 #
 if [[ -n $RIP4 && -n $ZIP4 ]]; then
     echo "ERROR: proxy zones require -x, not -i"
@@ -210,6 +257,10 @@ if [[ -n $RIP4 && -z $XIP4 ]]; then
 fi
 if [[ -n $RIP4 && $ZBRAND = TRIBalien ]]; then
     echo "ERROR: proxy zones must not be of type alien"
+    usage
+fi
+if [[ -n $RIP4 && $ZBRAND = SUNWlx ]]; then
+    echo "ERROR: proxy zones must not be of type lx"
     usage
 fi
 
@@ -691,6 +742,19 @@ do
 	echo set auths=manage
 	echo end
 done
+#
+# for lx, need to set the kernel version; ideally this would match the
+# lx image installed, but the requirement is quite loose (as is shown
+# by the fact that Docker works at all), so choose a reasonably modern
+# default
+#
+if [[ $ZBRAND = SUNWlx ]]; then
+	echo add attr
+	echo set name=kernel-version
+	echo set type=string
+	echo set value=4.4.15
+	echo end
+fi
 echo verify
 echo commit
 }
@@ -705,7 +769,7 @@ do
 	printf " -O $OVL"
 done
 if [[ -n $ZISOFILE ]]; then
-    printf " -i $ZISOFILE"
+    printf " $IMGFLAG $ZISOFILE"
 fi
 }
 
@@ -739,13 +803,15 @@ create_configuration > ${ZCFGFILE}
 
 #
 # copy the shared user accounts specified into the zone
-# and allow them the root role
+# and allow them the root role if it's a Solarish type of zone
 #
 for TUSER in $ZUSERS
 do
     /usr/bin/grep "^${TUSER}:" /etc/passwd >> ${ZROOTBASE}/${ZNAME}/root/etc/passwd
     /usr/bin/grep "^${TUSER}:" /etc/shadow >> ${ZROOTBASE}/${ZNAME}/root/etc/shadow
-    echo "${TUSER}::::roles=root" >> ${ZROOTBASE}/${ZNAME}/root/etc/user_attr
+    if [[ $ZBRAND != SUNWlx ]]; then
+	echo "${TUSER}::::roles=root" >> ${ZROOTBASE}/${ZNAME}/root/etc/user_attr
+    fi
 done
 
 #
@@ -753,13 +819,17 @@ done
 #  create /etc/hostname.* files for each vnic we created
 #  set the default route
 #
-for index in "${!ifipmap[@]}"
-do
-    echo "${ifipmap[$index]}" > ${ZROOTBASE}/${ZNAME}/root/etc/hostname.$index
-done
-if [[ -n $XIP4 ]]; then
-    ZGW=`get_gateway $XIP4`
-    echo $ZGW > ${ZROOTBASE}/${ZNAME}/root/etc/defaultrouter
+# FIXME need a working solution for lx
+#
+if [[ $ZBRAND != SUNWlx ]]; then
+    for index in "${!ifipmap[@]}"
+    do
+	echo "${ifipmap[$index]}" > ${ZROOTBASE}/${ZNAME}/root/etc/hostname.$index
+    done
+    if [[ -n $XIP4 ]]; then
+	ZGW=`get_gateway $XIP4`
+	echo $ZGW > ${ZROOTBASE}/${ZNAME}/root/etc/defaultrouter
+    fi
 fi
 
 #
@@ -800,7 +870,9 @@ fi
 # do some minimalist configuration of the zone
 #
 /usr/bin/cp /etc/resolv.conf ${ZROOTBASE}/${ZNAME}/root/etc
-/usr/bin/cp /etc/default/init ${ZROOTBASE}/${ZNAME}/root/etc/default/init
+if [[ $ZBRAND != SUNWlx ]]; then
+    /usr/bin/cp /etc/default/init ${ZROOTBASE}/${ZNAME}/root/etc/default/init
+fi
 
 #
 # apply any konfiguration requests
