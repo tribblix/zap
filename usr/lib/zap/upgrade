@@ -262,6 +262,14 @@ $DOIT /usr/bin/cp -p /etc/nsswitch.conf ${ALTROOT}/etc/nsswitch.conf
 $DOIT /usr/bin/cp -p /etc/user_attr ${ALTROOT}/etc/user_attr
 $DOIT /usr/bin/cp -p /etc/resolv.conf ${ALTROOT}/etc/resolv.conf
 $DOIT /usr/bin/cp -p /etc/inet/hosts ${ALTROOT}/etc/inet/hosts
+$DOIT /usr/bin/cp -p /etc/inet/netmasks ${ALTROOT}/etc/inet/netmasks
+$DOIT /usr/bin/cp -p /etc/inet/networks ${ALTROOT}/etc/inet/networks
+$DOIT /usr/bin/cp -p /etc/inet/protocols ${ALTROOT}/etc/inet/protocols
+$DOIT /usr/bin/cp -p /etc/inet/services ${ALTROOT}/etc/inet/services
+$DOIT /usr/bin/cp -p /etc/inet/inetd.conf ${ALTROOT}/etc/inet/inetd.conf
+$DOIT /usr/bin/cp -p /etc/inet/ipsecalgs ${ALTROOT}/etc/inet/ipsecalgs
+$DOIT /usr/bin/cp -p /etc/inet/ipaddrsel.conf ${ALTROOT}/etc/inet/ipaddrsel.conf
+$DOIT /usr/bin/cp -p /etc/inet/secret/ike.preshared ${ALTROOT}/etc/inet/secret/ike.preshared
 $DOIT /usr/bin/cp -p /etc/zones/index ${ALTROOT}/etc/zones/index.pre-upgrade
 $DOIT /usr/bin/cp -p /etc/default/init ${ALTROOT}/etc/default/init
 grep /swap /etc/vfstab >> ${ALTROOT}/etc/vfstab
