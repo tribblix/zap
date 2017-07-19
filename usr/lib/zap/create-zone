@@ -16,9 +16,10 @@
 #  -U share user and their homedir with the zone
 #  -B blank boot
 #  -K konfigurator arguments
+#  -6 set up link-local ipv6 addresses
 #
 # FIXMES:
-# add IPv6
+# add full IPv6
 # add appstack overlays for sparse zones
 # inherit dirs (like I do for sfw)
 #
@@ -43,6 +44,7 @@ ZUSERS=""
 ZTEMPLATE=""
 ZBLANK=""
 KARGS=""
+DOIP6=""
 
 #
 # these associative arrays track the interface to address mapping
@@ -64,8 +66,11 @@ usage() {
     exit 1
 }
 
-while getopts "BT:t:z:i:x:R:I:o:O:d:S:U:K:" opt; do
+while getopts "6BT:t:z:i:x:R:I:o:O:d:S:U:K:" opt; do
 case $opt in
+6)
+	DOIP6="Y"
+	;;
 B)
 	ZBLANK="Y"
 	;;
@@ -604,6 +609,21 @@ get_short_net() {
     esac
 }
 
+#
+# create a link-local IPv6 address for the given IPv4 address
+# the way we do this is simply to convert the IPv4 address to
+# hex format, this guarantees we're unique if the IPv4 address
+# is unique and won't conflict with regular addresses that are
+# constructed from the mac address of the interface
+#
+# this is only used for shared-ip stacks; exclusive-ip stacks
+# use the normal mechanism based on the mac address of the vnic
+#
+get_link_local() {
+    IIP=$1
+    printf "fe80::%x%x:%x%x/10" ${IIP//./ }
+}
+
 create_configuration() {
 if [ ! -d $ZSDIR ]; then
     /usr/bin/mkdir -p $ZSDIR
@@ -632,6 +652,12 @@ do
 	echo set physical=$ZIFACE
 	echo set address=${IP}/${ZCIDR}
 	echo end
+	if [[ -n $DOIP6 ]]; then
+	    echo add net
+	    echo set physical=$ZIFACE
+	    echo set address=`get_link_local $IP`
+	    echo end
+	fi
 done
 #
 # exclusive-ip addresses
@@ -825,6 +851,9 @@ if [[ $ZBRAND != SUNWlx ]]; then
     for index in "${!ifipmap[@]}"
     do
 	echo "${ifipmap[$index]}" > ${ZROOTBASE}/${ZNAME}/root/etc/hostname.$index
+	if [[ -n $DOIP6 ]]; then
+	    touch ${ZROOTBASE}/${ZNAME}/root/etc/hostname6.$index
+	fi
     done
     if [[ -n $XIP4 ]]; then
 	ZGW=`get_gateway $XIP4`
