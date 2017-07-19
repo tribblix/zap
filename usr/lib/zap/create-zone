@@ -662,7 +662,10 @@ done
 #
 # exclusive-ip addresses
 # the address is used to construct the topology, it's up to the
-# zone to manage it, but we set up a valid hostname file
+# zone to manage it, but we set up a valid hostname file later
+#
+# we also set the allowed-address property to restrict the zone
+# (only for pure ipv4, as ipv6 addresses are dynamic)
 #
 # we set up the vnic here, and save details so that we can remove it
 # when the zone is destroyed
@@ -685,6 +688,9 @@ do
 	xifipmap[znic$ZENUM]=$IP/$ZCIDR
 	echo add net
 	echo set physical=znic$ZENUM
+	if [[ -z $DOIP6 ]]; then
+	    echo set allowed-address=$IP/$ZCIDR
+	fi
 	echo end
 	ZROUTER=`get_parent_zone $IP`
 	if [[ -n $ZROUTER ]]; then
