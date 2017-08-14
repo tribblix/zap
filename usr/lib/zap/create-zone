@@ -624,6 +624,33 @@ get_link_local() {
     printf "fe80::%x%x:%x%x/10" ${IIP//./ }
 }
 
+#
+# this variant is for exclusive-ip, we get the mac address of the
+# vnic and construct the address based on that
+#
+# the complex part here is that we need to flip bit 7
+# also canonical format suppresses leading zeros
+#
+get_mac_link_local() {
+    VNIC=$1
+    /usr/sbin/dladm show-vnic -p -o MACADDRESS $VNIC | /usr/bin/sed 's=:= =g' | read o1 o2 o3 o4 o5 o6
+    integer -i2 vi=16#$o1
+    integer -i2 nvi
+    nvi=$(($vi ^ 2#00000010))
+    integer -i16 xv=$nvi
+    no1=${xv/16#/}
+    if [ "$no1" = "0" ]; then
+	no1=""
+    fi
+    if [ "$no3" = "0" ]; then
+	no3=""
+    fi
+    if [ "$no5" = "0" ]; then
+	no5=""
+    fi
+    printf "fe80::%s%s:%sff:fe%s:%s%s/10" "$no1" "$o2" "$o3" "$o4" "$o5" "$o6"
+}
+
 create_configuration() {
 if [ ! -d $ZSDIR ]; then
     /usr/bin/mkdir -p $ZSDIR
@@ -665,7 +692,7 @@ done
 # zone to manage it, but we set up a valid hostname file later
 #
 # we also set the allowed-address property to restrict the zone
-# (only for pure ipv4, as ipv6 addresses are dynamic)
+# (only for pure ipv4, as ipv6 doesn't seem to work properly)
 #
 # we set up the vnic here, and save details so that we can remove it
 # when the zone is destroyed
@@ -692,6 +719,16 @@ do
 	    echo set allowed-address=$IP/$ZCIDR
 	fi
 	echo end
+	# in S11 allowed-address can be a list, but in illumos
+	# you need to use multiple net blocks
+	# this doesn't seem to work, the IPv6 address isn't brought up
+	# if allowed-address is specified
+	#if [[ -n $DOIP6 ]]; then
+	#    echo add net
+	#    echo set physical=znic$ZENUM
+	#    echo set allowed-address=`get_mac_link_local znic$ZENUM`
+	#    echo end
+	#fi
 	ZROUTER=`get_parent_zone $IP`
 	if [[ -n $ZROUTER ]]; then
 	    echo "parent_zone: $ZROUTER" >> ${ZSDIR}/zconfig.${ZNAME}
