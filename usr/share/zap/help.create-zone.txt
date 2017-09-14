@@ -10,7 +10,8 @@ The syntax of the subcommand is:
 create-zone -z zone_name [-t whole|sparse|alien]
     [-T template] [-I iso_image]
     [-i ip_address] [-x ip_address] [-R ip_network/prefix]
-    [-B] [-d extra_dir] [-o overlay] [-O overlay] [-U user]
+    [-B] [-d extra_dir] [-o overlay] [-O overlay]
+    [-S shared_dir] [-U user]
 
 Supplying the zone_name is mandatory; all other arguments are optional.
 
@@ -21,7 +22,9 @@ containing the operating system - /lib, /platform, /usr, and /sbin -
 are inherited read-only from the global zone (or an alternate source -
 see the -T flag). An alien-root zone contains file systems derived
 from an ISO image of an alternative illumos distribution. The default
-is to create a sparse-root zone.
+is to create a sparse-root zone. If running an LX-enabled variant, the
+lx zone type is also available, in which case the -I flag specifies
+a tarball containinbg the Linux image.
 
 The -i flag specifies an IP address. If supplied, the zone will be
 given this IP address. This flag can be used multiple times to assign
@@ -58,6 +61,11 @@ which specifies that the zone contains a subset of the packages in the
 global zone, the -O flag adds extra packages, and does not require the
 overlays or packages to be present in the global zone.
 
+The -S flag specifies a directory (that must be present in the global
+zone) to be shared with the zone. The shared directory will be mounted
+at the same location in the zone as it is in the global zone. This
+flag may be specified multiple time to share multiple directories.
+
 The -U flag specifies a user account to be shared with the zone. The
 account will be created in the zone with the same details as in the
 global zone, and the home directory will be shared. In addition, that
@@ -72,7 +80,8 @@ zone. Use the zap create-zone-template subcommand to construct such a
 template.
 
 The -I flag is required for an alien zone, and specifies the iso image
-that will be used to install the zone.
+that will be used to install the zone. In the case of an lx zone, the
+-I flag specifies a tarball containing the a Linux file system.
 
 The -B flag boots the zone as a blank system, with no processes (other
 than init) running. It's the responsibility of the user to run any

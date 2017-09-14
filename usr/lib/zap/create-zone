@@ -13,6 +13,7 @@
 #  -d directory to create [can be multiple]
 #  -o overlay for partial root [can be multiple, passed to install]
 #  -O add overlay [can be multiple, passed to install]
+#  -S share directory with the zone
 #  -U share user and their homedir with the zone
 #  -B blank boot
 #  -K konfigurator arguments
