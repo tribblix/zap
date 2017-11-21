@@ -288,12 +288,19 @@ if [ -d ${ALTROOT}/zonelib/lib/svc ]; then
     $DOIT /usr/bin/rm -fr ${ALTROOT}/zonelib/lib
     $DOIT /usr/bin/mkdir -p ${ALTROOT}/zonelib/lib
 fi
+
 #
-# at this point maintain grub as the default loader
+# FIXME - bootloader switch
 #
-echo "BE_HAS_GRUB=true" >  ${ALTROOT}/etc/default/be
+# Originally, the upgrade script forced grub as the bootloader on
+# upgrade. This is clearly wrong now that new installs start with the
+# new loader, as we would then force a switch to the old grub.
+# Therefore, we no longer force anything. However, that still leaves
+# systems that were installed with loader but then had grub forced
+# on upgrade, which will then be switched at the *next* upgrade.
+# We need to check for that and undo the grub selection in that case.
 #
-# FIXME validate
+
 #
 # need to update the boot archive
 #
