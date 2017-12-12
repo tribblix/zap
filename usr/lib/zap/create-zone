@@ -789,6 +789,7 @@ do
 	echo set dir=${DIR}
 	echo set special=${ZFSBASE}/${ZNAME}${DIR}
 	echo set type=lofs
+	echo add options [nodevices]
 	echo end
 done
 for DIR in $ZSHARED
@@ -797,6 +798,7 @@ do
 	echo set dir=${DIR}
 	echo set special=${DIR}
 	echo set type=lofs
+	echo add options [nodevices]
 	echo end
 done
 for TUSER in $ZUSERS
@@ -806,6 +808,7 @@ do
 	echo set dir=${DIR}
 	echo set special=${DIR}
 	echo set type=lofs
+	echo add options [nodevices]
 	echo end
 	echo add admin
 	echo set user=${TUSER}
