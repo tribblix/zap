@@ -13,7 +13,8 @@
 #  -d directory to create [can be multiple]
 #  -o overlay for partial root [can be multiple, passed to install]
 #  -O add overlay [can be multiple, passed to install]
-#  -S share directory with the zone
+#  -S share directory r/w with the zone
+#  -s share directory r/o with the zone
 #  -U share user and their homedir with the zone
 #  -B blank boot
 #  -K konfigurator arguments
@@ -41,6 +42,7 @@ ZOVERLAY=""
 ZADDOVERLAY=""
 ZDIRS=""
 ZSHARED=""
+ZROSHARED=""
 ZUSERS=""
 ZTEMPLATE=""
 ZBLANK=""
@@ -62,12 +64,12 @@ usage() {
     echo "  [-T template] [-I image_file]"
     echo "  [-i ip_address] [-x ip_address] [-R ip_network/prefix]"
     echo "  [-B] [-d extra_dir] [-o overlay] [-O overlay]"
-    echo "  [-S shared_dir] [-U user]"
+    echo "  [-S|-s shared_dir] [-U user]"
     echo "  [-K action=arg[=arg...]]"
     exit 1
 }
 
-while getopts "6BT:t:z:i:x:R:I:o:O:d:S:U:K:" opt; do
+while getopts "6BT:t:z:i:x:R:I:o:O:d:s:S:U:K:" opt; do
 case $opt in
 6)
 	DOIP6="Y"
@@ -104,6 +106,9 @@ O)
 	;;
 d)
 	ZDIRS="${ZDIRS} $OPTARG"
+	;;
+s)
+	ZROSHARED="${ZROSHARED} $OPTARG"
 	;;
 S)
 	ZSHARED="${ZSHARED} $OPTARG"
@@ -402,6 +407,15 @@ fi
 #
 if [[ -n $ZSHARED ]]; then
     for DIR in $ZSHARED
+    do
+	if [ ! -d "${DIR}" ]; then
+	    echo "ERROR: shared directory $DIR not found"
+	    exit 1
+	fi
+    done
+fi
+if [[ -n $ZROSHARED ]]; then
+    for DIR in $ZROSHARED
     do
 	if [ ! -d "${DIR}" ]; then
 	    echo "ERROR: shared directory $DIR not found"
@@ -799,6 +813,15 @@ do
 	echo set special=${DIR}
 	echo set type=lofs
 	echo add options [nodevices]
+	echo end
+done
+for DIR in $ZROSHARED
+do
+	echo add fs
+	echo set dir=${DIR}
+	echo set special=${DIR}
+	echo set type=lofs
+	echo add options [ro,nodevices]
 	echo end
 done
 for TUSER in $ZUSERS
