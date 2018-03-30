@@ -25,6 +25,7 @@ TRIBv-cmake-35
 TRIBv-emacs-223
 TRIBv-emacs-24
 TRIBv-node-v5
+TRIBv-node-v7
 TRIBopenjdk7u51
 TRIBopenjdk7u60
 TRIBopenjdk7u65
@@ -41,6 +42,7 @@ TRIBopenjdk8u92
 TRIBopenjdk8u102
 TRIBopenjdk8u112
 TRIBopenjdk8u121
+TRIBopenjdk8u131
 TRIBlibxml2-python-276
 TRIBv-python-276
 TRIBv-python-335
