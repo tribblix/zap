@@ -1,0 +1,141 @@
+#!/bin/sh
+#
+# other systems have the notion of a searchable database of files to answer
+# the question "what package do I need to install to get this file?"
+#
+
+CFGDIR="/etc/zap"
+ZAPLIBDIR="/usr/lib/zap"
+DESTROOT=""
+PKGARGS=""
+
+GREP="/usr/bin/grep"
+SED="/usr/bin/sed"
+BZCAT="/usr/bin/bzcat"
+if [ -x /usr/bin/pbzcat ]; then
+    BZCAT="/usr/bin/pbzcat"
+fi
+
+case $1 in
+-R|-C)
+	DESTROOT="$2"
+	CTXARGS="-C ${DESTROOT}"
+	shift
+	shift
+	if [ ! -d "$DESTROOT" ]; then
+	    echo "ERROR: alternate root $DESTROOT doesn't exist"
+	    exit 1
+	fi
+	CFGDIR="${DESTROOT}/${CFGDIR}"
+	;;
+esac
+
+#
+# pick off arguments
+#
+FULLP=""
+while getopts "p" opt ; do
+case $opt in
+p)
+  FULLP="y"
+  ;;
+esac
+done
+shift $((OPTIND - 1))
+
+#
+# TODO: be repo aware, so you ignore packages in lower-priority repos
+#       (also skips duplicates)
+# TODO: handle '.' as part of the name, not as part of a regex
+# TODO: maybe match on man pages
+#
+
+#
+# at this point the only argument is either a full or partial
+# path name that we search on
+#
+case $# in
+1)
+	PKG="$1"
+	;;
+*)
+	echo "Usage: zap whatprovides [ -R altroot] [-p] search_term"
+	exit 1
+	;;
+esac
+
+#
+# strip off any leading / as the file lists don't have it
+#
+PKG=${PKG#/}
+
+if [ -n "$FULLP" ]; then
+#
+# handle full path
+#
+case $PKG in
+    bin/*)
+	PKG="^usr/${PKG} "
+	;;
+    usr/man/*)
+	PKG="^usr/share/man/${PKG#usr/man/} "
+	;;
+    */*)
+	PKG="^${PKG} "
+	;;
+    *)
+	echo "Full path must be absolute"
+	exit 1
+	;;
+esac
+
+else
+
+#
+# bare words by default are looked for as a filename
+# which will have a leading / and a trailing space
+#
+# bare words that look like a library have a special pattern
+#
+case $PKG in
+    */*)
+	:
+	;;
+    lib*.*)
+	PKG="/${PKG} "
+	;;
+    lib*)
+	PKG="/${PKG}(\.so(\.*| )| )"
+	GREP="/usr/bin/egrep"
+	;;
+    *)
+	PKG="/${PKG} "
+	;;
+esac
+
+fi
+
+#
+# we need to search in repo priority order
+#
+FLIST=""
+for repo in `${ZAPLIBDIR}/zap-cfg ${CTXARGS} list-pkg-repos`
+do
+    if [ -f ${CFGDIR}/repositories/${repo}.filelist.bz2 ]; then
+	FLIST="${FLIST} ${CFGDIR}/repositories/${repo}.filelist.bz2"
+    fi
+done
+
+#
+# bail if we haven't found any file lists
+#
+if [ -z "$FLIST" ]; then
+    echo "No file lists found. Run zap refresh-filelist."
+    exit 1
+fi
+
+#
+# the sed here strips out the link targets which we're not interested in
+# at this point in time
+#
+${BZCAT} ${FLIST} | $SED 's:=[^ ]* : :' | $GREP "$PKG"

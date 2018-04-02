@@ -1,0 +1,23 @@
+What package do I need for a given file?
+========================================
+
+Some other package systems allow you to search for a given pathname,
+to find which package you need to install.
+
+The basic syntax is:
+
+zap whatprovides [-p] search-term
+
+If the -p flag is used, the search will be for the given absolute
+pathname.
+
+If the search term is a simple word, the search will be for that as a
+file.
+
+If the search term looks like a library (starts with "lib") then the
+search is for the allowed forms of a shared library name.
+
+The index files used by whatprovides may need to be downloaded before
+this command can be used. To do that, run the following as root:
+
+zap refresh-filelist

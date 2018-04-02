@@ -75,10 +75,12 @@ if [ ! -d "${DESTDIR}" ]; then
 fi
 
 #
-# grab the catalog
+# grab the catalog and other metadata
 #
 ${CURL} -f -s -o ${DESTDIR}/catalog ${REPO}/catalog
 ${CURL} -f -s -o ${DESTDIR}/aliases ${REPO}/aliases
+${CURL} -f -s -o ${DESTDIR}/index.html ${REPO}/index.html
+${CURL} -f -s -o ${DESTDIR}/filelist.bz2 ${REPO}/filelist.bz2
 
 if [ ! -f ${DESTDIR}/catalog ]; then
    echo "ERROR: no catalog retrieved"

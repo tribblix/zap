@@ -9,7 +9,7 @@ or
 
 copy-repo repo_url dest_dir
 
-If you specifiy a repo (such as illumos or tribblix) it will use the
+If you specify a repo (such as illumos or tribblix) it will use the
 current system to resolve that to a url. This is not necessarily
 constant between platforms or versions, so it's better to specify the
 url explicitly.

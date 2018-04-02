@@ -1,0 +1,57 @@
+#!/bin/ksh
+#
+# refreshes the file lists from the specified repo(s), or all
+#
+
+ZAPLIBDIR="/usr/lib/zap"
+CFGDIR="/etc/zap"
+
+#
+# global context switch
+# will force all configuration to be relative to the alternate root
+#
+case $1 in
+-C)
+	ALTROOT="$2"
+	CTXARGS="-C ${ALTROOT}"
+	shift
+	shift
+	if [ ! -d "$ALTROOT" ]; then
+	    echo "ERROR: alternate root $ALTROOT doesn't exist"
+	    exit 1
+	fi
+	CFGDIR="${ALTROOT}/${CFGDIR}"
+	;;
+esac
+
+WCLIENT=/usr/bin/curl
+WARGS="-f -s -o"
+if [ ! -x $WCLIENT ]; then
+    WCLIENT=/usr/bin/wget
+    WARGS="-q -O"
+fi
+
+refresh_repo() {
+    frepo="$1"
+    REPO=`${ZAPLIBDIR}/zap-cfg ${CTXARGS} repo-url $frepo`
+    ${WCLIENT} ${WARGS} ${CFGDIR}/repositories/${frepo}.filelist.bz2.tmp ${REPO}/filelist.bz2
+    if [ -s ${CFGDIR}/repositories/${frepo}.filelist.bz2.tmp ]; then
+	mv ${CFGDIR}/repositories/${frepo}.filelist.bz2 ${CFGDIR}/repositories/${frepo}.filelist.bz2.bak
+	mv ${CFGDIR}/repositories/${frepo}.filelist.bz2.tmp ${CFGDIR}/repositories/${frepo}.filelist.bz2
+    fi
+}
+
+case $# in
+0)
+	for repo in `/usr/bin/awk '{print $2}' ${CFGDIR}/repo.list`
+	do
+	    refresh_repo $repo
+	done
+	;;
+*)
+	for repo in $*
+	do
+	    refresh_repo $repo
+	done
+	;;
+esac
