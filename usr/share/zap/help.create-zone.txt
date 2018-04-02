@@ -7,8 +7,8 @@ the zone.
 
 The syntax of the subcommand is:
 
-create-zone -z zone_name [-t whole|sparse|alien]
-    [-T template] [-I iso_image]
+create-zone -z zone_name [-t whole|sparse|alien|lx]
+    [-T template] [-I image_file]
     [-i ip_address] [-x ip_address] [-R ip_network/prefix]
     [-B] [-d extra_dir] [-o overlay] [-O overlay]
     [-S shared_dir] [-U user]
@@ -24,7 +24,7 @@ see the -T flag). An alien-root zone contains file systems derived
 from an ISO image of an alternative illumos distribution. The default
 is to create a sparse-root zone. If running an LX-enabled variant, the
 lx zone type is also available, in which case the -I flag specifies
-a tarball containinbg the Linux image.
+a file containing the Linux image.
 
 The -i flag specifies an IP address. If supplied, the zone will be
 given this IP address. This flag can be used multiple times to assign
@@ -64,7 +64,7 @@ overlays or packages to be present in the global zone.
 The -S flag specifies a directory (that must be present in the global
 zone) to be shared with the zone. The shared directory will be mounted
 at the same location in the zone as it is in the global zone. This
-flag may be specified multiple time to share multiple directories.
+flag may be specified multiple times to share multiple directories.
 
 The -U flag specifies a user account to be shared with the zone. The
 account will be created in the zone with the same details as in the
@@ -79,9 +79,11 @@ a sparse-root zone instead of the default inheritance from the global
 zone. Use the zap create-zone-template subcommand to construct such a
 template.
 
-The -I flag is required for an alien zone, and specifies the iso image
-that will be used to install the zone. In the case of an lx zone, the
--I flag specifies a tarball containing the a Linux file system.
+For an alien zone, the -I flag specifies the absolute path to either
+an iso image, or a file containing a zfs send stream, that will be
+used to install the zone. In the case of an lx zone, the -I flag
+specifies the absolute path to a tarball containing a Linux file
+system.
 
 The -B flag boots the zone as a blank system, with no processes (other
 than init) running. It's the responsibility of the user to run any
