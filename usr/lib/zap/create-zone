@@ -207,6 +207,10 @@ TRIBalien)
 	    echo "ERROR: specified image not found"
 	    usage
 	fi
+	if [[ $ZISOFILE != /* ]]; then
+	    echo "ERROR: image must be an absolute path"
+	    usage
+	fi
 	;;
 SUNWlx)
 	if [ ! -f /etc/zones/SUNWlx.xml ]; then
@@ -227,6 +231,10 @@ SUNWlx)
 	fi
 	if [ ! -f $ZISOFILE ]; then
 	    echo "ERROR: specified image not found"
+	    usage
+	fi
+	if [[ $ZISOFILE != /* ]]; then
+	    echo "ERROR: image must be an absolute path"
 	    usage
 	fi
 	if [[ -n $ZIP4 ]]; then
