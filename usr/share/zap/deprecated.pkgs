@@ -141,3 +141,5 @@ SUNWcupsr
 SUNWcupsu
 TRIBsvc-net-network-clients
 TRIBdrv-audio-audiovia97
+TRIBblix-postgres94
+TRIBblix-repmgr94
