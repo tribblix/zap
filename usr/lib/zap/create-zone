@@ -18,6 +18,7 @@
 #  -U share user and their homedir with the zone
 #  -B blank boot
 #  -K konfigurator arguments
+#  -n create this many zones, all the same
 #  -6 set up link-local ipv6 addresses
 #
 # FIXMES:
@@ -46,8 +47,10 @@ ZROSHARED=""
 ZUSERS=""
 ZTEMPLATE=""
 ZBLANK=""
+NZONES=""
 KARGS=""
 DOIP6=""
+NCMDLINE=""
 
 #
 # these associative arrays track the interface to address mapping
@@ -65,17 +68,20 @@ usage() {
     echo "  [-i ip_address] [-x ip_address] [-R ip_network/prefix]"
     echo "  [-B] [-d extra_dir] [-o overlay] [-O overlay]"
     echo "  [-S|-s shared_dir] [-U user]"
+    echo "  [-6] [-n number_of_zones]"
     echo "  [-K action=arg[=arg...]]"
     exit 1
 }
 
-while getopts "6BT:t:z:i:x:R:I:o:O:d:s:S:U:K:" opt; do
+while getopts "6BT:t:z:i:x:R:I:o:O:d:s:S:U:n:K:" opt; do
 case $opt in
 6)
 	DOIP6="Y"
+	NCMDLINE="${NCMDLINE} -6"
 	;;
 B)
 	ZBLANK="Y"
+	NCMDLINE="${NCMDLINE} -B"
 	;;
 T)
 	ZTEMPLATE="$OPTARG"
@@ -97,27 +103,38 @@ R)
 	;;
 I)
 	ZISOFILE="$OPTARG"
+	NCMDLINE="${NCMDLINE} -I $OPTARG"
 	;;
 o)
 	ZOVERLAY="${ZOVERLAY} $OPTARG"
+	NCMDLINE="${NCMDLINE} -o $OPTARG"
 	;;
 O)
 	ZADDOVERLAY="${ZADDOVERLAY} $OPTARG"
+	NCMDLINE="${NCMDLINE} -O $OPTARG"
 	;;
 d)
 	ZDIRS="${ZDIRS} $OPTARG"
+	NCMDLINE="${NCMDLINE} -d $OPTARG"
 	;;
 s)
 	ZROSHARED="${ZROSHARED} $OPTARG"
+	NCMDLINE="${NCMDLINE} -s $OPTARG"
 	;;
 S)
 	ZSHARED="${ZSHARED} $OPTARG"
+	NCMDLINE="${NCMDLINE} -S $OPTARG"
 	;;
 U)
 	ZUSERS="${ZUSERS} $OPTARG"
+	NCMDLINE="${NCMDLINE} -U $OPTARG"
+	;;
+n)
+	NZONES="$OPTARG"
 	;;
 K)
 	KARGS="${KARGS} $OPTARG"
+	NCMDLINE="${NCMDLINE} -K $OPTARG"
 	;;
 esac
 done
@@ -264,7 +281,8 @@ fi
 #
 # if the zone is a router/proxy (-R option) then the primary interface
 # must be of type exclusive, not shared, a primary interface must be
-# defined, and the zone type must be whole or sparse
+# defined, the zone type must be whole or sparse, and you can only build
+# them individually
 #
 if [[ -n $RIP4 && -n $ZIP4 ]]; then
     echo "ERROR: proxy zones require -x, not -i"
@@ -282,15 +300,69 @@ if [[ -n $RIP4 && $ZBRAND = SUNWlx ]]; then
     echo "ERROR: proxy zones must not be of type lx"
     usage
 fi
+if [[ -n $RIP4 && -n $NZONES ]]; then
+    echo "ERROR: cannot build multiple proxy zones"
+    usage
+fi
 
 #
 # check if the zone already exists
+# if asked for multiple, check the zone name as a prefix
+# and verify addresses are within range
 #
-/usr/sbin/zoneadm -z $ZNAME list > /dev/null 2>&1
-ZEXISTS=$?
-if [ $ZEXISTS -eq 0 ]; then
-    echo "ERROR: zone $ZNAME already exists"
-    exit 1
+if [[ -n $NZONES ]]; then
+    if [ $NZONES -le 1 ]; then
+	echo "ERROR: number of zones must be greater than 1"
+	exit 1
+    fi
+    #
+    # the address given is the address of the first zone, subsequent
+    # zones increment the address, so check the last one is in range
+    # the assumption here is that we have a whole subnet
+    #
+    for NIP in $XIP4 $ZIP4
+    do
+	NBEGIN=${NIP##*.}
+	#
+	# we assume that we can't use .1 as it's normally the router
+	#
+	if [ $NBEGIN -le 1 ]; then
+	    echo "ERROR: base address $NIP must be at least .2"
+	    exit 1
+	fi
+	NMAX=$(($NBEGIN+$NZONES))
+	#
+	# the largest valid address is 254, as 255 is broadcast
+	# but the first zone adds zero to the base so we're off by one
+	#
+	if [ $NMAX -gt 255 ]; then
+	    echo "ERROR: that many zones won't fit after $NIP"
+	    exit 1
+	fi
+    done
+    #
+    # zone names are constructed by adding a number from 1..NZONES
+    # to the given name, check all of them are unused
+    #
+    NTHIS=1
+    while [ $NTHIS -le $NZONES ]
+    do
+	NZNAME="${ZNAME}${NTHIS}"
+	/usr/sbin/zoneadm -z $NZNAME list > /dev/null 2>&1
+	ZEXISTS=$?
+	if [ $ZEXISTS -eq 0 ]; then
+	    echo "ERROR: zone $NZNAME already exists"
+	    exit 1
+	fi
+	NTHIS=$(($NTHIS+1))
+    done
+else
+    /usr/sbin/zoneadm -z $ZNAME list > /dev/null 2>&1
+    ZEXISTS=$?
+    if [ $ZEXISTS -eq 0 ]; then
+	echo "ERROR: zone $ZNAME already exists"
+	exit 1
+    fi
 fi
 
 #
@@ -876,6 +948,67 @@ if [[ -n $ZISOFILE ]]; then
     printf " $IMGFLAG $ZISOFILE"
 fi
 }
+
+#
+# if we're creating multiple zones, do them in a loop here, and exit
+#
+if [[ -n $NZONES ]]; then
+    #
+    # the address given is the address of the first zone, subsequent
+    # zones increment the address, so check the last one is in range
+    # the assumption here is that we have a whole subnet
+    #
+    for NIP in $XIP4 $ZIP4
+    do
+	NBEGIN=${NIP##*.}
+	#
+	# we assume that we can't use .1 as it's normally the router
+	#
+	if [ $NBEGIN -le 1 ]; then
+	    echo "ERROR: base address $NIP must be at least .2"
+	    exit 1
+	fi
+	NMAX=$(($NBEGIN+$NZONES))
+	#
+	# the largest valid address is 254, as 255 is broadcast
+	# but the first zone adds zero to the base so we're off by one
+	#
+	if [ $NMAX -gt 255 ]; then
+	    echo "ERROR: that many zones won't fit after $NIP"
+	    exit 1
+	fi
+    done
+    #
+    # zone names are constructed by adding a number from 1..NZONES
+    # to the given name, IP addresses add 0..NZONES-1
+    # hence we increment the counter in the middle
+    #
+    NTHIS=0
+    while [ $NTHIS -lt $NZONES ]
+    do
+	NADDR=""
+	for NIP in $XIP4
+	do
+	    NSUB=${NIP%.*}
+	    NBEGIN=${NIP##*.}
+	    NADDR="$NADDR -x ${NSUB}.$(($NBEGIN+$NTHIS))"
+	done
+	for NIP in $ZIP4
+	do
+	    NSUB=${NIP%.*}
+	    NBEGIN=${NIP##*.}
+	    NADDR="$NADDR -i ${NSUB}.$(($NBEGIN+$NTHIS))"
+	done
+	NTHIS=$(($NTHIS+1))
+	NZNAME="${ZNAME}${NTHIS}"
+	#
+	# construct command for this host, with unique zone name and addresses
+	#
+	echo Creating zone ${NZNAME}
+	zap create-zone -t $ZBRAND -z ${NZNAME} $NADDR $NCMDLINE
+    done
+    exit 0
+fi
 
 #
 # create any missing zfs datasets
