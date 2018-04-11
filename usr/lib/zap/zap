@@ -150,6 +150,10 @@ search)
 	shift
 	exec ${ZAPLIBDIR}/search $*
 	;;
+whatprovides)
+	shift
+	exec ${ZAPLIBDIR}/whatprovides $*
+	;;
 copy-repo)
 	shift
 	exec ${ZAPLIBDIR}/copy-repo $*

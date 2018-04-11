@@ -59,7 +59,7 @@ case $# in
 	PKG="$1"
 	;;
 *)
-	echo "Usage: zap whatprovides [ -R altroot] [-p] search_term"
+	echo "Usage: zap whatprovides [-p] search_term"
 	exit 1
 	;;
 esac
