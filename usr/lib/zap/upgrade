@@ -258,6 +258,10 @@ $DOIT /usr/bin/pkgadm sync -R ${ALTROOT} -q
 $DOIT /usr/bin/cp -p /etc/passwd ${ALTROOT}/etc/passwd
 $DOIT /usr/bin/cp -p /etc/shadow ${ALTROOT}/etc/shadow
 $DOIT /usr/bin/cp -p /etc/group ${ALTROOT}/etc/group
+$DOIT /usr/bin/cp -p /etc/logadm.conf ${ALTROOT}/etc/logadm.conf
+$DOIT /usr/bin/cp -p /etc/dumpadm.conf ${ALTROOT}/etc/dumpadm.conf
+$DOIT /usr/bin/cp -p /etc/coreadm.conf ${ALTROOT}/etc/coreadm.conf
+$DOIT /usr/bin/cp -p /etc/syslog.conf ${ALTROOT}/etc/syslog.conf
 $DOIT /usr/bin/cp -p /etc/nsswitch.conf ${ALTROOT}/etc/nsswitch.conf
 $DOIT /usr/bin/cp -p /etc/user_attr ${ALTROOT}/etc/user_attr
 $DOIT /usr/bin/cp -p /etc/resolv.conf ${ALTROOT}/etc/resolv.conf
@@ -272,6 +276,8 @@ $DOIT /usr/bin/cp -p /etc/inet/ipaddrsel.conf ${ALTROOT}/etc/inet/ipaddrsel.conf
 $DOIT /usr/bin/cp -p /etc/inet/secret/ike.preshared ${ALTROOT}/etc/inet/secret/ike.preshared
 $DOIT /usr/bin/cp -p /etc/zones/index ${ALTROOT}/etc/zones/index.pre-upgrade
 $DOIT /usr/bin/cp -p /etc/default/init ${ALTROOT}/etc/default/init
+$DOIT /usr/bin/cp -p /etc/ipadm/ipadm.conf ${ALTROOT}/etc/ipadm/ipadm.conf
+$DOIT /usr/bin/cp -p /etc/dladm/* ${ALTROOT}/etc/dladm
 grep /swap /etc/vfstab >> ${ALTROOT}/etc/vfstab
 #
 # FIXME: these 2 often get mangled, need fixing properly
