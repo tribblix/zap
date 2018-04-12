@@ -1,0 +1,86 @@
+#!/bin/sh
+#
+# run a zap command in a zone
+#
+# only supports a subset of the valid zap subcommands - clearly
+# the zone-related commands won't work
+#
+# Usage is:
+#   run-in-zone subcommand -z zonename args
+# which maps to
+#   zlogin zonename zap subcommand args
+#
+
+#
+# TODO: filter out invalid commands
+#
+
+ZONEADM=/usr/sbin/zoneadm
+ZLOGIN=/usr/sbin/zlogin
+ZAP=/usr/bin/zap
+AUTHS=/usr/bin/auths
+PFEXEC=/usr/bin/pfexec
+ZONENAME=/usr/bin/zonename
+
+#
+# argument processing
+#
+if [ $# -lt 3 ]; then
+   echo "ERROR: insufficient arguments"
+   echo "Usage: $0 -z zonename subcommand [args]"
+   exit 1
+fi
+case $1 in
+-z)
+	ZNAME=$2
+	shift
+	shift
+	SUBCOMMAND=$1
+	shift
+	;;
+*)
+	echo "Usage: $0 -z zonename subcommand [args]"
+	exit 1
+	;;
+esac
+
+#
+# there are some sanity checks
+# * are we in the global zone
+# * is the zone running
+# * is it a tribblix zone (whole-root or sparse-root)
+# * do we have the right privilege to manage it
+#
+MYZONE=`$ZONENAME`
+if [ "$MYZONE" != "global" ]; then
+   echo "ERROR: must be in the global zone"
+   exit 1
+fi
+$ZONEADM -z $ZNAME list -p 2>/dev/null | /usr/bin/awk -F: '{print $3, $6}' | read zstate ztype
+if [ -z "$zstate" ]; then
+   echo "ERROR: zone $ZNAME not found"
+   exit 1
+fi
+if [ "X$zstate" != "Xrunning" ]; then
+   echo "ERROR: zone must be running, not $zstate"
+   exit 1
+fi
+#
+# there are two valid privileges we look for
+# "solaris.*" [root]
+# "solaris.zone.manage/zonename" [delegated to user]
+#
+AUTH1=`$AUTHS|/usr/bin/tr ',' '\n'|/usr/bin/grep "solaris.\*"`
+AUTH2=`$AUTHS|/usr/bin/tr ',' '\n'|/usr/bin/grep "solaris.zone.manage/$ZNAME"`
+if [ -z "$AUTH1" -a -z "$AUTH2" ]; then
+   echo "ERROR: insufficient privileges to manage zone $ZNAME"
+   exit 1
+fi
+case $ztype in
+whole-root|sparse-root)
+	$PFEXEC $ZLOGIN $ZNAME $ZAP $SUBCOMMAND $*
+	;;
+*)
+	echo "ERROR: unable to manage zones of type $ztype"
+	exit 1
+esac
