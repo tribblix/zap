@@ -1,0 +1,228 @@
+#!/bin/sh
+#
+# zap wrapper for creating new users
+#
+
+usage() {
+    echo "Usage: $0 [-c comment] [-d homedir] [-g gid] [-u uid] [-s shell] name"
+    exit 1
+}
+
+#
+# these are the fields we need to populate the passwd file
+#
+USER_NAME=""
+USER_UID=""
+UID_MIN=1000
+SYS_UID_MIN=10
+UID_MAX=60000
+USER_MINLENGTH=3
+USER_MAXLENGTH=16
+USER_GROUP=""
+USER_COMMENT=""
+BASE_DIR="/export/home"
+USER_DIR=""
+USER_SHELL="/usr/bin/bash"
+PASSWD_FILE="/etc/passwd"
+GROUP_FILE="/etc/group"
+
+#
+# TODO: -R for alternate root (ie, zones, installer)
+# TODO: auths and profiles
+#
+# TODO: check homedir is absolute
+#
+
+#
+# the options cdgsu here mirror useradd
+# and all are optional
+#
+while getopts "c:d:g:s:u:" opt; do
+case $opt in
+c)
+	USER_COMMENT="$OPTARG"
+	;;
+d)
+	USER_DIR="$OPTARG"
+	;;
+g)
+	USER_GROUP="$OPTARG"
+	;;
+s)
+	USER_SHELL="$OPTARG"
+	;;
+u)
+	USER_UID="$OPTARG"
+	;;
+esac
+done
+shift $((OPTIND - 1))
+
+#
+# the only thing left should be the username
+#
+case $# in
+1)
+	USER_NAME="$1"
+	;;
+*)
+	usage
+	;;
+esac
+
+#
+# sanity checking
+#
+# was username given?
+#
+if [ -z "$USER_NAME" ]; then
+    echo "ERROR: User name must be given"
+    usage
+fi
+#
+# validate username length
+#
+if [ ${#USER_NAME} -lt $USER_MINLENGTH ]; then
+    echo "ERROR: username too short"
+    exit 1
+fi
+if [ ${#USER_NAME} -gt $USER_MAXLENGTH ]; then
+    echo "ERROR: username too long"
+    exit 1
+fi
+#
+# is username already present?
+#
+PWENTRY=`/usr/bin/nawk -v X=$USER_NAME -F: '{if ($1 == X) print $0}' $PASSWD_FILE`
+if [ -n "$PWENTRY" ]; then
+    echo "ERROR: user name $USER_NAME is already in use"
+    exit 1
+fi
+#
+# if group supplied, does it exist?
+#
+if [ -n "$USER_GROUP" ]; then
+    GRPENTRY=`/usr/bin/nawk -v X=$USER_GROUP -F: '{if ($1 == X) print $0}' $GROUP_FILE`
+    if [ -z "$GRPENTRY" ]; then
+	echo "ERROR: group $USER_GROUP does not exist"
+	exit 1
+    fi
+fi
+#
+# if no group supplied, then we will create a new group with the same
+# name as the new user, so that must not exist already
+#
+if [ -z "$USER_GROUP" ]; then
+    GRPENTRY=`/usr/bin/nawk -v X=$USER_NAME -F: '{if ($1 == X) print $0}' $GROUP_FILE`
+    if [ -n "$GRPENTRY" ]; then
+	echo "ERROR: group $USER_NAME already exists"
+	exit 1
+    fi
+fi
+#
+# shell specified should either exist or be /sbin/nologin
+# TODO: should nologin be a separate flag
+#
+if [ ! -x "${USER_SHELL}" ]; then
+    if [ "X${USER_SHELL}" != "X/sbin/nologin" ]; then
+	echo "ERROR: Specified shell ${USER_SHELL} does not exit"
+	exit 1
+    fi
+fi
+#
+# if no comment, use the username
+# if a comment, must not contain ":"
+if [ -z "${USER_COMMENT}" ]; then
+    USER_COMMENT="${USER_NAME}"
+else
+    case ${USER_COMMENT} in
+	*:*)
+	    echo "ERROR: user comment must not contain a :"
+	    exit 1
+	    ;;
+    esac
+fi
+#
+# check home directory is valid
+#
+if [ -z "$USER_DIR" ]; then
+    if [ ! -d "$BASE_DIR" ]; then
+	echo "ERROR: base $BASE_DIR for home directories not found"
+	exit 1
+    fi
+    USER_DIR=${BASE_DIR}/${USER_NAME}
+else
+    BASE_DIR=${USER_DIR%/*}
+    if [ ! -d "$BASE_DIR" ]; then
+	echo "ERROR: parent $BASE_DIR for home directory not found"
+	exit 1
+    fi
+fi
+if [ -d "${USER_DIR}" ]; then
+    echo "ERROR: proposed home directory ${USER_DIR} already exists"
+    exit 1
+fi
+#
+# if a uid was supplied it must not be in use
+# and if we aren't given a group then the uid mustn't be
+# is use as a gid either
+#
+if [ -n "${USER_UID}" ]; then
+    PWENTRY=`/usr/bin/nawk -v X=$USER_UID -F: '{if ($3 == X) print $0}' $PASSWD_FILE`
+    if [ -n "$PWENTRY" ]; then
+	echo "ERROR: userid $USER_UID is already in use"
+	exit 1
+    fi
+    if [ ${USER_UID} -gt ${UID_MAX} ]; then
+	echo "ERROR: uid too large"
+	exit 1
+    fi
+    # the follwoing check also catches not-a-number
+    if [ ${USER_UID} -le ${SYS_UID_MIN} ]; then
+	echo "ERROR: uid too small (or invalid)"
+	exit 1
+    fi
+    if [ -z "$USER_GROUP" ]; then
+	GRPENTRY=`/usr/bin/nawk -v X=$USER_UID -F: '{if ($3 == X) print $0}' $GROUP_FILE`
+	if [ -n "$GRPENTRY" ]; then
+	    echo "ERROR: groupid $USER_UID already exists"
+	    exit 1
+	fi
+    fi
+fi
+#
+# otherwise, find an unused id starting at UID_MIN
+#
+# we do this here rather than letting useradd do it so that we can check
+# the gid too, and so that we fill in from the bottom
+#
+NUSER_UID=${UID_MIN}
+while [ -z "${USER_UID}" ]
+do
+    if [ ${NUSER_UID} -gt ${UID_MAX} ]; then
+	echo "ERROR: unable to find a valid uid"
+	exit 1
+    fi
+    PWENTRY=`/usr/bin/nawk -v X=$NUSER_UID -F: '{if ($3 == X) print $0}' $PASSWD_FILE`
+    if [ -z "$PWENTRY" ]; then
+	USER_UID=${NUSER_UID}
+    fi
+    if [ -z "$USER_GROUP" ]; then
+	GRPENTRY=`/usr/bin/nawk -v X=$USER_UID -F: '{if ($3 == X) print $0}' $GROUP_FILE`
+	if [ -n "$GRPENTRY" ]; then
+	    USER_UID=""
+	fi
+    fi
+    NUSER_UID=$((NUSER_UID+1))
+done
+
+#
+# if we aren't using an existing group, create a new group with the
+# same name and id as the user, and make that the new user's group
+#
+if [ -z "${USER_GROUP}" ]; then
+    /usr/sbin/groupadd -g "${USER_UID}" ${USER_NAME}
+    USER_GROUP="${USER_NAME}"
+fi
+
+/usr/sbin/useradd -m -Z -c "${USER_COMMENT}" -s "${USER_SHELL}" -d "${USER_DIR}" -g "${USER_GROUP}" -u "${USER_UID}" ${USER_NAME}

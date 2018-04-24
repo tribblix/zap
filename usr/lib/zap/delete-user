@@ -1,0 +1,123 @@
+#!/bin/sh
+#
+# zap wrapper for deleting users
+#
+
+usage() {
+    echo "Usage: $0 [-r] name"
+    exit 1
+}
+
+#
+USER_NAME=""
+SYS_UID_MIN=10
+USERDEL_FLAG=""
+DELETE_GROUP=""
+PASSWD_FILE="/etc/passwd"
+GROUP_FILE="/etc/group"
+
+#
+# the option r here mirrors userdel
+# and is optional
+#
+while getopts "r" opt; do
+case $opt in
+r)
+    USERDEL_FLAG="-r"
+    ;;
+esac
+done
+shift $((OPTIND - 1))
+
+#
+# the only thing left should be the username
+#
+case $# in
+1)
+	USER_NAME="$1"
+	;;
+*)
+	usage
+	;;
+esac
+
+#
+# sanity checking
+#
+# was username given?
+#
+if [ -z "$USER_NAME" ]; then
+    echo "ERROR: User name must be given"
+    usage
+fi
+#
+# does user exist?
+#
+USER_UID=`/usr/bin/nawk -v X=$USER_NAME -F: '{if ($1 == X) print $3}' $PASSWD_FILE`
+if [ -z "$USER_UID" ]; then
+    echo "ERROR: user $USER_NAME does not exist"
+    exit 1
+fi
+#
+# refuse to remove low userids
+#
+if [ ${USER_UID} -le ${SYS_UID_MIN} ]; then
+    echo "ERROR: uid ${USER_UID} too small to remove"
+    exit 1
+fi
+#
+# check the home directory
+#
+if [ -n "$USERDEL_FLAG" ]; then
+    USER_HOME=`/usr/bin/nawk -v X=$USER_NAME -F: '{if ($1 == X) print $6}' $PASSWD_FILE`
+    if [ -z "$USER_HOME" ]; then
+	echo "ERROR: no user home directory, cannot delete, exiting"
+	exit 1
+    fi
+    if [ ! -d "$USER_HOME" ]; then
+	echo "ERROR: user home does not exist, exiting"
+	exit 1
+    fi
+    #
+    # far too many accounts are set up like this
+    #
+    if [ "$USER_HOME" = "/" ]; then
+	echo "ERROR: user home is unsafe to delete, exiting"
+	exit 1
+    fi
+fi
+#
+# if the gid matches the uid and the group name matches
+# the username, then remove the group too
+#
+# this is designed for use in the case where we create a matching
+# group for the user, so we try and detect other use cases
+#
+USER_GID=`/usr/bin/nawk -v X=$USER_NAME -F: '{if ($1 == X) print $4}' $PASSWD_FILE`
+if [ "X$USER_UID" = "X$USER_GID" ]; then
+    GROUP_NAME=`/usr/bin/nawk -v X=$USER_GID -F: '{if ($3 == X) print $1}' $GROUP_FILE`
+    if [ "X$USER_NAME" = "X$GROUP_NAME" ]; then
+	DELETE_GROUP="$GROUP_NAME"
+    fi
+    #
+    # unless we detect problems with the group
+    # - if the group file shows secondary membership
+    # - if other users have this as a primary group
+    #
+    GROUP_MEMBERS=`/usr/bin/nawk -v X=$USER_GID -F: '{if ($3 == X) print $4}' $GROUP_FILE`
+    if [ -n "$GROUP_MEMBERS" ]; then
+	DELETE_GROUP=""
+    fi
+    GROUP_USERS=`/usr/bin/nawk -v X=$USER_GID -F: '{if ($4 == X) print $1}' $PASSWD_FILE`
+    if [ "${GROUP_USERS}" != "${USER_NAME}" ]; then
+	DELETE_GROUP=""
+    fi
+fi
+
+#
+# do it
+#
+/usr/sbin/userdel $USERDEL_FLAG $USER_NAME
+if [ -n "$DELETE_GROUP" ]; then
+    /usr/sbin/groupdel $DELETE_GROUP
+fi

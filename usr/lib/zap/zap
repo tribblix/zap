@@ -146,6 +146,14 @@ disable-services)
 	shift
 	exec ${ZAPLIBDIR}/zap-service -disable $*
 	;;
+create-user)
+	shift
+	exec ${ZAPLIBDIR}/create-user $*
+	;;
+delete-user)
+	shift
+	exec ${ZAPLIBDIR}/delete-user $*
+	;;
 search)
 	shift
 	exec ${ZAPLIBDIR}/search $*
