@@ -37,6 +37,13 @@ esac
 SRCLIST=`${ZAPLIBDIR}/zap-cfg ${CTXARGS} cache-dir`
 
 #
+# if we have access to a global cache, prepend that
+#
+if [ -d /var/zap/global-cache ]; then
+    SRCLIST="/var/zap/global-cache $SRCLIST"
+fi
+
+#
 # prepend the given source to the list, so it gets searched first
 #
 case $1 in
