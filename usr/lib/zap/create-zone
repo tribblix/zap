@@ -876,6 +876,21 @@ do
 	echo "zone: ${ZNAME}" >> ${ZSDIR}/rconfig.${ZNETNAME}
 	echo "rm ${ZSDIR}/rconfig.${ZNETNAME}" >> ${ZSDIR}/destroy.${ZNAME}
 done
+#
+# for Tribblix-style zones, mount the zap package cache read-only in the
+# zone where zap knows to look for it
+#
+if [[ $ZBRAND = TRIBsparse || $ZBRAND = TRIBwhole ]]; then
+	if [ ! -d /var/zap/cache ]; then
+	    /usr/bin/mkdir -p /var/zap/cache
+	fi
+	echo add fs
+	echo set dir=/var/zap/global-cache
+	echo set special=/var/zap/cache
+	echo set type=lofs
+	echo add options [ro,nodevices]
+	echo end
+fi
 for DIR in $ZDIRS
 do
 	/usr/bin/mkdir -p ${ZFSBASE}/${ZNAME}${DIR}
