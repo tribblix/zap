@@ -24,7 +24,6 @@
 # FIXMES:
 # add full IPv6
 # add appstack overlays for sparse zones
-# inherit dirs (like I do for sfw)
 #
 
 ZFSBASE="/export/zonedata"
@@ -1070,8 +1069,6 @@ done
 # for exclusive-ip stacks:
 #  create /etc/hostname.* files for each vnic we created
 #  set the default route
-#
-# FIXME need a working solution for lx
 #
 if [[ $ZBRAND != SUNWlx ]]; then
     for index in "${!ifipmap[@]}"

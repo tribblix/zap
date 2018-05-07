@@ -45,10 +45,9 @@ case $1 in
 	SRCARGS="-s ${SRCDIR}"
 	shift
 	shift
-	# FIXME should this be fatal or a warning?
 	if [ ! -d "$SRCDIR" ]; then
-	    echo "ERROR: package source $SRCDIR doesn't exist"
-	    exit 1
+	    echo "WARN: package source $SRCDIR doesn't exist"
+	    SRCARGS=""
 	fi
 	;;
 esac

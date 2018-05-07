@@ -67,11 +67,6 @@ case $# in
 esac
 
 #
-# FIXME:
-#  fail if there are missing packages after first pass
-#
-
-#
 # first look for and download any packages we need
 #
 for inpkg in $*
