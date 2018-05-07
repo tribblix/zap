@@ -1,0 +1,284 @@
+#!/bin/ksh
+#
+# an operating system image retrieval script
+#
+# used for:
+#  - alien zone images
+#  - lx zone images
+#  - an alien os installer
+#
+# it will output either the name of the resulting file
+# or something containing "ERROR:"
+#
+
+ZAPLIBDIR="/usr/lib/zap"
+MODE="download"
+#
+# checksum naming:
+# if it's saved as XXX.sha256 then it's a single checksum
+# if it's saved as XXX.sha256.txt then it's a list of checksums
+#
+CKURL=""
+CKNAME=""
+
+#
+# with -n, just print out the final image name we would store
+# with -q, print out the file name iff already downloaded
+#
+case $1 in
+    -n)
+	MODE="mapname"
+	shift
+	;;
+    -q)
+	MODE="query-download"
+	shift
+	;;
+esac
+
+if [ $# -ne 1 ]; then
+    echo "ERROR: Usage: $0 [-n | -q] image_specifier"
+    exit 1
+fi
+
+IMAGE_DIR=`${ZAPLIBDIR}/zap-cfg ${CTXARGS} image-dir`
+USER_AGENT="zap"/`${ZAPLIBDIR}/pkgversion TRIBzap`
+ZAP_PROXY=`${ZAPLIBDIR}/zap-cfg ${CTXARGS} proxy`
+
+if [ -n "$ZAP_PROXY" ]; then
+    http_proxy=$ZAP_PROXY
+    export http_proxy
+fi
+
+WCLIENT=/usr/bin/curl
+WARGS="-A ${USER_AGENT} -f -s -o"
+if [ ! -x $WCLIENT ]; then
+    WCLIENT=/usr/bin/wget
+    WARGS="-U ${USER_AGENT} -q -O"
+fi
+
+#
+# we understand several schemes
+# - http/https - direct download, gives the full URL
+# - distro-name - maps to a well-known url prefix and suffix
+#   and the argument is of the form distro-name:version
+#
+SCHEME=${1%%:*}
+
+case $SCHEME in
+    http|https)
+	URL="$1"
+	DLNAME=${1##*/}
+	;;
+    omnios|omniosce)
+	DLPREFIX="https://downloads.omniosce.org/media/"
+	DLSUFFIX=".zfs.bz2"
+	#
+	# we expect a marker of the form r1510XX[y] or bloody
+	#
+	RELVER=${1#*:}
+	#
+	# updates have letters on the end as subscripts
+	# so pick off the directory name without the subscripts
+	#
+	case $RELVER in
+	    bloody*)
+		RELDIR="bloody"
+		;;
+
+	    *)
+		RELDIR=${RELVER:0:7}
+		;;
+	esac
+	DLNAME="omniosce-${RELVER}${DLSUFFIX}"
+	URL="${DLPREFIX}${RELDIR}/${DLNAME}"
+	CKURL="${DLPREFIX}${RELDIR}/${DLNAME}.sha256"
+	CKNAME="${DLNAME}.sha256"
+	;;
+    ubuntu)
+	#
+	# these are the cloud images https://cloud-images.ubuntu.com/
+	#
+	# syntax expected is 'ubuntu:YY.MM'
+	#
+	# FIXME: support codenames
+	#
+	DLPREFIX="https://cloud-images.ubuntu.com/releases/"
+	DLSUFFIX=".tar.gz"
+	RELVER=${1#*:}
+	URL="${DLPREFIX}${RELVER}/release/ubuntu-${RELVER}-server-cloudimg-amd64${DLSUFFIX}"
+	CKURL="${DLPREFIX}${RELVER}/release/SHA256SUMS"
+	DLNAME="ubuntu-${RELVER}-server-cloudimg-amd64${DLSUFFIX}"
+	CKNAME="${DLNAME}.sha256.txt"
+	;;
+    proxmox)
+	#
+	# system images come from http://download.proxmox.com/images/system/
+	#
+	# syntax expected is 'proxmox:distro-version'
+	# which we map (manually) to a filename
+	#
+	DLPREFIX="http://download.proxmox.com/images/system/"
+	RELVER=${1#*:}
+	case $RELVER in
+	    alpine-3.3)
+		DLFILE="alpine-3.3-default_20160427_amd64.tar.xz"
+		DLNAME="proxmox-alpine-3.3.tar.xz"
+		;;
+	    alpine-3.4)
+		DLFILE="alpine-3.4-default_20161206_amd64.tar.xz"
+		DLNAME="proxmox-alpine-3.4.tar.xz"
+		;;
+	    alpine-3.5)
+		DLFILE="alpine-3.5-default_20170504_amd64.tar.xz"
+		DLNAME="proxmox-alpine-3.5.tar.xz"
+		;;
+	    alpine-3.6)
+		DLFILE="alpine-3.6-default_20171211_amd64.tar.xz"
+		DLNAME="proxmox-alpine-3.6.tar.xz"
+		;;
+	    alpine-3.7|alpine)
+		DLFILE="alpine-3.7-default_20171211_amd64.tar.xz"
+		DLNAME="proxmox-alpine-3.7.tar.xz"
+		;;
+	    arch|archlinux)
+		DLFILE="archlinux-base_20171214-1_amd64.tar.gz"
+		DLNAME="proxmox-archlinux.tar.gz"
+		;;
+	    centos-6)
+		DLFILE="centos-6-default_20161207_amd64.tar.xz"
+		DLNAME="proxmox-centos-6.tar.xz"
+		;;
+	    centos-7|centos)
+		DLFILE="centos-7-default_20171212_amd64.tar.xz"
+		DLNAME="proxmox-centos-7.tar.xz"
+		;;
+	    debian-6)
+		DLFILE="debian-6.0-standard_6.0-7_amd64.tar.gz"
+		DLNAME="proxmox-debian-6.tar.gz"
+		;;
+	    debian-7)
+		DLFILE="debian-7.0-standard_7.11-1_amd64.tar.gz"
+		DLNAME="proxmox-debian-7.tar.gz"
+		;;
+	    debian-8)
+		DLFILE="debian-8.0-standard_8.7-1_amd64.tar.gz"
+		DLNAME="proxmox-debian-8.tar.gz"
+		;;
+	    debian-9|debian)
+		DLFILE="debian-9.0-standard_9.3-1_amd64.tar.gz"
+		DLNAME="proxmox-debian-9.tar.gz"
+		;;
+	    fedora-24)
+		DLFILE="fedora-24-default_20161207_amd64.tar.xz"
+		DLNAME="proxmox-fedora-24.tar.xz"
+		;;
+	    fedora-25)
+		DLFILE="fedora-25-default_20170316_amd64.tar.xz"
+		DLNAME="proxmox-fedora-25.tar.xz"
+		;;
+	    fedora-26)
+		DLFILE="fedora-26-default_20171212_amd64.tar.xz"
+		DLNAME="proxmox-fedora-26.tar.xz"
+		;;
+	    fedora-27|fedora)
+		DLFILE="fedora-27-default_20171212_amd64.tar.xz"
+		DLNAME="proxmox-fedora-27.tar.xz"
+		;;
+	    gentoo)
+		DLFILE="gentoo-current-default_20171211_amd64.tar.xz"
+		DLNAME="proxmox-gentoo.tar.xz"
+		;;
+	    opensuse-42|opensuse)
+		DLFILE="opensuse-42.3-default_20171214_amd64.tar.xz"
+		DLNAME="proxmox-opensuse-42.tar.xz"
+		;;
+	    ubuntu-*)
+		UVER=${RELVER:7:11}
+		DLFILE="ubuntu-${UVER}-standard_${UVER}-1_amd64.tar.gz"
+		DLNAME="proxmox-ubuntu-${UVER}.tar.gz"
+		;;
+	    ubuntu)
+		UVER="16.04"
+		DLFILE="ubuntu-${UVER}-standard_${UVER}-1_amd64.tar.gz"
+		DLNAME="proxmox-ubuntu-${UVER}.tar.gz"
+		;;
+	    *)
+		echo "ERROR: Unknown proxmox image"
+		exit 2
+		;;
+	esac
+	URL="${DLPREFIX}${DLFILE}"
+	;;
+    *)
+	echo "ERROR: Unrecognized scheme"
+	exit 2
+	;;
+esac
+
+#
+# fully qualify the path names
+#
+FDLNAME=${IMAGE_DIR}/${DLNAME}
+if [ -n "$CKNAME" ]; then
+    CKNAME=${IMAGE_DIR}/${CKNAME}
+fi
+
+case $MODE in
+    'mapname')
+	echo "$FDLNAME"
+	;;
+    'query-download')
+	if [ -f "$FDLNAME" ]; then
+	    echo "$FDLNAME"
+	fi
+	;;
+    'download')
+	#
+	# get the checksum file first, and exit if that fails
+	#
+	if [ -n "$CKNAME" ]; then
+	    if [ ! -s ${CKNAME} ]; then
+		${WCLIENT} ${WARGS} ${CKNAME} ${CKURL}
+	    fi
+	    if [ ! -f ${CKNAME} ]; then
+		echo "ERROR: unable to retrieve checksum file"
+		exit 1
+	    fi
+	    if [ ! -s ${CKNAME} ]; then
+		echo "ERROR: checksum file is empty"
+		/usr/bin/rm -f ${CKNAME}
+		exit 1
+	    fi
+	fi
+	${WCLIENT} ${WARGS} ${FDLNAME} ${URL}
+	if [ ! -f ${FDLNAME} ]; then
+	    echo "ERROR: download failed"
+	    exit 1
+	fi
+	if [ ! -s ${FDLNAME} ]; then
+	    echo "ERROR: download file is empty"
+	    /usr/bin/rm -f ${FDLNAME}
+	    exit 1
+	fi
+	if [ -n "$CKNAME" ]; then
+	    case $CKNAME in
+		*.txt)
+		    CKSCHEME=${CKNAME%%.txt}
+		    CKSCHEME=${CKSCHEME##*.}
+		    CKVAL=`/usr/bin/grep $DLNAME $CKNAME|/usr/bin/tr ' ' '\n'|/usr/bin/grep -v $DLNAME`
+		    ;;
+		*)
+		    CKSCHEME=${CKNAME##*.}
+		    CKVAL=`/usr/bin/cat $CKNAME`
+		    ;;
+	    esac
+	    DLVAL=`/usr/bin/openssl $CKSCHEME $FDLNAME | /usr/bin/awk '{print $NF}'`
+	    if [ "${DLVAL}" != "${CKVAL}" ]; then
+		echo "ERROR: checksum mismatch"
+		exit 1
+	    fi
+	fi
+	echo "$FDLNAME"
+	;;
+esac

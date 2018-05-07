@@ -7,7 +7,9 @@
 
 CFGDIR="/etc/zap"
 CACHE_DIR="/var/zap/cache"
+IMAGE_DIR="/var/zap/images"
 CACHE_CFG="${CFGDIR}/cache_dir"
+IMAGE_CFG="${CFGDIR}/image_dir"
 PROXY_CFG="${CFGDIR}/proxy_cfg"
 SIGN_POLICY="if-signed"
 SIGN_CFG="${CFGDIR}/sign_cfg"
@@ -64,8 +66,24 @@ cache-dir)
 	if [ -f ${CACHE_CFG} ]; then
 	    CACHE_DIR=`cat ${CACHE_CFG}`
 	fi
+	if [ ! -d "${CACHE_DIR}" ]; then
+	    /usr/bin/mkdir -p ${CACHE_DIR} 2> /dev/null
+	fi
 	if [ -d "${CACHE_DIR}" ]; then
 	    echo $CACHE_DIR
+	else
+	    echo "/tmp"
+	fi
+	;;
+image-dir)
+	if [ -f ${IMAGE_CFG} ]; then
+	    IMAGE_DIR=`cat ${IMAGE_CFG}`
+	fi
+	if [ ! -d "${IMAGE_DIR}" ]; then
+	    /usr/bin/mkdir -p ${IMAGE_DIR} 2> /dev/null
+	fi
+	if [ -d "${IMAGE_DIR}" ]; then
+	    echo $IMAGE_DIR
 	else
 	    echo "/tmp"
 	fi
