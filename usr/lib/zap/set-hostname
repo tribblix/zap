@@ -5,18 +5,7 @@
 
 DESTROOT=""
 case $1 in
--C)
-	DESTROOT="$2"
-	shift
-	shift
-	if [ ! -d "$DESTROOT" ]; then
-	    echo "ERROR: alternate root $DESTROOT doesn't exist"
-	    exit 1
-	fi
-	;;
-esac
-case $1 in
--R)
+-C|-R)
 	DESTROOT="$2"
 	shift
 	shift
@@ -60,9 +49,26 @@ esac
 # and restart mdnsd so the new name gets registered
 #
 if [ -n "$NODENAME" ]; then
-   echo $NODENAME > ${DESTROOT}/etc/nodename
-   if [ -z "$DESTROOT" ]; then
-       /usr/bin/hostname $NODENAME
-       /usr/sbin/svcadm restart svc:/network/dns/multicast:default > /dev/null 2>&1
-   fi
+    #
+    # find the old name, which will be present in nodename if we've
+    # set it, or the default name of tribblix
+    #
+    if [ -f ${DESTROOT}/etc/nodename ]; then
+	OLDNAME=`cat ${DESTROOT}/etc/nodename`
+    else
+	OLDNAME="tribblix"
+    fi
+    echo $NODENAME > ${DESTROOT}/etc/nodename
+    if [ -z "$DESTROOT" ]; then
+	/usr/bin/hostname $NODENAME
+	/usr/sbin/svcadm restart svc:/network/dns/multicast:default > /dev/null 2>&1
+    fi
+    #
+    # do the best we can to fix up the hosts file
+    # this will work if nothing else modifies it
+    #
+    if [ -n "$OLDNAME" ]; then
+	sed -i "s: $OLDNAME : $NODENAME :" ${DESTROOT}/etc/inet/hosts
+	sed -i "s: ${OLDNAME}.local : ${NODENAME}.local :" ${DESTROOT}/etc/inet/hosts
+    fi
 fi
