@@ -146,6 +146,14 @@ disable-services)
 	shift
 	exec ${ZAPLIBDIR}/zap-service -disable $*
 	;;
+add-locale)
+	shift
+	exec ${ZAPLIBDIR}/add-locale ${CTXARGS} $*
+	;;
+remove-locale)
+	shift
+	exec ${ZAPLIBDIR}/add-locale ${PKGARGS} -d $*
+	;;
 create-user)
 	shift
 	exec ${ZAPLIBDIR}/create-user $*

@@ -1,0 +1,15 @@
+ZAP and locales
+===============
+
+The zap utility allows you to add and remove locales.
+
+The syntax is
+
+zap add-locale name [name...]
+
+or
+
+zap remove-locale name [name...]
+
+The names recognized are the 2 (or occasionally 3) letter code for the
+locale, or its descriptive name or variants thereof.

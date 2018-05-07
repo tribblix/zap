@@ -116,3 +116,13 @@ destroy-zone-template [-n] -T template_name
 
   This subcommand destroys a zone template and the file system backing
   it. The action will fail if any zones are using the template.
+
+add-locale name [name...]
+
+  This subcommand allows you to add locales. Run 'zap help add-locale'
+  for details.
+
+remove-locale name [name...]
+
+  This subcommand allows you to remove locales. Run 'zap help add-locale'
+  for details.

@@ -1,0 +1,313 @@
+#!/bin/sh
+#
+# simple wrapper to install locales
+# just maps keywords to package names
+#
+
+ZAPLIBDIR="/usr/lib/zap"
+CTXARGS=""
+PKGARGS=""
+ACTION="install-pkg"
+
+case $1 in
+-C)
+	DESTROOT="$2"
+	CTXARGS="-C ${DESTROOT}"
+	shift
+	shift
+	if [ ! -d "$DESTROOT" ]; then
+	    echo "ERROR: alternate root $DESTROOT doesn't exist"
+	    exit 1
+	fi
+	;;
+esac
+
+case $1 in
+-R)
+	DESTROOT="$2"
+	PKGARGS="-R ${DESTROOT}"
+	shift
+	shift
+	if [ ! -d "$DESTROOT" ]; then
+	    echo "ERROR: alternate root $DESTROOT doesn't exist"
+	    exit 1
+	fi
+	;;
+esac
+
+#
+# use this wrapper for uninstall as well
+#
+case $1 in
+    -d)
+	shift
+	ACTION="delpkg"
+	CTXARGS=""
+	;;
+esac
+
+LPKGLIST=""
+
+#
+# now there's a big switch that maps names to packages
+#
+for arg in $*
+do
+    case $arg in
+	af|afrikaans)
+	    LPKGLIST="${LPKGLIST} af"
+	    ;;
+	ar|arab*)
+	    LPKGLIST="${LPKGLIST} ar"
+	    ;;
+	as|assam*)
+	    LPKGLIST="${LPKGLIST} as"
+	    ;;
+	az|azerbaijan*)
+	    LPKGLIST="${LPKGLIST} az"
+	    ;;
+	be|belarus*)
+	    LPKGLIST="${LPKGLIST} be"
+	    ;;
+	bg|bulgaria*)
+	    LPKGLIST="${LPKGLIST} bg bg-extra"
+	    ;;
+	bn|bengal*)
+	    LPKGLIST="${LPKGLIST} bn"
+	    ;;
+	bo|tibet*)
+	    LPKGLIST="${LPKGLIST} bo"
+	    ;;
+	bs|bosnia*)
+	    LPKGLIST="${LPKGLIST} bs"
+	    ;;
+	ca)
+	    echo "Ambiguity for ca: please use catalan or canada"
+	    exit 0
+	    ;;
+	catalan*)
+	    LPKGLIST="${LPKGLIST} ca ca-extra"
+	    ;;
+	cs|cz*)
+	    LPKGLIST="${LPKGLIST} cs cs-extra"
+	    ;;
+	da|den*|danish)
+	    LPKGLIST="${LPKGLIST} da da-extra"
+	    ;;
+	de|deu*|german*)
+	    LPKGLIST="${LPKGLIST} de de-extra"
+	    ;;
+	el|gree*)
+	    LPKGLIST="${LPKGLIST} el el-extra"
+	    ;;
+	en|engl*|brit*)
+	    LPKGLIST="${LPKGLIST} en en-extra"
+	    ;;
+	es|esp*|spanish|spain)
+	    LPKGLIST="${LPKGLIST} es es-extra"
+	    ;;
+	et|estonia*)
+	    LPKGLIST="${LPKGLIST} et"
+	    ;;
+	fi|fin*)
+	    LPKGLIST="${LPKGLIST} fi fi-extra"
+	    ;;
+	fil|filipon*|philipin*)
+	    LPKGLIST="${LPKGLIST} fil"
+	    ;;
+	fr|french|france)
+	    LPKGLIST="${LPKGLIST} fr fr-extra"
+	    ;;
+	ga|irish|ireland|gaelic)
+	    LPKGLIST="${LPKGLIST} ga"
+	    ;;
+	gu|gujarat*)
+	    LPKGLIST="${LPKGLIST} gu"
+	    ;;
+	he|heb*)
+	    LPKGLIST="${LPKGLIST} he"
+	    ;;
+	hi|hind*)
+	    LPKGLIST="${LPKGLIST} hi"
+	    ;;
+	hr|croat*)
+	    LPKGLIST="${LPKGLIST} hr hr-extra"
+	    ;;
+	hun|hungar*)
+	    LPKGLIST="${LPKGLIST} hu hu-extra"
+	    ;;
+	hy|armenia*)
+	    LPKGLIST="${LPKGLIST} hy"
+	    ;;
+	id|indonesia*)
+	    LPKGLIST="${LPKGLIST} id"
+	    ;;
+	ii|yi)
+	    LPKGLIST="${LPKGLIST} ii"
+	    ;;
+	is|iceland*)
+	    LPKGLIST="${LPKGLIST} is is-extra"
+	    ;;
+	it|ital*)
+	    LPKGLIST="${LPKGLIST} it it-extra"
+	    ;;
+	ja|jap*)
+	    LPKGLIST="${LPKGLIST} ja"
+	    ;;
+	ka|georgia*)
+	    LPKGLIST="${LPKGLIST} ka"
+	    ;;
+	kk|kazakh*)
+	    LPKGLIST="${LPKGLIST} kk"
+	    ;;
+	km|khmer*)
+	    LPKGLIST="${LPKGLIST} km"
+	    ;;
+	kn|kannada)
+	    LPKGLIST="${LPKGLIST} kn"
+	    ;;
+	ko|korea*)
+	    LPKGLIST="${LPKGLIST} ko"
+	    ;;
+	kok|konk*)
+	    LPKGLIST="${LPKGLIST} kok"
+	    ;;
+	lt|lithuania*)
+	    LPKGLIST="${LPKGLIST} lt lt-extra"
+	    ;;
+	lv|latvia*)
+	    LPKGLIST="${LPKGLIST} lv lv-extra"
+	    ;;
+	mk|macedonia*)
+	    LPKGLIST="${LPKGLIST} mk mk-extra"
+	    ;;
+	ml|malayalam)
+	    LPKGLIST="${LPKGLIST} ml"
+	    ;;
+	mn|mongol*)
+	    LPKGLIST="${LPKGLIST} ml"
+	    ;;
+	mr|marath*)
+	    LPKGLIST="${LPKGLIST} mr"
+	    ;;
+	ms|malay*)
+	    LPKGLIST="${LPKGLIST} ms"
+	    ;;
+	mt|malt*)
+	    LPKGLIST="${LPKGLIST} mt"
+	    ;;
+	nb|bokmal)
+	    LPKGLIST="${LPKGLIST} nb"
+	    ;;
+	ne|nepal*)
+	    LPKGLIST="${LPKGLIST} ne"
+	    ;;
+	nl|holland|dutch|nederland*|netherland*)
+	    LPKGLIST="${LPKGLIST} nl nl-extra"
+	    ;;
+	nn|nynorsk)
+	    LPKGLIST="${LPKGLIST} nn"
+	    ;;
+	norw*|norge)
+	    LPKGLIST="${LPKGLIST} nb nn"
+	    ;;
+	or|oriya)
+	    LPKGLIST="${LPKGLIST} or"
+	    ;;
+	pa|punjab*)
+	    LPKGLIST="${LPKGLIST} pa"
+	    ;;
+	pl|pol*)
+	    LPKGLIST="${LPKGLIST} pl pl-extra"
+	    ;;
+	pt|port*)
+	    LPKGLIST="${LPKGLIST} pt pt-extra"
+	    ;;
+	ro|romania*)
+	    LPKGLIST="${LPKGLIST} ro"
+	    ;;
+	ru|russia*)
+	    LPKGLIST="${LPKGLIST} ru ru-extra"
+	    ;;
+	sa|sanskrit)
+	    LPKGLIST="${LPKGLIST} sa"
+	    ;;
+	si|sinhal*)
+	    LPKGLIST="${LPKGLIST} si"
+	    ;;
+	sk|slovak*)
+	    LPKGLIST="${LPKGLIST} sk"
+	    ;;
+	sl|slovenia*)
+	    LPKGLIST="${LPKGLIST} sl"
+	    ;;
+	sq|albania*)
+	    LPKGLIST="${LPKGLIST} sq sq-extra"
+	    ;;
+	sr|serb*)
+	    LPKGLIST="${LPKGLIST} sr"
+	    ;;
+	sv|sver*|swed*)
+	    LPKGLIST="${LPKGLIST} sv sv-extra"
+	    ;;
+	ta|tamil)
+	    LPKGLIST="${LPKGLIST} ta"
+	    ;;
+	te|telugu)
+	    LPKGLIST="${LPKGLIST} te"
+	    ;;
+	th|thai)
+	    LPKGLIST="${LPKGLIST} th th-extra"
+	    ;;
+	tr|turk*)
+	    LPKGLIST="${LPKGLIST} tr tr-extra"
+	    ;;
+	ug|uighur)
+	    LPKGLIST="${LPKGLIST} ug"
+	    ;;
+	uk)
+	    echo "Ambiguity for uk: please use english or ukrainian"
+	    exit 1
+	    ;;
+	ukrain*)
+	    LPKGLIST="${LPKGLIST} uk"
+	    ;;
+	ur|urdu)
+	    LPKGLIST="${LPKGLIST} ur"
+	    ;;
+	vi|vietnam*)
+	    LPKGLIST="${LPKGLIST} vi"
+	    ;;
+	zh_cn|china)
+	    LPKGLIST="${LPKGLIST} zh_cn zh_cn-extra"
+	    ;;
+	zh_hk|hk|hongkong)
+	    LPKGLIST="${LPKGLIST} zh_hk"
+	    ;;
+	zh_mo|macau)
+	    LPKGLIST="${LPKGLIST} zh_mo"
+	    ;;
+	zh_sg|singapor*)
+	    LPKGLIST="${LPKGLIST} zh_sg"
+	    ;;
+	zh_tw|taiwan*)
+	    LPKGLIST="${LPKGLIST} zh_tw"
+	    ;;
+	*)
+	    echo "Unrecognized name $arg"
+	    exit 1
+	    ;;
+    esac
+done
+
+if [ -z "$LPKGLIST" ]; then
+    exit 0
+fi
+
+PKGLIST=""
+for lcl in $LPKGLIST
+do
+    PKGLIST="${PKGLIST} TRIBlocale-${lcl}"
+done
+
+exec ${ZAPLIBDIR}/${ACTION} ${CTXARGS} ${PKGARGS} $PKGLIST
