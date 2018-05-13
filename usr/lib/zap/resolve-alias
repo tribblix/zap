@@ -28,6 +28,16 @@ case $# in
 esac
 
 #
+# short-circuit things that are known package names
+#
+case $PKG in
+    TRIB*|SUNW*)
+	echo $PKG
+	exit 0
+	;;
+esac
+
+#
 # given an alias, return the package name it corresponds to
 #
 for repo in `${ZAPLIBDIR}/zap-cfg ${CTXARGS} list-pkg-repos`
@@ -42,7 +52,6 @@ do
 done
 
 #
-# if we're unable to find an alias, return the original unqualified
-# package name
+# if we're unable to find an alias, return the original name
 #
 echo $PKG
