@@ -38,12 +38,52 @@ esac
 case $1 in
 list-pkg-repos)
 	if [ -f ${CFGDIR}/repo.list ]; then
-	    /usr/bin/sort -k1 -n ${CFGDIR}/repo.list | /usr/bin/awk '{print $2}'
+	    #
+	    # this is performance sensitive as so many things call it
+	    # inline is 30% quicker than sort|awk
+	    #
+	    typeset -A repos
+	    while read n p
+	    do
+		repos[$p]=$n
+	    done < ${CFGDIR}/repo.list
+	    while [[ ${#repos[@]} -gt 0 ]]
+	    do
+		k=(${!repos[@]})
+		for j in ${!repos[@]}
+		do
+		    if [ ${repos[$j]} -lt ${repos[$k]} ]; then
+			k=$j
+		    fi
+		done
+		echo $k
+		unset repos[$k]
+	    done
 	fi
 	;;
 list-overlay-repos)
 	if [ -f ${CFGDIR}/overlays.list ]; then
-	    /usr/bin/sort -k1 -n ${CFGDIR}/overlays.list | /usr/bin/awk '{print $2}'
+	    #
+	    # not quite so performance sensitive
+	    # but use the same algorithm anyway
+	    #
+	    typeset -A repos
+	    while read n p
+	    do
+		repos[$p]=$n
+	    done < ${CFGDIR}/overlays.list
+	    while [[ ${#repos[@]} -gt 0 ]]
+	    do
+		k=(${!repos[@]})
+		for j in ${!repos[@]}
+		do
+		    if [ ${repos[$j]} -lt ${repos[$k]} ]; then
+			k=$j
+		    fi
+		done
+		echo $k
+		unset repos[$k]
+	    done
 	fi
 	;;
 repo-url)
