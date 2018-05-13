@@ -72,9 +72,7 @@ esac
 for inpkg in $*
 do
   pkg=`${ZAPLIBDIR}/resolve-alias ${CTXARGS} $inpkg`
-  /usr/bin/pkginfo ${PKGARGS} -q ${pkg}
-  FOUNDPKG=$?
-  if [ $FOUNDPKG -eq 0 ]; then
+  if [ -f ${DESTROOT}/var/sadm/pkg/${pkg}/pkginfo ]; then
     echo "Package $pkg already installed"
   else
     DOPKGS="${DOPKGS} $pkg"

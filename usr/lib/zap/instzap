@@ -6,7 +6,8 @@ ZAPLIBDIR="/usr/lib/zap"
 
 case $1 in
 -R)
-    BFLAGS="-R $2"
+    DESTROOT="$2"
+    BFLAGS="-R ${DESTROOT}"
     shift
     shift
     ;;
@@ -23,12 +24,10 @@ case $# in
     ;;
 esac
 
-/usr/bin/pkginfo ${BFLAGS} -q ${PKG}
-FOUNDPKG=$?
 #
 # install if not found
 #
-if [ $FOUNDPKG -eq 0 ]; then
+if [ -f ${DESTROOT}/var/sadm/pkg/${PKG}/pkginfo ]; then
     echo "Package $PKG already installed"
 else
     if [ ! -f ${DIR} ]; then

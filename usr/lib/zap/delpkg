@@ -6,7 +6,8 @@ ZAPLIBDIR="/usr/lib/zap"
 
 case $1 in
 -R)
-    BFLAGS="-R $2"
+    DESTROOT="$2"
+    BFLAGS="-R ${DESTROOT}"
     shift
     shift
     ;;
@@ -15,8 +16,7 @@ esac
 for inpkg in $*
 do
 	pkg=`${ZAPLIBDIR}/resolve-alias $inpkg`
-	if /usr/bin/pkginfo ${BFLAGS} -q ${pkg}
-	then
+	if [ -f ${DESTROOT}/var/sadm/pkg/${pkg}/pkginfo ]; then
                 echo "Removing $pkg package"
                 /usr/sbin/pkgrm -n -a ${ZAPLIBDIR}/pkg.force ${BFLAGS} $pkg
         fi

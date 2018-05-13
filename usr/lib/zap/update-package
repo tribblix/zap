@@ -69,9 +69,7 @@ esac
 for inpkg in $*
 do
     pkg=`${ZAPLIBDIR}/resolve-alias ${CTXARGS} $inpkg`
-    /usr/bin/pkginfo ${PKGARGS} -q ${pkg}
-    FOUNDPKG=$?
-    if [ $FOUNDPKG -ne 0 ]; then
+    if [ ! -f ${DESTROOT}/var/sadm/pkg/${pkg}/pkginfo ]; then
 	${ZAPLIBDIR}/install-pkg ${CTXARGS} ${PKGARGS} ${SRCARGS} $pkg
     fi
     IVERSION=`${ZAPLIBDIR}/pkgversion ${PKGARGS} $pkg`

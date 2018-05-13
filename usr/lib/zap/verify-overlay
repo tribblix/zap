@@ -85,9 +85,7 @@ done
 #
 for pkg in `cat ${PLIST}`
 do
-  /usr/bin/pkginfo ${PKGARGS} -q ${pkg}
-  FOUNDPKG=$?
-  if [ $FOUNDPKG -ne 0 ]; then
+  if [ ! -f ${DESTROOT}/var/sadm/pkg/${pkg}/pkginfo ]; then
       echo "ERROR: member package ${pkg} is not installed"
       STATUS=1
   else
