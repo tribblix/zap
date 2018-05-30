@@ -26,6 +26,7 @@
 # add appstack overlays for sparse zones
 #
 
+ZAPLIBDIR="/usr/lib/zap"
 ZFSBASE="/export/zonedata"
 ZROOTBASE="/export/zones"
 ZSDIR="/var/zap/zones"
@@ -215,16 +216,12 @@ TRIBalien)
 	   echo "ERROR: cannot specify overlays for alien zones"
 	   usage
 	fi
+	#
+	# Check that we're given an image to install. It's validated, and
+	# possibly downloaded, after all the other checks have passed
+	#
 	if [[ -z $ZISOFILE ]]; then
 	    echo "ERROR: an alien zone requires an image to be specified"
-	    usage
-	fi
-	if [ ! -f $ZISOFILE ]; then
-	    echo "ERROR: specified image not found"
-	    usage
-	fi
-	if [[ $ZISOFILE != /* ]]; then
-	    echo "ERROR: image must be an absolute path"
 	    usage
 	fi
 	;;
@@ -241,16 +238,12 @@ SUNWlx)
 	   echo "ERROR: cannot specify overlays for lx zones"
 	   usage
 	fi
+	#
+	# Check that we're given an image to install. It's validated, and
+	# possibly downloaded, after all the other checks have passed
+	#
 	if [[ -z $ZISOFILE ]]; then
 	    echo "ERROR: an lx zone requires an image to be specified"
-	    usage
-	fi
-	if [ ! -f $ZISOFILE ]; then
-	    echo "ERROR: specified image not found"
-	    usage
-	fi
-	if [[ $ZISOFILE != /* ]]; then
-	    echo "ERROR: image must be an absolute path"
 	    usage
 	fi
 	if [[ -n $ZIP4 ]]; then
@@ -552,6 +545,45 @@ do
 	    exit 1
 	fi
 done
+
+#
+# check validity of installation images here, after all the other checks,
+# so we only download images if the command is otherwise valid
+#
+# if the image name is not an absolute path then try downloading it
+# and then rewrite it to be the absolute path of the file we downloaded
+#
+case $ZBRAND in
+TRIBalien|SUNWlx)
+	if [[ $ZISOFILE != /* ]]; then
+	    #
+	    # check validity of the name
+	    #
+	    DLFILE=`${ZAPLIBDIR}/retrieve-image -n $ZISOFILE`
+	    if [[ $DLFILE = /* ]]; then
+		if [ -f $DLFILE ]; then
+		    echo "Using cached image $DLFILE for $ZISOFILE"
+		    ZISOFILE="$DLFILE"
+		else
+		    echo "Downloading $ZISOFILE"
+		    DLFILE=`${ZAPLIBDIR}/retrieve-image $ZISOFILE`
+		    if [ -f $DLFILE ]; then
+			echo "Using downloaded image $DLFILE for $ZISOFILE"
+			ZISOFILE="$DLFILE"
+		    fi
+		fi
+	    fi
+	fi
+	if [[ $ZISOFILE != /* ]]; then
+	    echo "ERROR: image name must be absolute or specify a valid download"
+	    usage
+	fi
+	if [ ! -f $ZISOFILE ]; then
+	    echo "ERROR: specified image not found"
+	    usage
+	fi
+	;;
+esac
 
 #
 # construct a zone configuration file
@@ -1131,7 +1163,7 @@ fi
 #
 for KARG in $KARGS
 do
-    /usr/lib/zap/zone-konfigurator -z ${ZNAME} $KARG
+    ${ZAPLIBDIR}/zone-konfigurator -z ${ZNAME} $KARG
 done
 
 /usr/sbin/zoneadm -z ${ZNAME} boot

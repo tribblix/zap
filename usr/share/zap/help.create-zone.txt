@@ -18,13 +18,12 @@ Supplying the zone_name is mandatory; all other arguments are optional.
 The -t flag specifies the zone type, which may be whole, sparse, or
 alien. For a whole-root zone, the zone has its own copy of all
 required file systems. In a sparse-root zone the file systems
-containing the operating system - /lib, /platform, /usr, and /sbin -
-are inherited read-only from the global zone (or an alternate source -
-see the -T flag). An alien-root zone contains file systems derived
-from an ISO image of an alternative illumos distribution. The default
-is to create a sparse-root zone. If running an LX-enabled variant, the
-lx zone type is also available, in which case the -I flag specifies
-a file containing the Linux image.
+containing the operating system - /lib, /usr, and /sbin - are
+inherited read-only from the global zone (or an alternate source - see
+the -T flag). An alien-root zone contains file systems derived from an
+image of an alternative illumos distribution. If running an LX-enabled
+variant, the lx zone type is also available, allowing construction of
+a Linux zone. The default is to create a sparse-root zone.
 
 The -i flag specifies an IP address. If supplied, the zone will be
 given this IP address. This flag can be used multiple times to assign
@@ -79,11 +78,15 @@ a sparse-root zone instead of the default inheritance from the global
 zone. Use the zap create-zone-template subcommand to construct such a
 template.
 
-For an alien zone, the -I flag specifies the absolute path to either
-an iso image, or a file containing a zfs send stream, that will be
-used to install the zone. In the case of an lx zone, the -I flag
-specifies the absolute path to a tarball containing a Linux file
-system.
+For alien and lx zones, the -I flag can specify either the absolute
+path to an image file or a logical image to be downloaded. For an
+alien zone, the image can be an iso image, or a zfs send stream, that
+will be used to install the zone. For an lx zone, the image should be
+a tarball containing a Linux file system. Some examples of logical
+image names are  
+  omnios:r151026
+  proxmox:alpine
+  ubuntu
 
 The -B flag boots the zone as a blank system, with no processes (other
 than init) running. It's the responsibility of the user to run any
