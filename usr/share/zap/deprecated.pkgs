@@ -161,3 +161,6 @@ TRIBstorage-avs-remote-mirror
 TRIBstorage-avs
 TRIBsvc-storage-avs-cache-mgmt
 TRIBdrv-storage-sv
+TRIBblix-postgres95
+TRIBblix-repmgr95
+TRIBblix-slony95
