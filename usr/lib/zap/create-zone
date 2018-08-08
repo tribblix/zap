@@ -11,6 +11,7 @@
 #  -R Ipv4 network to proxy, in CIDR notation
 #  -I image file to install for alien or lx zone
 #  -d directory to create [can be multiple]
+#  -D dataset to delegate [will be created if it doesn't exist]
 #  -o overlay for partial root [can be multiple, passed to install]
 #  -O add overlay [can be multiple, passed to install]
 #  -S share directory r/w with the zone
@@ -42,6 +43,7 @@ IMGFLAG="-i"
 ZOVERLAY=""
 ZADDOVERLAY=""
 ZDIRS=""
+ZDATASETS=""
 ZSHARED=""
 ZROSHARED=""
 ZUSERS=""
@@ -67,13 +69,13 @@ usage() {
     echo "  [-T template] [-I image_file]"
     echo "  [-i ip_address] [-x ip_address] [-R ip_network/prefix]"
     echo "  [-B] [-d extra_dir] [-o overlay] [-O overlay]"
-    echo "  [-S|-s shared_dir] [-U user]"
+    echo "  [-S|-s shared_dir] [ -D dataset] [-U user]"
     echo "  [-6] [-n number_of_zones]"
     echo "  [-K action=arg[=arg...]]"
     exit 1
 }
 
-while getopts "6BT:t:z:i:x:R:I:o:O:d:s:S:U:n:K:" opt; do
+while getopts "6BT:t:z:i:x:R:I:o:O:d:D:s:S:U:n:K:" opt; do
 case $opt in
 6)
 	DOIP6="Y"
@@ -116,6 +118,9 @@ O)
 d)
 	ZDIRS="${ZDIRS} $OPTARG"
 	NCMDLINE="${NCMDLINE} -d $OPTARG"
+	;;
+D)
+	ZDATASETS="${ZDATASETS} $OPTARG"
 	;;
 s)
 	ZROSHARED="${ZROSHARED} $OPTARG"
@@ -491,6 +496,22 @@ if [[ -n $ZROSHARED ]]; then
     do
 	if [ ! -d "${DIR}" ]; then
 	    echo "ERROR: shared directory $DIR not found"
+	    exit 1
+	fi
+    done
+fi
+
+#
+# if given datasets to delegate, verify it's a dataset and not
+# a pool, by looking for a / separator
+# if multiple, we will create a hierarchy, so no need to check
+# and a pool is a valid choice as the parent
+#
+if [[ -z $NZONES ]]; then
+    for DSET in $ZDATASETS
+    do
+	if [[ $DSET != */* ]]; then
+	    echo "ERROR: dataset cannot be a top-level pool"
 	    exit 1
 	fi
     done
@@ -922,6 +943,12 @@ if [[ $ZBRAND = TRIBsparse || $ZBRAND = TRIBwhole ]]; then
 	echo add options [ro,nodevices]
 	echo end
 fi
+for DSET in $ZDATASETS
+do
+	echo add dataset
+	echo set name=${DSET}
+	echo end
+done
 for DIR in $ZDIRS
 do
 	/usr/bin/mkdir -p ${ZFSBASE}/${ZNAME}${DIR}
@@ -1048,10 +1075,21 @@ if [[ -n $NZONES ]]; then
 	NTHIS=$(($NTHIS+1))
 	NZNAME="${ZNAME}${NTHIS}"
 	#
+	# handle delegated datasets
+	# the argument is interpreted as a prefix, with the zone name
+	# (not just the zone number) tacked on, as the dataset names must be
+	# unique
+	#
+	NDATASETS=""
+	for DSET in $ZDATASETS
+	do
+	    NDATASETS="${NDATASETS} -D ${DSET}/${NZNAME}"
+	done
+	#
 	# construct command for this host, with unique zone name and addresses
 	#
 	echo Creating zone ${NZNAME}
-	zap create-zone -t $ZBRAND -z ${NZNAME} $NADDR $NCMDLINE
+	zap create-zone -t $ZBRAND -z ${NZNAME} $NADDR ${NDATASETS} $NCMDLINE
     done
     exit 0
 fi
@@ -1076,6 +1114,16 @@ if [[ ! -d ${ZROOTBASE} ]]; then
    ZREALNAME=`echo $ZROOTBASE | /usr/bin/sed s:${ZPARENT}:${ZDPARENT}:`
    /usr/sbin/zfs create ${ZREALNAME}
 fi
+#
+# this one is split, we create any missing intermediate datasets
+# but the final dataset has an explicit mountpoint property
+#
+for DSET in $ZDATASETS
+do
+    ZPARENT=${DSET%/*}
+    /usr/sbin/zfs create -p ${ZPARENT}
+    /usr/sbin/zfs create -o mountpoint=none ${DSET}
+done
 
 ZCFGFILE=/tmp/zap.zcfg.`date '+%F-%T'`.$$
 create_configuration > ${ZCFGFILE}

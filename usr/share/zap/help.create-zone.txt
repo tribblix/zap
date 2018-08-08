@@ -11,7 +11,7 @@ create-zone -z zone_name [-t whole|sparse|alien|lx]
     [-T template] [-I image_file]
     [-i ip_address] [-x ip_address] [-R ip_network/prefix]
     [-B] [-d extra_dir] [-o overlay] [-O overlay]
-    [-S shared_dir] [-U user] [-n number]
+    [-S|-s shared_dir] [-U user] [-D dataset] [-n number]
 
 Supplying the zone_name is mandatory; all other arguments are optional.
 
@@ -65,6 +65,12 @@ zone) to be shared with the zone. The shared directory will be mounted
 at the same location in the zone as it is in the global zone. This
 flag may be specified multiple times to share multiple directories.
 
+The -s flag is similar to -S, but the directory will be read-only in
+the zone.
+
+The -D flag specifies a zfs dataset to be delegated to the zone. The
+dataset will be created if it does not exist.
+
 The -U flag specifies a user account to be shared with the zone. The
 account will be created in the zone with the same details as in the
 global zone, and the home directory will be shared. In addition, that
@@ -95,4 +101,6 @@ applications as necessary, using zlogin to connect to the zone.
 The -n flag allows you to construct a number of identical zones with
 one command. The zone name given is used as a prefix, with 1 to N
 added to make the zone name. Similarly, the IP address(es) given are
-used for the first zone, and incremented for each zone.
+used for the first zone, and incremented for each zone. If delegating
+a dataset, the argument is taken as a parent and each zone will get
+a dataset named after the zone name.
