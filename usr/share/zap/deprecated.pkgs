@@ -105,6 +105,7 @@ TRIBsys-lib-mozilla-nss-header
 TRIBsys-prerequisite-gnu
 TRIBv-subversion-17
 TRIBv-tomcat-6
+TRIBv-tomcat-7
 SUNWgnu-mpfr
 SUNWgnu-mp
 SUNWjpg
