@@ -118,31 +118,29 @@ case $SCHEME in
 	# syntax expected is 'proxmox:distro-version'
 	# which we map (manually) to a filename
 	#
+	# there is no mechanism to handle images which have since been
+	# removed from the proxmox site
+	#
+	# nor is there a mechanism to handle images which have been
+	# replaced by newer versions
+	#
 	DLPREFIX="http://download.proxmox.com/images/system/"
 	RELVER=${1#*:}
 	case $RELVER in
-	    alpine-3.3)
-		DLFILE="alpine-3.3-default_20160427_amd64.tar.xz"
-		DLNAME="proxmox-alpine-3.3.tar.xz"
-		;;
-	    alpine-3.4)
-		DLFILE="alpine-3.4-default_20161206_amd64.tar.xz"
-		DLNAME="proxmox-alpine-3.4.tar.xz"
-		;;
-	    alpine-3.5)
-		DLFILE="alpine-3.5-default_20170504_amd64.tar.xz"
-		DLNAME="proxmox-alpine-3.5.tar.xz"
-		;;
 	    alpine-3.6)
-		DLFILE="alpine-3.6-default_20171211_amd64.tar.xz"
+		DLFILE="alpine-3.6-default_20180913_amd64.tar.xz"
 		DLNAME="proxmox-alpine-3.6.tar.xz"
 		;;
-	    alpine-3.7|alpine)
-		DLFILE="alpine-3.7-default_20171211_amd64.tar.xz"
+	    alpine-3.7)
+		DLFILE="alpine-3.7-default_20180913_amd64.tar.xz"
 		DLNAME="proxmox-alpine-3.7.tar.xz"
 		;;
+	    alpine-3.8|alpine)
+		DLFILE="alpine-3.8-default_20180913_amd64.tar.xz"
+		DLNAME="proxmox-alpine-3.8.tar.xz"
+		;;
 	    arch|archlinux)
-		DLFILE="archlinux-base_20171214-1_amd64.tar.gz"
+		DLFILE="archlinux-base_20180906-1_amd64.tar.gz"
 		DLNAME="proxmox-archlinux.tar.gz"
 		;;
 	    centos-6)
@@ -166,7 +164,7 @@ case $SCHEME in
 		DLNAME="proxmox-debian-8.tar.gz"
 		;;
 	    debian-9|debian)
-		DLFILE="debian-9.0-standard_9.3-1_amd64.tar.gz"
+		DLFILE="debian-9.0-standard_9.5-1_amd64.tar.gz"
 		DLNAME="proxmox-debian-9.tar.gz"
 		;;
 	    fedora-24)
@@ -181,12 +179,20 @@ case $SCHEME in
 		DLFILE="fedora-26-default_20171212_amd64.tar.xz"
 		DLNAME="proxmox-fedora-26.tar.xz"
 		;;
-	    fedora-27|fedora)
+	    fedora-27)
 		DLFILE="fedora-27-default_20171212_amd64.tar.xz"
 		DLNAME="proxmox-fedora-27.tar.xz"
 		;;
+	    fedora-28)
+		DLFILE="fedora-28-default_20180907_amd64.tar.xz"
+		DLNAME="proxmox-fedora-28.tar.xz"
+		;;
+	    fedora-29|fedora)
+		DLFILE="fedora-29-default_20181126_amd64.tar.xz"
+		DLNAME="proxmox-fedora-29.tar.xz"
+		;;
 	    gentoo)
-		DLFILE="gentoo-current-default_20171211_amd64.tar.xz"
+		DLFILE="gentoo-current-default_20180906_amd64.tar.xz"
 		DLNAME="proxmox-gentoo.tar.xz"
 		;;
 	    opensuse-42|opensuse)
