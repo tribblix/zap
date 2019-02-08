@@ -7,7 +7,7 @@ the zone.
 
 The syntax of the subcommand is:
 
-create-zone -z zone_name [-t whole|sparse|alien|lx]
+create-zone -z zone_name [-t whole|sparse|alien|lx|s10]
     [-T template] [-I image_file]
     [-i ip_address] [-x ip_address] [-R ip_network/prefix]
     [-B] [-d extra_dir] [-o overlay] [-O overlay]
@@ -23,7 +23,9 @@ inherited read-only from the global zone (or an alternate source - see
 the -T flag). An alien-root zone contains file systems derived from an
 image of an alternative illumos distribution. If running an LX-enabled
 variant, the lx zone type is also available, allowing construction of
-a Linux zone. The default is to create a sparse-root zone.
+a Linux zone. The default is to create a sparse-root zone. If the
+TRIBsys-zones-brand-s10 package is installed, then you can create a
+Solaris 10 branded zone.
 
 The -i flag specifies an IP address. If supplied, the zone will be
 given this IP address. This flag can be used multiple times to assign
@@ -83,6 +85,9 @@ The -T flag allows you to use a template to provide the file systems to
 a sparse-root zone instead of the default inheritance from the global
 zone. Use the zap create-zone-template subcommand to construct such a
 template.
+
+For s10 zones, the -I flag specifies the absolute path to an image
+from a Solaris 10 physical system.
 
 For alien and lx zones, the -I flag can specify either the absolute
 path to an image file or a logical image to be downloaded. For an

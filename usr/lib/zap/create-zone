@@ -4,12 +4,12 @@
 #
 # Usage:
 #  -T template (implies sparse)
-#  -t brand - sparse, whole, alien, or lx [default sparse]
+#  -t brand - sparse, whole, alien, s10, or lx [default sparse]
 #  -z zone_name - zone name [required]
 #  -i IPv4 address [can be multiple, for shared-ip]
 #  -x IPv4 address [can be multiple, for exclusive-ip]
 #  -R Ipv4 network to proxy, in CIDR notation
-#  -I image file to install for alien or lx zone
+#  -I image file to install for alien, s10, or lx zone
 #  -d directory to create [can be multiple]
 #  -D dataset to delegate [will be created if it doesn't exist]
 #  -o overlay for partial root [can be multiple, passed to install]
@@ -53,6 +53,7 @@ NZONES=""
 KARGS=""
 DOIP6=""
 NCMDLINE=""
+SYSIDCFGFILE=""
 
 #
 # these associative arrays track the interface to address mapping
@@ -61,11 +62,15 @@ typeset -A ifipmap
 typeset -A xifipmap
 
 usage() {
+    LXUSAGE=""
+    S10USAGE=""
     if [ -f /etc/zones/SUNWlx.xml ]; then
-	echo "Usage: $0 -z zone_name [-t whole|sparse|alien|lx]"
-    else
-	echo "Usage: $0 -z zone_name [-t whole|sparse|alien]"
+	LXUSAGE="|lx"
     fi
+    if [ -f /etc/zones/SUNWsolaris10.xml ]; then
+	S10USAGE="|s10"
+    fi
+    echo "Usage: $0 -z zone_name [-t whole|sparse|alien${LXUSAGE}${S10USAGE}]"
     echo "  [-T template] [-I image_file]"
     echo "  [-i ip_address] [-x ip_address] [-R ip_network/prefix]"
     echo "  [-B] [-d extra_dir] [-o overlay] [-O overlay]"
@@ -179,6 +184,9 @@ alien|TRIBalien)
 lx|SUNWlx)
 	ZBRAND="SUNWlx"
 	;;
+s10|solaris10|SUNWsolaris10)
+	ZBRAND="SUNWsolaris10"
+	;;
 *)
 	echo "ERROR: unrecognized brand $ZBRAND"
 	usage
@@ -229,6 +237,29 @@ TRIBalien)
 	    echo "ERROR: an alien zone requires an image to be specified"
 	    usage
 	fi
+	;;
+SUNWsolaris10)
+	if [[ -n $ZTEMPLATE ]]; then
+	    echo "ERROR: templates must be sparse-root"
+	    usage
+	fi
+	if [[ -n $ZOVERLAY || -n $ZADDOVERLAY ]]; then
+	   echo "ERROR: cannot specify overlays for s10 zones"
+	   usage
+	fi
+	#
+	# Check that we're given an image to install. It's validated
+	# after all the other checks have passed
+	#
+	if [[ -z $ZISOFILE ]]; then
+	    echo "ERROR: an s10 zone requires an image to be specified"
+	    usage
+	fi
+	#
+	# the zone installation script expects a different flag
+	# from my alien installer:
+	#
+	IMGFLAG="-a"
 	;;
 SUNWlx)
 	if [ ! -f /etc/zones/SUNWlx.xml ]; then
@@ -291,6 +322,10 @@ if [[ -n $RIP4 && -z $XIP4 ]]; then
 fi
 if [[ -n $RIP4 && $ZBRAND = TRIBalien ]]; then
     echo "ERROR: proxy zones must not be of type alien"
+    usage
+fi
+if [[ -n $RIP4 && $ZBRAND = SUNWsolaris10 ]]; then
+    echo "ERROR: proxy zones must not be of type s10"
     usage
 fi
 if [[ -n $RIP4 && $ZBRAND = SUNWlx ]]; then
@@ -571,6 +606,8 @@ done
 # check validity of installation images here, after all the other checks,
 # so we only download images if the command is otherwise valid
 #
+# s10 images don't allow downloads, you must already have an image
+#
 # if the image name is not an absolute path then try downloading it
 # and then rewrite it to be the absolute path of the file we downloaded
 #
@@ -595,6 +632,16 @@ TRIBalien|SUNWlx)
 		fi
 	    fi
 	fi
+	if [[ $ZISOFILE != /* ]]; then
+	    echo "ERROR: image name must be absolute or specify a valid download"
+	    usage
+	fi
+	if [ ! -f $ZISOFILE ]; then
+	    echo "ERROR: specified image not found"
+	    usage
+	fi
+	;;
+SUNWsolaris10)
 	if [[ $ZISOFILE != /* ]]; then
 	    echo "ERROR: image name must be absolute or specify a valid download"
 	    usage
@@ -1008,6 +1055,36 @@ echo verify
 echo commit
 }
 
+#
+# for an s10 branded zone, create a sysidcfg file
+# assumes we just have a single interface
+#
+create_sysidcfg() {
+    echo system_locale=C
+    echo terminal=xterms
+    echo "network_interface=primary {"
+    echo "  hostname=${ZNAME}"
+    if [[ -n $XIP4 ]]; then
+	echo "ip_address=${XIP4}"
+	IMASK=`/usr/sbin/route -n get $XIP4 | /usr/bin/grep mask: | /usr/bin/awk '{print $NF}'`
+	echo "netmask=$IMASK"
+	ZGW=`get_gateway $XIP4`
+	echo "default_route=$ZGW"
+	if [[ -n $DOIP6 ]]; then
+	    echo protocol_ipv6=yes
+	else
+	    echo protocol_ipv6=no
+	fi
+    fi
+    echo "}"
+    echo security_policy=NONE
+    # we manually configure dns, so don't let sysidcfg mess it up
+    echo "name_service=NONE"
+    echo nfs4_domain=dynamic
+    echo timezone=${TZ:=UTC}
+    echo "root_password=jhDYXBAnWJKr2"
+}
+
 create_install_opts() {
 for OVL in $ZOVERLAY
 do
@@ -1019,6 +1096,9 @@ do
 done
 if [[ -n $ZISOFILE ]]; then
     printf " $IMGFLAG $ZISOFILE"
+fi
+if [[ $ZBRAND = SUNWsolaris10 ]]; then
+    printf " -u"
 fi
 }
 
@@ -1207,6 +1287,22 @@ if [[ $ZBRAND != SUNWlx ]]; then
 fi
 
 #
+# populate a sysidcfg file if we're an s10 branded zone
+# sysidcfg resets nsswitch to none, so thwart that
+# Copy in more minimal profile and .login to avoid
+# attempts to run quota at login (which will likely not work)
+#
+if [[ $ZBRAND = SUNWsolaris10 ]]; then
+    SYSIDCFGFILE=/tmp/zap.sysidcfg.${ZNAME}.`date '+%F-%T'`.$$
+    create_sysidcfg > ${SYSIDCFGFILE}
+    /usr/bin/cp ${SYSIDCFGFILE} ${ZROOTBASE}/${ZNAME}/root/etc/sysidcfg
+    /usr/bin/cp ${ZROOTBASE}/${ZNAME}/root/etc/nsswitch.dns ${ZROOTBASE}/${ZNAME}/root/etc/nsswitch.files
+    /usr/bin/cp ${ZROOTBASE}/${ZNAME}/root/etc/nsswitch.dns ${ZROOTBASE}/${ZNAME}/root/etc/nsswitch.conf
+    /usr/bin/cp /etc/.login ${ZROOTBASE}/${ZNAME}/root/etc/.login
+    /usr/bin/cp /etc/profile ${ZROOTBASE}/${ZNAME}/root/etc/profile
+fi
+
+#
 # apply any konfiguration requests
 #
 for KARG in $KARGS
@@ -1216,3 +1312,7 @@ done
 
 /usr/sbin/zoneadm -z ${ZNAME} boot
 /usr/bin/rm $ZCFGFILE
+
+if [[ -n ${SYSIDCFGFILE} ]]; then
+    /usr/bin/rm -f $SYSIDCFGFILE
+fi
