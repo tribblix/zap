@@ -104,6 +104,8 @@ TRIBperl-510
 TRIBperl-510-extra
 TRIBperl-510-module-sun-solaris
 TRIBblix-php-55
+TRIBblix-php-56
+TRIBblix-php-56pg
 TRIBlib-nspr-header-nspr
 TRIBsys-lib-mozilla-nss-header
 TRIBsys-prerequisite-gnu
