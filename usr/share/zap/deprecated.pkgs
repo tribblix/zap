@@ -39,6 +39,7 @@ TRIBopenjdk7u65
 TRIBopenjdk7u71
 TRIBopenjdk7u75
 TRIBopenjdk7u79
+TRIBopenjdk7u141
 TRIBopenjdk8u20
 TRIBopenjdk8u25
 TRIBopenjdk8u31
@@ -53,6 +54,7 @@ TRIBopenjdk8u121
 TRIBopenjdk8u131
 TRIBopenjdk8u141
 TRIBopenjdk8u151
+TRIBopenjdk8u161
 TRIBlibxml2-python-276
 TRIBv-python-276
 TRIBv-python-335
