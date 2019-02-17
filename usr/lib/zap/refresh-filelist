@@ -5,7 +5,8 @@
 
 ZAPLIBDIR="/usr/lib/zap"
 CFGDIR="/etc/zap"
-
+# For enabling progress bar for zap during file download
+confFile=/etc/zap/zap_config.conf
 #
 # global context switch
 # will force all configuration to be relative to the alternate root
@@ -25,11 +26,25 @@ case $1 in
 esac
 
 WCLIENT=/usr/bin/curl
-WARGS="-f -s -o"
-if [ ! -x $WCLIENT ]; then
-    WCLIENT=/usr/bin/wget
-    WARGS="-q -O"
-fi
+while IFS='' read -r line || [[ -n "$line" ]]; 
+do
+case $line in
+     "show_download_progress=yes")
+        WARGS="-f -o"
+        if [ ! -x $WCLIENT ]; then
+            WCLIENT=/usr/bin/wget
+            WARGS="-O"
+        fi
+      ;;
+     *)
+      WARGS="-f -s -o"
+        if [ ! -x $WCLIENT ]; then
+            WCLIENT=/usr/bin/wget
+            WARGS="-q -O"
+        fi
+       ;;
+esac
+done<"$confFile" 
 
 refresh_repo() {
     frepo="$1"

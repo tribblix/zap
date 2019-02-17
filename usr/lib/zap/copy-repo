@@ -6,6 +6,9 @@
 CURL=/usr/bin/curl
 WGET=/usr/bin/wget
 
+# For enabling progress bar for zap during file download
+confFile=/etc/zap/zap_config.conf
+SHOW_PROGRESS_DOWNLOAD="no"
 #
 # usage is
 #  repo destination
@@ -75,12 +78,31 @@ if [ ! -d "${DESTDIR}" ]; then
 fi
 
 #
-# grab the catalog and other metadata
+# grab the catalog and other metadata 
 #
-${CURL} -f -s -o ${DESTDIR}/catalog ${REPO}/catalog
-${CURL} -f -s -o ${DESTDIR}/aliases ${REPO}/aliases
-${CURL} -f -s -o ${DESTDIR}/index.html ${REPO}/index.html
-${CURL} -f -s -o ${DESTDIR}/filelist.bz2 ${REPO}/filelist.bz2
+while IFS='' read -r line || [[ -n "$line" ]]; 
+do
+case $line in
+   "show_download_progress=yes")
+    SHOW_PROGRESS_DOWNLOAD="yes"
+    ;;
+esac
+done<"$confFile" 
+
+case $SHOW_PROGRESS_DOWNLOAD in
+    "yes")
+     ${CURL} -f -o ${DESTDIR}/catalog ${REPO}/catalog
+     ${CURL} -f -o ${DESTDIR}/aliases ${REPO}/aliases
+     ${CURL} -f -o ${DESTDIR}/index.html ${REPO}/index.html
+     ${CURL} -f -o ${DESTDIR}/filelist.bz2 ${REPO}/filelist.bz2 
+    ;; 
+    *)
+     ${CURL} -f -s -o ${DESTDIR}/catalog ${REPO}/catalog
+     ${CURL} -f -s -o ${DESTDIR}/aliases ${REPO}/aliases
+     ${CURL} -f -s -o ${DESTDIR}/index.html ${REPO}/index.html
+     ${CURL} -f -s -o ${DESTDIR}/filelist.bz2 ${REPO}/filelist.bz2
+    ;;
+esac
 
 if [ ! -f ${DESTDIR}/catalog ]; then
    echo "ERROR: no catalog retrieved"
@@ -101,17 +123,39 @@ cat ${DESTDIR}/catalog | awk -F'|' '{print $1,$2,$4,$5}' | while read pkg ver fs
 do
     if [ ! -f "${DESTDIR}/${pkg}.${ver}.zap" ]; then
 	echo "Getting ${pkg}, $fsize bytes"
-	${CURL} -f -s -o ${DESTDIR}/${pkg}.${ver}.zap ${REPO}/${pkg}.${ver}.zap
+    case $SHOW_PROGRESS_DOWNLOAD in
+        *"yes")
+            ${CURL} -f -o ${DESTDIR}/${pkg}.${ver}.zap ${REPO}/${pkg}.${ver}.zap
+        ;;  
+        *)
+            ${CURL} -f -s -o ${DESTDIR}/${pkg}.${ver}.zap ${REPO}/${pkg}.${ver}.zap
+        ;;
+    esac
+    fi    
 	if [ -f "${DESTDIR}/${pkg}.${ver}.zap" ]; then
 	    rsize=`/usr/bin/stat -c '%s' ${DESTDIR}/${pkg}.${ver}.zap`
 	    if [ $rsize -eq $fsize ]; then
 		echo "Succesful download of ${pkg}.${ver}.zap"
 	    else
 		echo "ERROR: size mismatch for ${pkg}.${ver}.zap, retrying"
-		${WGET} -q -C -O ${DESTDIR}/${pkg}.${ver}.zap ${REPO}/${pkg}.${ver}.zap
+             case $SHOW_PROGRESS_DOWNLOAD in 
+                *"yes")
+                    ${WGET} -C -O ${DESTDIR}/${pkg}.${ver}.zap ${REPO}/${pkg}.${ver}.zap
+                ;;
+                *)
+                    ${WGET} -q -C -O ${DESTDIR}/${pkg}.${ver}.zap ${REPO}/${pkg}.${ver}.zap
+                ;;
+              esac
 	    fi
 	else
-	    ${WGET} -q -O ${DESTDIR}/${pkg}.${ver}.zap ${REPO}/${pkg}.${ver}.zap
+            case $SHOW_PROGRESS_DOWNLOAD in
+                *"yes")
+                    ${WGET} -O ${DESTDIR}/${pkg}.${ver}.zap ${REPO}/${pkg}.${ver}.zap
+                ;;
+                *)
+                    ${WGET} -q -O ${DESTDIR}/${pkg}.${ver}.zap ${REPO}/${pkg}.${ver}.zap
+                ;;
+            esac    
 	fi
     fi
     PKGMD5=`openssl md5 ${DESTDIR}/${pkg}.${ver}.zap| /usr/bin/awk '{print $NF}'`

@@ -4,6 +4,13 @@ ZAP
 The zap utility is the primary administration tool for software on
 Tribblix.
 
+By default, whenever operations such as install,update or refresh of overlay/packages and download of images during
+setup of zones are executed,zap fetches the needed files over the internet in silent mode,without showing progress of the 
+download. However the progress of the download process can be shown by enabling the following configuration option to
+/etc/zap/zap_config.conf:
+
+show_download_progress=yes 
+
 The basic usage is:
 
 zap subcommand [arguments ...]

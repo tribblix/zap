@@ -13,7 +13,8 @@ BEADM="/sbin/beadm"
 ZFSCMD="/usr/sbin/zfs"
 DOIT=""
 ACTIVATE="false"
-
+# For enabling progress bar for zap during file download
+confFile=/etc/zap/zap_config.conf
 #
 # The general strategy here is:
 #  beadm create newver
@@ -146,11 +147,25 @@ do
 done
 
 WCLIENT=/usr/bin/curl
-WARGS="-f -s -o"
-if [ ! -x $WCLIENT ]; then
-    WCLIENT=/usr/bin/wget
-    WARGS="-q -O"
-fi
+while IFS='' read -r line || [[ -n "$line" ]]; 
+do
+case $line in
+     "show_download_progress=yes")
+        WARGS="-f -o"
+        if [ ! -x $WCLIENT ]; then
+            WCLIENT=/usr/bin/wget
+            WARGS="-O"
+        fi
+      ;;
+      *)
+        WARGS="-f -s -o"
+        if [ ! -x $WCLIENT ]; then
+            WCLIENT=/usr/bin/wget
+            WARGS="-q -O"
+        fi
+      ;;
+esac
+done<"$confFile"  
 
 NPKG=${NEWURL##*/}
 CACHE_DIR=`${ZAPLIBDIR}/zap-cfg cache-dir`
