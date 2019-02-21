@@ -247,6 +247,13 @@ $DOIT /usr/bin/zap -C ${ALTROOT} update-overlay -a
 $DOIT /usr/bin/zap -C ${ALTROOT} install TRIBsys-boot-loader
 $DOIT /usr/bin/zap -C ${ALTROOT} install TRIBdrv-graphics-agpgart
 #
+# if we have grub installed, make sure it gets updated
+# necessary because grub may no longer be in any overlays
+#
+if [ -f ${ALTROOT}/boot/grub/bin/grub ]; then
+    $DOIT /usr/bin/zap -C ${ALTROOT} update TRIBsys-boot-grub
+fi
+#
 # FIXME and any isolated packages?
 #
 # shut down pkgserv otherwise the BE cannot be unmounted
