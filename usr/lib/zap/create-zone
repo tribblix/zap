@@ -1220,6 +1220,16 @@ for TUSER in $ZUSERS
 do
     /usr/bin/grep "^${TUSER}:" /etc/passwd >> ${ZROOTBASE}/${ZNAME}/root/etc/passwd
     /usr/bin/grep "^${TUSER}:" /etc/shadow >> ${ZROOTBASE}/${ZNAME}/root/etc/shadow
+    #
+    # try to make sure the shared user's group exists in the zone too
+    #
+    TGID=`/usr/bin/grep "^${TUSER}:" /etc/passwd | /usr/bin/awk -F: '{print $4}'`
+    if [[ -n $TGID ]]; then
+	if ! /usr/xpg4/bin/grep -q ":${TGID}:" ${ZROOTBASE}/${ZNAME}/root/etc/group
+	then
+	    /usr/bin/grep ":${TGID}:" /etc/group >> ${ZROOTBASE}/${ZNAME}/root/etc/group
+	fi
+    fi
     if [[ $ZBRAND != SUNWlx ]]; then
 	echo "${TUSER}::::roles=root" >> ${ZROOTBASE}/${ZNAME}/root/etc/user_attr
     fi
