@@ -178,6 +178,9 @@ TRIBdrv-storage-sv
 TRIBblix-postgres95
 TRIBblix-repmgr95
 TRIBblix-slony95
+TRIBblix-postgres96
+TRIBblix-repmgr96
+TRIBblix-slony96
 TRIBskew-python-36
 TRIBdocker-python-36
 TRIBdocker-pycreds-python-36
