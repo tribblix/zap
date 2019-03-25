@@ -282,3 +282,5 @@ TRIBil-lintlibs
 TRIBpycrypto-python-27
 TRIBpycrypto-python-37
 TRIBimaging-python-27
+TRIBsys-lib-c++-sunpro
+SUNWlibC
