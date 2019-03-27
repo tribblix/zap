@@ -8,9 +8,11 @@ TRIBv-firefox-29
 TRIBv-firefox-30
 TRIBv-firefox-31
 TRIBv-firefox-38
+TRIBv-firefox-52
 TRIBv-thunderbird-24
 TRIBv-thunderbird-31
 TRIBv-thunderbird-38
+TRIBv-thunderbird-45
 TRIBv-apache-ant-184
 TRIBv-apache-ant-193
 TRIBv-apache-maven-33
@@ -55,6 +57,7 @@ TRIBopenjdk8u131
 TRIBopenjdk8u141
 TRIBopenjdk8u151
 TRIBopenjdk8u161
+TRIBopenjdk8u171
 TRIBlibxml2-python-276
 TRIBv-python-276
 TRIBv-python-335
