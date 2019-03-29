@@ -84,6 +84,7 @@ case $SCHEME in
 	case $RELVER in
 	    bloody*)
 		RELDIR="bloody"
+		DLSUFFIX=".zfs.xz"
 		;;
 
 	    *)
@@ -139,8 +140,12 @@ case $SCHEME in
 		DLFILE="alpine-3.8-default_20180913_amd64.tar.xz"
 		DLNAME="proxmox-alpine-3.8.tar.xz"
 		;;
+	    alpine-3.9)
+		DLFILE="alpine-3.9-default_20190224_amd64.tar.xz"
+		DLNAME="proxmox-alpine-3.9.tar.xz"
+		;;
 	    arch|archlinux)
-		DLFILE="archlinux-base_20180906-1_amd64.tar.gz"
+		DLFILE="archlinux-base_20190124-1_amd64.tar.gz"
 		DLNAME="proxmox-archlinux.tar.gz"
 		;;
 	    centos-6)
@@ -160,11 +165,11 @@ case $SCHEME in
 		DLNAME="proxmox-debian-7.tar.gz"
 		;;
 	    debian-8)
-		DLFILE="debian-8.0-standard_8.7-1_amd64.tar.gz"
+		DLFILE="debian-8.0-standard_8.11-1_amd64.tar.gz"
 		DLNAME="proxmox-debian-8.tar.gz"
 		;;
 	    debian-9|debian)
-		DLFILE="debian-9.0-standard_9.5-1_amd64.tar.gz"
+		DLFILE="debian-9.0-standard_9.7-1_amd64.tar.gz"
 		DLNAME="proxmox-debian-9.tar.gz"
 		;;
 	    fedora-24)
@@ -201,7 +206,22 @@ case $SCHEME in
 		;;
 	    ubuntu-*)
 		UVER=${RELVER:7:11}
-		DLFILE="ubuntu-${UVER}-standard_${UVER}-1_amd64.tar.gz"
+		#
+		# LTS releases have updates
+		#
+		UUVER=""
+		case $UVER in
+		    14.04)
+			UUVER=".5"
+			;;
+		    16.04)
+			UUVER=".5"
+			;;
+		    18.04)
+			UUVER=".1"
+			;;
+		esac
+		DLFILE="ubuntu-${UVER}-standard_${UVER}${UUVER}-1_amd64.tar.gz"
 		DLNAME="proxmox-ubuntu-${UVER}.tar.gz"
 		;;
 	    ubuntu)
