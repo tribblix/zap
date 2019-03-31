@@ -2,20 +2,37 @@
 #
 # copy a repo from a source URL to a destination path
 #
+# note that this script is also designed to be run standalone
+# so it cannot depend on the rest of the zap machinery
+#
 
+ZAPLIBDIR="/usr/lib/zap"
+
+if [ -x "${ZAPLIBDIR}/pkgversion" ]; then
+    USER_AGENT="copy-repo"/`${ZAPLIBDIR}/pkgversion TRIBzap`
+else
+    USER_AGENT="copy-repo/standalone"
+fi
 CURL=/usr/bin/curl
+CARGS="-A ${USER_AGENT} -f -s -o"
 WGET=/usr/bin/wget
+WARGS="-U ${USER_AGENT} -q -O"
 
 #
-# usage is
-#  repo destination
-#  url destination
+# arguments are
+#   repo destination
+# or
+#   url destination
 #
-# destination must be empty or contain a catalog
+# destination must not exist or contain a catalog
+#
 # you can either specify a repo by name or url
+# url is more reliable, as it allows you to specify the
+# version of the repo, just specifying the repo by name
+# will pick whatever matches the currently installed system
 #
 usage() {
-	echo "Usage: $0 [-u] repo destination"
+	echo "Usage: $0 repo destination"
 	exit 1
 }
 
@@ -54,7 +71,7 @@ http*)
 esac
 
 if [ -d "${DESTDIR}" -a ! -f "${DESTDIR}"/catalog ]; then
-   echo "Destination exists but  doesn't look like a valid repository"
+   echo "Destination exists but doesn't look like a valid repository"
    usage
 fi
 
@@ -77,10 +94,10 @@ fi
 #
 # grab the catalog and other metadata
 #
-${CURL} -f -s -o ${DESTDIR}/catalog ${REPO}/catalog
-${CURL} -f -s -o ${DESTDIR}/aliases ${REPO}/aliases
-${CURL} -f -s -o ${DESTDIR}/index.html ${REPO}/index.html
-${CURL} -f -s -o ${DESTDIR}/filelist.bz2 ${REPO}/filelist.bz2
+${CURL} ${CARGS} ${DESTDIR}/catalog ${REPO}/catalog
+${CURL} ${CARGS} ${DESTDIR}/aliases ${REPO}/aliases
+${CURL} ${CARGS} ${DESTDIR}/index.html ${REPO}/index.html
+${CURL} ${CARGS} ${DESTDIR}/filelist.bz2 ${REPO}/filelist.bz2
 
 if [ ! -f ${DESTDIR}/catalog ]; then
    echo "ERROR: no catalog retrieved"
@@ -94,27 +111,28 @@ fi
 
 #
 # and grab all the files
-# first with curl ,then wget if there's a problem
+# first with curl, then wget if there's a problem
 # we always verify the checksums and delete files that fail to match
 #
 cat ${DESTDIR}/catalog | awk -F'|' '{print $1,$2,$4,$5}' | while read pkg ver fsize fsum
 do
     if [ ! -f "${DESTDIR}/${pkg}.${ver}.zap" ]; then
 	echo "Getting ${pkg}, $fsize bytes"
-	${CURL} -f -s -o ${DESTDIR}/${pkg}.${ver}.zap ${REPO}/${pkg}.${ver}.zap
+	${CURL} ${CARGS} ${DESTDIR}/${pkg}.${ver}.zap ${REPO}/${pkg}.${ver}.zap
 	if [ -f "${DESTDIR}/${pkg}.${ver}.zap" ]; then
 	    rsize=`/usr/bin/stat -c '%s' ${DESTDIR}/${pkg}.${ver}.zap`
 	    if [ $rsize -eq $fsize ]; then
 		echo "Succesful download of ${pkg}.${ver}.zap"
 	    else
 		echo "ERROR: size mismatch for ${pkg}.${ver}.zap, retrying"
-		${WGET} -q -C -O ${DESTDIR}/${pkg}.${ver}.zap ${REPO}/${pkg}.${ver}.zap
+		/usr/bin/rm -f ${DESTDIR}/${pkg}.${ver}.zap
+		${WGET} ${WARGS} ${DESTDIR}/${pkg}.${ver}.zap ${REPO}/${pkg}.${ver}.zap
 	    fi
 	else
-	    ${WGET} -q -O ${DESTDIR}/${pkg}.${ver}.zap ${REPO}/${pkg}.${ver}.zap
+	    ${WGET} ${WARGS} ${DESTDIR}/${pkg}.${ver}.zap ${REPO}/${pkg}.${ver}.zap
 	fi
     fi
-    PKGMD5=`openssl md5 ${DESTDIR}/${pkg}.${ver}.zap| /usr/bin/awk '{print $NF}'`
+    PKGMD5=`/usr/bin/openssl md5 ${DESTDIR}/${pkg}.${ver}.zap | /usr/bin/awk '{print $NF}'`
     if [ "$PKGMD5" = "$fsum" ]; then
 	echo "Checksum verified for ${pkg}"
     else
