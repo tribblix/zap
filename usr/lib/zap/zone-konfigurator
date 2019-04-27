@@ -34,9 +34,11 @@ case $# in
 	;;
 esac
 
-echo $* | sed 's:=: :' | read action args
-echo action := $action
-echo args := $args
+#
+# break our argument into action and arguments
+#
+action=${1%%=*}
+args=${1#*=}
 
 if [ -x ${ZAPLIBDIR}/konfigure-$action ]; then
     exec ${ZAPLIBDIR}/konfigure-$action -z ${ZNAME} $args
