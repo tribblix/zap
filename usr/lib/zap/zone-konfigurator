@@ -40,8 +40,8 @@ esac
 action=${1%%=*}
 args=${1#*=}
 
-if [ -x ${ZAPLIBDIR}/konfigure-$action ]; then
-    exec ${ZAPLIBDIR}/konfigure-$action -z ${ZNAME} $args
+if [ -x ${ZAPLIBDIR}/konfigure/$action ]; then
+    exec ${ZAPLIBDIR}/konfigure/$action -z ${ZNAME} $args
 else
     echo "WARN: unrecognized action $action"
 fi
