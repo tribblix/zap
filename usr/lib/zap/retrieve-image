@@ -105,11 +105,11 @@ case $SCHEME in
 	# FIXME: support codenames
 	#
 	DLPREFIX="https://cloud-images.ubuntu.com/releases/"
-	DLSUFFIX=".tar.gz"
+	DLSUFFIX=".tar.xz"
 	RELVER=${1#*:}
-	URL="${DLPREFIX}${RELVER}/release/ubuntu-${RELVER}-server-cloudimg-amd64${DLSUFFIX}"
+	URL="${DLPREFIX}${RELVER}/release/ubuntu-${RELVER}-server-cloudimg-amd64-root${DLSUFFIX}"
 	CKURL="${DLPREFIX}${RELVER}/release/SHA256SUMS"
-	DLNAME="ubuntu-${RELVER}-server-cloudimg-amd64${DLSUFFIX}"
+	DLNAME="ubuntu-${RELVER}-server-cloudimg-amd64-root${DLSUFFIX}"
 	CKNAME="${DLNAME}.sha256.txt"
 	;;
     proxmox)
