@@ -145,8 +145,9 @@ case $SCHEME in
 		DLNAME="proxmox-alpine-3.9.tar.xz"
 		;;
 	    arch|archlinux)
-		DLFILE="archlinux-base_20190124-1_amd64.tar.gz"
+		DLFILE="archlinux-base_20190426-1_amd64.tar.gz"
 		DLNAME="proxmox-archlinux.tar.gz"
+		echo "WARN: arch is not supported by the LX brand"
 		;;
 	    centos-6)
 		DLFILE="centos-6-default_20161207_amd64.tar.xz"
@@ -199,6 +200,7 @@ case $SCHEME in
 	    gentoo)
 		DLFILE="gentoo-current-default_20180906_amd64.tar.xz"
 		DLNAME="proxmox-gentoo.tar.xz"
+		echo "WARN: gentoo is not supported by the LX brand"
 		;;
 	    opensuse-42|opensuse)
 		DLFILE="opensuse-42.3-default_20171214_amd64.tar.xz"
@@ -226,7 +228,8 @@ case $SCHEME in
 		;;
 	    ubuntu)
 		UVER="16.04"
-		DLFILE="ubuntu-${UVER}-standard_${UVER}-1_amd64.tar.gz"
+		UUVER=".5"
+		DLFILE="ubuntu-${UVER}-standard_${UVER}${UUVER}-1_amd64.tar.gz"
 		DLNAME="proxmox-ubuntu-${UVER}.tar.gz"
 		;;
 	    *)
