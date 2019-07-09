@@ -52,6 +52,11 @@ fi
 /usr/sbin/zoneadm -z $ZNAME list > /dev/null 2>&1
 ZEXISTS=$?
 if [ $ZEXISTS -eq 0 ]; then
+    if [ -x ${ZSDIR}/predestroy.${ZNAME} ]; then
+	${ZSDIR}/predestroy.${ZNAME}
+	echo "Running pre-destroy hook for zone $ZNAME"
+	/usr/bin/rm -f ${ZSDIR}/predestroy.${ZNAME}
+    fi
     /usr/sbin/zoneadm -z $ZNAME halt
     echo "Halted zone $ZNAME"
     /usr/sbin/zoneadm -z $ZNAME uninstall -F
