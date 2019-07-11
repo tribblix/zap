@@ -63,7 +63,7 @@ do
 		    if [ "X$SIGNER" != "Xno" ]; then
 			${WCLIENT} ${WARGS} ${zfile}.sig ${REPO}/${fpkgname}.sig
 			if [ -f ${zfile}.sig ]; then
-			    /usr/bin/gpg --no-options --homedir /etc/zap/sign/${SIGNER} --verify ${zfile}.sig ${zfile}
+			    /usr/bin/gpg --no-options --homedir /etc/zap/sign/${SIGNER} --verify ${zfile}.sig ${zfile} 2>/dev/null
 			    SIGN_OK=$?
 			    if [ $SIGN_OK -eq o ]; then
 				echo "Signature verified"
