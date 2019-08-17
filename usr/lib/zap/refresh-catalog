@@ -24,11 +24,12 @@ case $1 in
 	;;
 esac
 
+USER_AGENT="zap"/`${ZAPLIBDIR}/pkgversion TRIBzap`
 WCLIENT=/usr/bin/curl
-WARGS="-f -s -o"
+WARGS="-A ${USER_AGENT} -f -s -o"
 if [ ! -x $WCLIENT ]; then
     WCLIENT=/usr/bin/wget
-    WARGS="-q -O"
+    WARGS="-U ${USER_AGENT} -q -O"
 fi
 
 refresh_repo() {
