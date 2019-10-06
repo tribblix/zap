@@ -29,7 +29,7 @@ esac
 
 case $# in
 1)
-	PKG="$1"
+	PKG=`${ZAPLIBDIR}/resolve-alias ${CTXARGS} $1`
 	;;
 *)
 	exit 1
@@ -38,6 +38,8 @@ esac
 
 #
 # given a package, return the dependencies present in the catalog
+# with verbose, print all dependencies and installed status
+# without verbose, print out uninstalled dependencies
 #
 for repo in `${ZAPLIBDIR}/zap-cfg ${CTXARGS} list-pkg-repos`
 do
