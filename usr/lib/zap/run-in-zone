@@ -3,16 +3,13 @@
 # run a zap command in a zone
 #
 # only supports a subset of the valid zap subcommands - clearly
-# the zone-related commands won't work
+# the zone-related commands won't work, and should be filtered
+# out by the zap wrapper
 #
 # Usage is:
-#   run-in-zone subcommand -z zonename args
+#   run-in-zone -z zonename subcommand args
 # which maps to
 #   zlogin zonename zap subcommand args
-#
-
-#
-# TODO: filter out invalid commands
 #
 
 ZONEADM=/usr/sbin/zoneadm

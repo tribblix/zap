@@ -15,6 +15,8 @@ esac
 # global context switch comes before the subcommand
 # will force all configuration to be relative to the alternate root
 #
+# likewise -z to recurse into a zone
+#
 case $1 in
 -C)
 	ALTROOT="$2"
@@ -26,6 +28,18 @@ case $1 in
 	    echo "ERROR: alternate root $ALTROOT doesn't exist"
 	    exit 1
 	fi
+	;;
+-z)
+	ZNAME=$2
+	shift
+	shift
+	case $1 in
+	    *zone*)
+		echo "ERROR: cannot run zone commands inside zones"
+		exit 1
+		;;
+	esac
+	exec ${ZAPLIBDIR}/run-in-zone -z $ZNAME $*
 	;;
 esac
 
