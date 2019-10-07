@@ -1,4 +1,4 @@
-#!/bin/ksh
+#!/bin/sh
 #
 
 CFGDIR="/etc/zap"
@@ -41,23 +41,21 @@ esac
 # with verbose, print all dependencies and installed status
 # without verbose, print out uninstalled dependencies
 #
-for repo in `${ZAPLIBDIR}/zap-cfg ${CTXARGS} list-pkg-repos`
-do
-    if [ -f ${CFGDIR}/repositories/${repo}.catalog ]; then
-	FPKG=`/usr/bin/nawk -F'|' '{if ($1 == npkg) print $3}' npkg=${PKG} ${CFGDIR}/repositories/${repo}.catalog`
-	if [ -n "$FPKG" ]; then
-	    $ECHO "Dependencies for ${PKG}"
-	    for npkg in $FPKG
-	    do
-		/usr/bin/pkginfo ${PKGARGS} -q ${npkg}
-		FOUNDPKG=$?
-		if [ $FOUNDPKG -ne 0 ]; then
-		    echo "${npkg}"
-		else
-		    $ECHO "${npkg} (installed)"
-		fi
-	    done
-	    exit 0
-	fi
+repo=`${ZAPLIBDIR}/get-version ${CTXARGS} ${PKG}| /usr/bin/nawk '{print $2}'`
+if [ -f ${CFGDIR}/repositories/${repo}.catalog ]; then
+    FPKG=`/usr/bin/nawk -F'|' '{if ($1 == npkg) print $3}' npkg=${PKG} ${CFGDIR}/repositories/${repo}.catalog`
+    if [ -n "$FPKG" ]; then
+	$ECHO "Dependencies for ${PKG}"
+	for npkg in $FPKG
+	do
+	    /usr/bin/pkginfo ${PKGARGS} -q ${npkg}
+	    FOUNDPKG=$?
+	    if [ $FOUNDPKG -ne 0 ]; then
+		echo "${npkg}"
+	    else
+		$ECHO "${npkg} (installed)"
+	    fi
+	done
+	exit 0
     fi
-done
+fi
