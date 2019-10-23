@@ -46,6 +46,10 @@ list-packages [args]
   Simply lists the installed packages; this is an alias for the
   pkginfo utility.
 
+describe-package pkg [pkg ...]
+
+  Prints the output from pkginfo -l on the given package(s).
+
 check-package pkg [pkg ...]
 
   Checks that the contents of an installed package are correct. This
@@ -57,6 +61,11 @@ list-overlays [-R dir] [-i|-u] [-v]
   installed overlays. With -u, just shows uninstalled overlays.
   Without -i or -u, indicates whether the overlay is installed.
   With -v, also shows the short description of the overlay
+
+describe-overlay overlay [overlay ...]
+
+  Prints a summary of the given overlay(s), showing long name, any
+  dependencies, and whether the overlay is installed.
 
 install-overlay [-R dir] [-s dir] overlay
 
