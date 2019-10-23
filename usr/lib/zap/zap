@@ -86,7 +86,7 @@ verify-overlay)
 	;;
 list-packages)
 	shift
-	exec /usr/bin/pkginfo ${PKGARGS} $*
+	exec /usr/bin/pkginfo ${PKGARGS} `${ZAPLIBDIR}/resolve-alias $*`
 	;;
 verify-packages)
 	shift
@@ -102,7 +102,7 @@ refresh|refresh-overlays)
 	;;
 describe-package)
 	shift
-	exec /usr/bin/pkginfo ${PKGARGS} -l $*
+	exec /usr/bin/pkginfo ${PKGARGS} -l `${ZAPLIBDIR}/resolve-alias $*`
 	;;
 describe-overlay)
 	shift
