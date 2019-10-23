@@ -22,7 +22,7 @@ search [-R dir] search_term
 
 retrieve pkg [pkg ...]
 
-  This subcomand will retrieve the package(s) specified from a
+  This subcommand will retrieve the package(s) specified from a
   repository and save it or them to the local cache
 
 install [-R dir] [-s dir] pkg [pkg ...]
@@ -79,7 +79,7 @@ update-overlay [-R dir] [-s dir] overlay | -a
 
 uninstall-overlay [-R dir] overlay
 
-  This subcommnd will uninstall the given overlay, and all the
+  This subcommand will uninstall the given overlay, and all the
   packages it contains that are not required by other overlays. If the
   overlay is required by another overlay, it is not uninstalled.
 
