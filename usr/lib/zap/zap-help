@@ -27,6 +27,9 @@ case $# in
     *-services)
       HELP_FILE=${HELP_DIR}/help.services.txt
       ;;
+    remove-locale)
+      HELP_FILE=${HELP_DIR}/help.add-locale.txt
+      ;;
     *)
       HELP_FILE=${HELP_DIR}/help.${1}.txt
       ;;

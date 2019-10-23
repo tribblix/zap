@@ -124,5 +124,5 @@ add-locale name [name...]
 
 remove-locale name [name...]
 
-  This subcommand allows you to remove locales. Run 'zap help add-locale'
+  This subcommand allows you to remove locales. Run 'zap help remove-locale'
   for details.
