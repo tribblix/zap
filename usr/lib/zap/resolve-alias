@@ -18,35 +18,36 @@ case $1 in
 	;;
 esac
 
-case $# in
-1)
-	PKG="$1"
-	;;
-*)
-	exit 1
-	;;
-esac
-
+for PKG in $*
+do
+    
 #
 # short-circuit things that are known package names
 #
 case $PKG in
     TRIB*|SUNW*)
 	echo $PKG
-	exit 0
+	continue
 	;;
 esac
 
 #
+# first time through, get and save the list of available repos
+#
+if [ -z "$REPOLIST" ]; then
+    REPOLIST=`${ZAPLIBDIR}/zap-cfg ${CTXARGS} list-pkg-repos`
+fi
+
+#
 # given an alias, return the package name it corresponds to
 #
-for repo in `${ZAPLIBDIR}/zap-cfg ${CTXARGS} list-pkg-repos`
+for repo in $REPOLIST
 do
     if [ -f ${CFGDIR}/repositories/${repo}.aliases ]; then
 	FPKG=`/usr/bin/nawk -F'|' '{if ($1 == npkg) print $2}' npkg=${PKG} ${CFGDIR}/repositories/${repo}.aliases`
 	if [ -n "$FPKG" ]; then
 	    echo "${FPKG}"
-	    exit 0
+	    break
 	fi
     fi
 done
@@ -54,4 +55,8 @@ done
 #
 # if we're unable to find an alias, return the original name
 #
-echo $PKG
+if [ -z "$FPKG" ]; then
+    echo $PKG
+fi
+
+done
