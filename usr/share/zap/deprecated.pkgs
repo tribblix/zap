@@ -303,3 +303,4 @@ TRIBimaging-python-27
 TRIBsys-lib-c++-sunpro
 SUNWlibC
 TRIBdev-acpi-compiler
+SUNWsqlite3
