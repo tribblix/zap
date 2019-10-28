@@ -304,3 +304,5 @@ TRIBsys-lib-c++-sunpro
 SUNWlibC
 TRIBdev-acpi-compiler
 SUNWsqlite3
+SUNWpr
+SUNWtls
