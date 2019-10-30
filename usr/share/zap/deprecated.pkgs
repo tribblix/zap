@@ -200,6 +200,10 @@ TRIBblix-slony95
 TRIBblix-postgres96
 TRIBblix-repmgr96
 TRIBblix-slony96
+TRIBblix-citus10
+TRIBblix-repmgr10
+TRIBblix-slony10
+TRIBblix-postgres10
 TRIBskew-python-36
 TRIBdocker-python-36
 TRIBdocker-pycreds-python-36
