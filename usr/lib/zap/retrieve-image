@@ -144,18 +144,26 @@ case $SCHEME in
 		DLFILE="alpine-3.9-default_20190224_amd64.tar.xz"
 		DLNAME="proxmox-alpine-3.9.tar.xz"
 		;;
+	    alpine-3.10)
+		DLFILE="alpine-3.10-default_20190626_amd64.tar.xz"
+		DLNAME="proxmox-alpine-3.10.tar.xz"
+		;;
 	    arch|archlinux)
-		DLFILE="archlinux-base_20190426-1_amd64.tar.gz"
+		DLFILE="archlinux-base_20190924-1_amd64.tar.gz"
 		DLNAME="proxmox-archlinux.tar.gz"
 		echo "WARN: arch is not supported by the LX brand"
 		;;
 	    centos-6)
-		DLFILE="centos-6-default_20161207_amd64.tar.xz"
+		DLFILE="centos-6-default_20191016_amd64.tar.xz"
 		DLNAME="proxmox-centos-6.tar.xz"
 		;;
 	    centos-7|centos)
-		DLFILE="centos-7-default_20171212_amd64.tar.xz"
+		DLFILE="centos-7-default_20190926_amd64.tar.xz"
 		DLNAME="proxmox-centos-7.tar.xz"
+		;;
+	    centos-8)
+		DLFILE="centos-8-default_20191016_amd64.tar.xz"
+		DLNAME="proxmox-centos-8.tar.xz"
 		;;
 	    debian-6)
 		DLFILE="debian-6.0-standard_6.0-7_amd64.tar.gz"
@@ -172,6 +180,10 @@ case $SCHEME in
 	    debian-9|debian)
 		DLFILE="debian-9.0-standard_9.7-1_amd64.tar.gz"
 		DLNAME="proxmox-debian-9.tar.gz"
+		;;
+	    debian-10)
+		DLFILE="debian-10.0-standard_10.0-1_amd64.tar.gz"
+		DLNAME="proxmox-debian-10.tar.gz"
 		;;
 	    fedora-24)
 		DLFILE="fedora-24-default_20161207_amd64.tar.xz"
@@ -197,8 +209,16 @@ case $SCHEME in
 		DLFILE="fedora-29-default_20181126_amd64.tar.xz"
 		DLNAME="proxmox-fedora-29.tar.xz"
 		;;
+	    fedora-30)
+		DLFILE="fedora-30-default_20190718_amd64.tar.xz"
+		DLNAME="proxmox-fedora-30.tar.xz"
+		;;
+	    fedora-31)
+		DLFILE="fedora-31-default_20191029_amd64.tar.xz"
+		DLNAME="proxmox-fedora-31.tar.xz"
+		;;
 	    gentoo)
-		DLFILE="gentoo-current-default_20180906_amd64.tar.xz"
+		DLFILE="gentoo-current-default_20190718_amd64.tar.xz"
 		DLNAME="proxmox-gentoo.tar.xz"
 		echo "WARN: gentoo is not supported by the LX brand"
 		;;
@@ -227,8 +247,8 @@ case $SCHEME in
 		DLNAME="proxmox-ubuntu-${UVER}.tar.gz"
 		;;
 	    ubuntu)
-		UVER="16.04"
-		UUVER=".5"
+		UVER="18.04"
+		UUVER=".1"
 		DLFILE="ubuntu-${UVER}-standard_${UVER}${UUVER}-1_amd64.tar.gz"
 		DLNAME="proxmox-ubuntu-${UVER}.tar.gz"
 		;;
