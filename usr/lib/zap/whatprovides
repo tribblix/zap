@@ -97,7 +97,12 @@ else
 #
 # bare words that look like a library have a special pattern
 #
+# if it looks like a package name, list all the pathnames
+#
 case $PKG in
+    TRIB*|SUNWcs*)
+	:
+	;;
     */*)
 	:
 	;;
