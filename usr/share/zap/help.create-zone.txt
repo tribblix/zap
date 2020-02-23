@@ -11,7 +11,8 @@ create-zone -z zone_name [-t whole|sparse|alien|lx|s10]
     [-T template] [-I image_file]
     [-i ip_address] [-x ip_address] [-R ip_network/prefix]
     [-B] [-d extra_dir] [-o overlay] [-O overlay]
-    [-S|-s shared_dir] [-U user] [-D dataset] [-n number]
+    [-S|-s shared_dir] [-U user] [-D dataset]
+    [-6] [-n number] [-F flow_props]
 
 Supplying the zone_name is mandatory; all other arguments are optional.
 
@@ -27,9 +28,9 @@ a Linux zone. The default is to create a sparse-root zone. If the
 TRIBsys-zones-brand-s10 package is installed, then you can create a
 Solaris 10 branded zone.
 
-The -i flag specifies an IP address. If supplied, the zone will be
-given this IP address. This flag can be used multiple times to assign
-multiple IP addresses.
+The -i flag specifies an IP address. If supplied, the zone will be a
+shared-ip zone and will given this IP address. This flag can be used
+multiple times to assign multiple IP addresses.
 
 The -x flag specifies an IP address. If supplied, the zone will be an
 exclusive-ip zone, and a vnic will be created for the zone's use.
@@ -103,9 +104,15 @@ The -B flag boots the zone as a blank system, with no processes (other
 than init) running. It's the responsibility of the user to run any
 applications as necessary, using zlogin to connect to the zone.
 
+The -6 flag enables IPv6 for the zone.
+
 The -n flag allows you to construct a number of identical zones with
 one command. The zone name given is used as a prefix, with 1 to N
 added to make the zone name. Similarly, the IP address(es) given are
 used for the first zone, and incremented for each zone. If delegating
 a dataset, the argument is taken as a parent and each zone will get
 a dataset named after the zone name.
+
+The -F flag allows the specification of flow properties, specifically
+maxbw and priority, and will create a flow using flowadm(1M). Configuring
+a flow requires an exclusive-ip zone.

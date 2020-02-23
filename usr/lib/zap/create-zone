@@ -21,6 +21,7 @@
 #  -K konfigurator arguments
 #  -n create this many zones, all the same
 #  -6 set up link-local ipv6 addresses
+#  -F create a flow with the given properties
 #
 # FIXMES:
 # add full IPv6
@@ -54,6 +55,7 @@ KARGS=""
 DOIP6=""
 NCMDLINE=""
 SYSIDCFGFILE=""
+FLOWPROPS=""
 
 #
 # these associative arrays track the interface to address mapping
@@ -75,12 +77,12 @@ usage() {
     echo "  [-i ip_address] [-x ip_address] [-R ip_network/prefix]"
     echo "  [-B] [-d extra_dir] [-o overlay] [-O overlay]"
     echo "  [-S|-s shared_dir] [ -D dataset] [-U user]"
-    echo "  [-6] [-n number_of_zones]"
+    echo "  [-6] [-n number_of_zones] [-F flow_props]"
     echo "  [-K action=arg[=arg...]]"
     exit 1
 }
 
-while getopts "6BT:t:z:i:x:R:I:o:O:d:D:s:S:U:n:K:" opt; do
+while getopts "6BT:t:z:i:x:R:I:o:O:d:D:s:S:U:n:K:F:" opt; do
 case $opt in
 6)
 	DOIP6="Y"
@@ -145,6 +147,9 @@ n)
 K)
 	KARGS="${KARGS} $OPTARG"
 	NCMDLINE="${NCMDLINE} -K $OPTARG"
+	;;
+F)
+	FLOWPROPS="$OPTARG"
 	;;
 esac
 done
@@ -303,6 +308,18 @@ esac
 #
 if [[ -n $XIP4 && -n $ZIP4 ]]; then
     echo "ERROR: cannot specify both -i and -x"
+    usage
+fi
+
+#
+# we can only define a flow on a datalink, which requires a vnic
+# and hence an exclusive-ip zone
+#
+# note that we require properties to be set; if you just want to monitor
+# traffic volumes then dlstat will show stats for the vnic
+#
+if [[ -n $FLOWPROPS && -z $XIP4 ]]; then
+    echo "ERROR: flow properties require a primary interface be specified with -x"
     usage
 fi
 
@@ -904,6 +921,13 @@ do
 	    ZESTATUS=$?
 	done
 	/usr/sbin/dladm create-vnic -l $ZIFACE znic$ZENUM
+	# if flow-properties are specified, create a flow here
+	if [[ -n $FLOWPROPS ]]; then
+	    /usr/sbin/flowadm add-flow -l znic$ZENUM -a local_ip=$IP -p $FLOWPROPS znic${ZENUM}flow
+	    # don't be cute, remove all flows associated with this vnic
+	    echo "/usr/sbin/flowadm remove-flow -l znic$ZENUM" >> ${ZSDIR}/destroy.${ZNAME}
+	fi
+	# the vnic can only be deleted after the flow has been removed
 	echo "/usr/sbin/dladm delete-vnic znic$ZENUM" >> ${ZSDIR}/destroy.${ZNAME}
 	ifipmap[znic$ZENUM]=$IP/$ZCIDR
 	xifipmap[znic$ZENUM]=$IP/$ZCIDR
