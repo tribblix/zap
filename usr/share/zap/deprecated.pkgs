@@ -329,3 +329,5 @@ TRIBbackportssgts-python-27
 TRIBrbtools-python-27
 TRIBtexttable-python-27
 TRIBtqdm-python-27
+SUNWiconv-unicode
+SUNWuiu8
