@@ -30,10 +30,6 @@ case $# in
 esac
 
 #
-# OK, we're in the installer
-#
-
-#
 # if not installed, just exit
 #
 if [ ! -f ${DESTROOT}/${ODIR}/installed/${ONAME} ]; then
