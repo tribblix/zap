@@ -65,7 +65,7 @@ do
 			if [ -f ${zfile}.sig ]; then
 			    /usr/bin/gpg --no-options --homedir /etc/zap/sign/${SIGNER} --verify ${zfile}.sig ${zfile} 2>/dev/null
 			    SIGN_OK=$?
-			    if [ $SIGN_OK -eq o ]; then
+			    if [ $SIGN_OK -eq 0 ]; then
 				echo "Signature verified"
 			    else
 				echo "Signature verification failed"
