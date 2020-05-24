@@ -354,3 +354,4 @@ TRIBsys-lib-install
 TRIBsvc-mgmt-sysidtool
 TRIBxorg-driver-video
 TRIBsys-mgmt-snmp-net-snmp
+TRIBdev-lib-lint
