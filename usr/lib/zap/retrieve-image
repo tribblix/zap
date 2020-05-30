@@ -102,11 +102,29 @@ case $SCHEME in
 	#
 	# syntax expected is 'ubuntu:YY.MM'
 	#
-	# FIXME: support codenames
-	#
 	DLPREFIX="https://cloud-images.ubuntu.com/releases/"
 	DLSUFFIX=".tar.xz"
 	RELVER=${1#*:}
+	case $RELVER in
+	    lucid)
+		RELVER="10.04"
+		;;
+	    precise)
+		RELVER="12.04"
+		;;
+	    trusty)
+		RELVER="14.04"
+		;;
+	    xenial)
+		RELVER="16.04"
+		;;
+	    bionic)
+		RELVER="18.04"
+		;;
+	    focal)
+		RELVER="20.04"
+		;;
+	esac
 	URL="${DLPREFIX}${RELVER}/release/ubuntu-${RELVER}-server-cloudimg-amd64-root${DLSUFFIX}"
 	CKURL="${DLPREFIX}${RELVER}/release/SHA256SUMS"
 	DLNAME="ubuntu-${RELVER}-server-cloudimg-amd64-root${DLSUFFIX}"
@@ -147,6 +165,10 @@ case $SCHEME in
 	    alpine-3.10)
 		DLFILE="alpine-3.10-default_20190626_amd64.tar.xz"
 		DLNAME="proxmox-alpine-3.10.tar.xz"
+		;;
+	    alpine-3.11)
+		DLFILE="alpine-3.11-default_20200425_amd64.tar.xz"
+		DLNAME="proxmox-alpine-3.11.tar.xz"
 		;;
 	    arch|archlinux)
 		DLFILE="archlinux-base_20190924-1_amd64.tar.gz"
@@ -216,6 +238,10 @@ case $SCHEME in
 	    fedora-31)
 		DLFILE="fedora-31-default_20191029_amd64.tar.xz"
 		DLNAME="proxmox-fedora-31.tar.xz"
+		;;
+	    fedora-32)
+		DLFILE="fedora-32-default_20020430_amd64.tar.xz"
+		DLNAME="proxmox-fedora-32.tar.xz"
 		;;
 	    gentoo)
 		DLFILE="gentoo-current-default_20190718_amd64.tar.xz"
