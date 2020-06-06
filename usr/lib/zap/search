@@ -47,13 +47,7 @@ fi
 #
 npkg=`${ZAPLIBDIR}/resolve-alias $PKG`
 if [ "X${PKG}" != "X${npkg}" ]; then
-    if [ -d ${DESTROOT}/var/sadm/pkg/${npkg} ]; then
-	PSTATUS="Installed"
-    else
-	PSTATUS="Uninstalled"
-    fi
-    echo "Match: ${PSTATUS} package $npkg"
-    pmap[$npkg]="$PSTATUS"
+    echo Match: $PKG is an alias for $npkg
 fi
 
 #
