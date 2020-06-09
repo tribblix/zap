@@ -20,16 +20,12 @@ case $1 in
 	;;
 esac
 
-case $1 in
--v)
-	shift
-	ECHO="echo"
-	;;
-esac
-
+#
+# assume aliases have been resolved by the caller
+#
 case $# in
 1)
-	PKG=`${ZAPLIBDIR}/resolve-alias ${CTXARGS} $1`
+	PKG=$1
 	;;
 *)
 	exit 1
@@ -37,23 +33,17 @@ case $# in
 esac
 
 #
-# given a package, return the dependencies present in the catalog
-# with verbose, print all dependencies and installed status
-# without verbose, print out uninstalled dependencies
+# given a package, return the uninstalled dependencies present in the catalog
 #
-repo=`${ZAPLIBDIR}/get-version ${CTXARGS} ${PKG}| /usr/bin/nawk '{print $2}'`
+repo=`${ZAPLIBDIR}/get-version ${CTXARGS} ${PKG}`
+repo=${repo#* }
 if [ -f ${CFGDIR}/repositories/${repo}.catalog ]; then
     FPKG=`/usr/bin/nawk -F'|' '{if ($1 == npkg) print $3}' npkg=${PKG} ${CFGDIR}/repositories/${repo}.catalog`
     if [ -n "$FPKG" ]; then
-	$ECHO "Dependencies for ${PKG}"
 	for npkg in $FPKG
 	do
-	    /usr/bin/pkginfo ${PKGARGS} -q ${npkg}
-	    FOUNDPKG=$?
-	    if [ $FOUNDPKG -ne 0 ]; then
+	    if [ ! -f ${DESTROOT}/var/sadm/pkg/${npkg}/pkginfo ]; then
 		echo "${npkg}"
-	    else
-		$ECHO "${npkg} (installed)"
 	    fi
 	done
 	exit 0
