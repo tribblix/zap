@@ -56,6 +56,10 @@ install)
 	shift
 	exec ${ZAPLIBDIR}/install-pkg ${CTXARGS} $*
 	;;
+install-recursive)
+	shift
+	exec ${ZAPLIBDIR}/install-recursive ${CTXARGS} $*
+	;;
 update)
 	shift
 	exec ${ZAPLIBDIR}/update-package ${CTXARGS} $*

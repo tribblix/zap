@@ -1,0 +1,126 @@
+#!/bin/ksh
+#
+# install the given package and all its dependencies
+#
+# needs to deal with broken, incorrect, and circular dependencies
+# needs to guarantee to converge
+#
+ZAPLIBDIR="/usr/lib/zap"
+CTXARGS=""
+DESTROOT=""
+
+case $1 in
+-C)
+	DESTROOT="$2"
+	CTXARGS="-C ${DESTROOT}"
+	shift
+	shift
+	if [ ! -d "$DESTROOT" ]; then
+	    echo "ERROR: alternate root $DESTROOT doesn't exist"
+	    exit 1
+	fi
+	;;
+esac
+
+case $1 in
+-R)
+	DESTROOT="$2"
+	shift
+	shift
+	if [ ! -d "$DESTROOT" ]; then
+	    echo "ERROR: alternate root $DESTROOT doesn't exist"
+	    exit 1
+	fi
+	;;
+esac
+
+case $1 in
+-s)
+	INSTARGS="-s $2"
+	shift
+	shift
+	;;
+esac
+
+case $# in
+0)
+	echo "Usage: $0 [-R alt-root] [ -s source] package [package...]"
+	exit 1
+	;;
+esac
+
+#
+# avoid having to look up information repeatedly
+#
+typeset -A depmap
+
+#
+# anything left has to be a package
+#
+pkglist=""
+for inpkg in $*
+do
+  # TODO check installed first to avoid unnecessary resolve-alias call
+  pkg=`${ZAPLIBDIR}/resolve-alias ${CTXARGS} $inpkg`
+  if [ -f ${DESTROOT}/var/sadm/pkg/${pkg}/pkginfo ]; then
+    echo "Package $pkg already installed"
+  else
+    pkglist="${pkglist} $pkg"
+  fi
+done
+
+if [ -z "${pkglist}" ]; then
+  echo "Nothing to install"
+  exit 0
+fi
+
+echo "Recursive install of: ${pkglist}"
+
+#
+# filter out invalid packages
+# TODO: merge with loop above?
+#
+npkglist=""
+for inpkg in $pkglist
+do
+    fpkg=`${ZAPLIBDIR}/get-version ${CTXARGS} $inpkg`
+    if [ "X$fpkg" != "X$inpkg" ]; then
+	npkglist="${npkglist} $inpkg"
+    else
+	echo "Invalid package $inpkg"
+    fi
+done
+
+if [ -z "${npkglist}" ]; then
+  echo "Nothing to install"
+  exit 0
+fi
+
+#
+# now walk dependencies
+# just keep doing this until the list stops changing
+#
+ipass=0
+ntostudy=0
+ntoinstall=$(echo $npkglist | tr ' ' '\n' | sort | uniq |wc)
+while [[ $ntostudy != $ntoinstall ]]
+do
+    echo "Resolving dependencies, pass ${ipass}"
+    nnpkglist="${npkglist}"
+    for inpkg in $npkglist
+    do
+	if [ -z "${depmap[$inpkg]}" ]; then
+	    fpkg=`${ZAPLIBDIR}/get-dependencies ${CTXARGS} $inpkg`
+	    depmap[$inpkg]=$fpkg
+	else
+	    fpkg=${depmap[$inpkg]}
+	fi
+	nnpkglist="${nnpkglist} ${fpkg}"
+    done
+    ntostudy=$ntoinstall
+    npkglist=$(echo $nnpkglist | tr ' ' '\n' | sort | uniq)
+    ntoinstall=$(echo $npkglist|wc -l)
+    ipass=$((ipass+1))
+done
+
+${ZAPLIBDIR}/install-pkg ${CTXARGS} ${INSTARGS} ${npkglist}
