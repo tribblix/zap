@@ -54,7 +54,8 @@ refresh_repo() {
 		# grep it otherwise we get a confusing error
 		#
 		if [ -f ${ODIR}/${novl}.ovl ]; then
-		    iver=`/usr/bin/grep '^VERSION=' ${ODIR}/${novl}.ovl | /usr/bin/sed 's:VERSION=::'`
+		    iver=`/usr/bin/grep '^VERSION=' ${ODIR}/${novl}.ovl`
+		    iver=${iver#VERSION=}
 		else
 		    iver="0"
 		fi
