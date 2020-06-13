@@ -77,7 +77,8 @@ do
   else
     DOPKGS="${DOPKGS} $pkg"
     ISINST="false"
-    fpkg=`${ZAPLIBDIR}/get-version ${CTXARGS} $pkg | /usr/bin/awk '{print $1}'`
+    fpkg=`${ZAPLIBDIR}/get-version ${CTXARGS} $pkg`
+    fpkg=${fpkg%% *}
     for SRCDIR in $SRCLIST
     do
 	if [ -f ${SRCDIR}/${fpkg}.zap ]; then
@@ -99,7 +100,8 @@ done
 for pkg in $DOPKGS
 do
   ISINST="false"
-  fpkg=`${ZAPLIBDIR}/get-version ${CTXARGS} $pkg | /usr/bin/awk '{print $1}'`
+  fpkg=`${ZAPLIBDIR}/get-version ${CTXARGS} $pkg`
+  fpkg=${fpkg%% *}
   for SRCDIR in $SRCLIST
   do
     if [ -f ${SRCDIR}/${fpkg}.zap ]; then
