@@ -89,8 +89,8 @@ do
       echo "ERROR: member package ${pkg} is not installed"
       STATUS=1
   else
-      IVERSION=`${ZAPLIBDIR}/pkgversion ${PKGARGS} $pkg`
       AFVERSION=`${ZAPLIBDIR}/get-version ${CTXARGS} $pkg`
+      IVERSION=`/usr/bin/awk -F= '{if ($1 == "VERSION") print $2}' ${DESTROOT}/var/sadm/pkg/${pkg}/pkginfo`
       AVERSION=${AFVERSION% *}
       AREPO=${AFVERSION#* }
       RVERSION=${AVERSION#*.}

@@ -28,7 +28,7 @@ do
       if [ "$AFVERSION" != "$pkg" ]; then
 	  AVERSION=${AFVERSION% *}
 	  AREPO=${AFVERSION#* }
-	  IVERSION=`${ZAPLIBDIR}/pkgversion ${PKGARGS} $pkg`
+	  IVERSION=`/usr/bin/awk -F= '{if ($1 == "VERSION") print $2}' ${DESTROOT}/var/sadm/pkg/${pkg}/pkginfo`
 	  if [ "$AREPO" != "opensxce" ]; then
 	      if [ "X${pkg}.${IVERSION}" != "X${AVERSION}" ]; then
 		  echo "WARN: package ${pkg} needs updating to ${AVERSION#*.}"

@@ -72,7 +72,7 @@ do
     if [ ! -f ${DESTROOT}/var/sadm/pkg/${pkg}/pkginfo ]; then
 	${ZAPLIBDIR}/install-pkg ${CTXARGS} ${PKGARGS} ${SRCARGS} $pkg
     fi
-    IVERSION=`${ZAPLIBDIR}/pkgversion ${PKGARGS} $pkg`
+    IVERSION=`/usr/bin/awk -F= '{if ($1 == "VERSION") print $2}' ${DESTROOT}/var/sadm/pkg/${pkg}/pkginfo`
     AFVERSION=`${ZAPLIBDIR}/get-version ${CTXARGS} $pkg`
     AVERSION=${AFVERSION% *}
     AREPO=${AFVERSION#* }
@@ -100,7 +100,7 @@ do
 		    break
 		fi
 	    done
-	    NVERSION=`${ZAPLIBDIR}/pkgversion ${PKGARGS} $pkg`
+	    NVERSION=`/usr/bin/awk -F= '{if ($1 == "VERSION") print $2}' ${DESTROOT}/var/sadm/pkg/${pkg}/pkginfo`
 	    if [ "X${NVERSION}" = "X${RVERSION}" ]; then
 		echo "Update of $pkg successful."
 	    fi
