@@ -83,24 +83,34 @@ done
 #
 # then check packages
 #
+# first report on any uninstalled packages
+#
 for pkg in `cat ${PLIST}`
 do
   if [ ! -f ${DESTROOT}/var/sadm/pkg/${pkg}/pkginfo ]; then
       echo "ERROR: member package ${pkg} is not installed"
       STATUS=1
   else
-      AFVERSION=`${ZAPLIBDIR}/get-version ${CTXARGS} $pkg`
-      IVERSION=`/usr/bin/awk -F= '{if ($1 == "VERSION") print $2}' ${DESTROOT}/var/sadm/pkg/${pkg}/pkginfo`
-      AVERSION=${AFVERSION% *}
-      AREPO=${AFVERSION#* }
-      RVERSION=${AVERSION#*.}
-      if [ "$AREPO" != "opensxce" ]; then
-	  if [ "X${pkg}.${IVERSION}" != "X${AVERSION}" ]; then
-	      echo "WARN: member package ${pkg} needs updating to ${RVERSION}"
-	      STATUS=2
-	  fi
-      fi
+      npkg="${npkg} ${pkg}"
   fi
+done
+
+#
+# then check the installed versions match the catalog
+#
+${ZAPLIBDIR}/get-version ${CTXARGS} $npkg | while read AFVERSION
+do
+    AVERSION=${AFVERSION% *}
+    pkg=${AVERSION%%.*}
+    IVERSION=`/usr/bin/awk -F= '{if ($1 == "VERSION") print $2}' ${DESTROOT}/var/sadm/pkg/${pkg}/pkginfo`
+    AREPO=${AFVERSION#* }
+    RVERSION=${AVERSION#*.}
+    if [ "$AREPO" != "opensxce" ]; then
+	if [ "X${pkg}.${IVERSION}" != "X${AVERSION}" ]; then
+	    echo "WARN: member package ${pkg} needs updating to ${RVERSION}"
+	    STATUS=2
+	fi
+    fi
 done
 
 exit $STATUS

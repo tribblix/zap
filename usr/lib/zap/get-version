@@ -18,32 +18,26 @@ case $1 in
 	;;
 esac
 
-case $# in
-1)
-	PKG="$1"
-	;;
-*)
-	exit 1
-	;;
-esac
-
 #
 # given an unqualified package, return a qualified package and the name
 # of the repo it's contained in
 #
-for repo in `${ZAPLIBDIR}/zap-cfg ${CTXARGS} list-pkg-repos`
+repolist=`${ZAPLIBDIR}/zap-cfg ${CTXARGS} list-pkg-repos`
+for PKG in $*
 do
-    if [ -f ${CFGDIR}/repositories/${repo}.catalog ]; then
-	FPKG=`/usr/bin/nawk -F'|' '{if ($1 == npkg) print $1"."$2}' npkg=${PKG} ${CFGDIR}/repositories/${repo}.catalog`
-	if [ -n "$FPKG" ]; then
-	    echo "${FPKG} ${repo}"
-	    exit 0
+    PFOUND=""
+    for repo in $repolist
+    do
+	if [ -f ${CFGDIR}/repositories/${repo}.catalog ]; then
+	    FPKG=`/usr/bin/nawk -F'|' '{if ($1 == npkg) print $1"."$2}' npkg=${PKG} ${CFGDIR}/repositories/${repo}.catalog`
+	    if [ -n "$FPKG" ]; then
+		echo "${FPKG} ${repo}"
+		PFOUND="y"
+		break
+	    fi
 	fi
+    done
+    if [ -z "$PFOUND" ]; then
+	echo $PKG
     fi
 done
-
-#
-# if we're unable to find a version, return the original unqualified
-# package name, without a repo name
-#
-echo $PKG
