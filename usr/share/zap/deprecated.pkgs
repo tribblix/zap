@@ -358,3 +358,12 @@ TRIBsys-mgmt-snmp-net-snmp
 TRIBdev-lib-lint
 TRIBsolview
 TRIBjfreechart-1017
+TRIBdev-opensolaris-osnet
+TRIBcnsldtn-sunpro-incrprtn
+TRIBcnsldtn-l10n-l10n-incrprtn
+TRIBdev-apptrace-ucblib
+TRIBlp-compat-sunos4
+TRIBsrc-system-grub
+TRIBnet-netcat
+TRIBsys-zones-brand-sn1
+TRIBsys-net-http-nca
