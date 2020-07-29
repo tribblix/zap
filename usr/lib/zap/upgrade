@@ -304,6 +304,21 @@ if [ -d ${ALTROOT}/zonelib/lib/svc ]; then
 fi
 
 #
+# we can propagate some zones into the upgraded BE
+# specifically alien-root and solaris10 zones are safe
+# whole and sparse-root clearly aren't
+# lx is slightly odd and needs handling separately
+#
+for zname in `/usr/sbin/zoneadm list -icp | awk -F: '{if ($6 == "solaris10") print $2}'`
+do
+    grep "^${zname}:" /etc/zones/index >> ${ALTROOT}/etc/zones/index
+done
+for zname in `/usr/sbin/zoneadm list -icp | awk -F: '{if ($6 == "alien-root") print $2}'`
+do
+    grep "^${zname}:" /etc/zones/index >> ${ALTROOT}/etc/zones/index
+done
+
+#
 # FIXME - bootloader switch
 #
 # Originally, the upgrade script forced grub as the bootloader on
