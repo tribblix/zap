@@ -240,6 +240,16 @@ $DOIT /usr/bin/zap -C ${ALTROOT} update-overlay -a
 #
 $DOIT /usr/bin/zap -C ${ALTROOT} update-overlay -a
 #
+# and a 3rd pass to catch stragglers that aren't in any overlays just
+# to be sure those don't hang around at old versions, especially if
+# they're drivers that need to be in sync with the new kernel
+#
+if [ -d ${ALTROOT}/var/sadm/pkg ]; then
+    cd ${ALTROOT}/var/sadm/pkg
+    $DOIT /usr/bin/zap -C ${ALTROOT} update TRIB*
+    cd /
+fi
+#
 # this is a manual hack for m19 and the new loader
 # we need to be absolutely sure that the loader and
 # agpgart packages get installed
