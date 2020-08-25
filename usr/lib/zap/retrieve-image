@@ -170,8 +170,12 @@ case $SCHEME in
 		DLFILE="alpine-3.11-default_20200425_amd64.tar.xz"
 		DLNAME="proxmox-alpine-3.11.tar.xz"
 		;;
+	    alpine-3.12)
+		DLFILE="alpine-3.12-default_20200823_amd64.tar.xz"
+		DLNAME="proxmox-alpine-3.12.tar.xz"
+		;;
 	    arch|archlinux)
-		DLFILE="archlinux-base_20190924-1_amd64.tar.gz"
+		DLFILE="archlinux-base_20200508-1_amd64.tar.gz"
 		DLNAME="proxmox-archlinux.tar.gz"
 		echo "WARN: arch is not supported by the LX brand"
 		;;
@@ -204,7 +208,7 @@ case $SCHEME in
 		DLNAME="proxmox-debian-9.tar.gz"
 		;;
 	    debian-10)
-		DLFILE="debian-10.0-standard_10.0-1_amd64.tar.gz"
+		DLFILE="debian-10-standard_10.5-1_amd64.tar.gz"
 		DLNAME="proxmox-debian-10.tar.gz"
 		;;
 	    fedora-24)
@@ -244,7 +248,7 @@ case $SCHEME in
 		DLNAME="proxmox-fedora-32.tar.xz"
 		;;
 	    gentoo)
-		DLFILE="gentoo-current-default_20190718_amd64.tar.xz"
+		DLFILE="gentoo-current-default_20200310_amd64.tar.xz"
 		DLNAME="proxmox-gentoo.tar.xz"
 		echo "WARN: gentoo is not supported by the LX brand"
 		;;
@@ -267,6 +271,9 @@ case $SCHEME in
 			;;
 		    18.04)
 			UUVER=".1"
+			;;
+		    20.04)
+			UUVER=""
 			;;
 		esac
 		DLFILE="ubuntu-${UVER}-standard_${UVER}${UUVER}-1_amd64.tar.gz"
