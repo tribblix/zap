@@ -4,12 +4,12 @@
 #
 # Usage:
 #  -T template (implies sparse)
-#  -t brand - sparse, whole, alien, s10, or lx [default sparse]
+#  -t brand - sparse, whole, alien, s10, bhyve, or lx [default sparse]
 #  -z zone_name - zone name [required]
 #  -i IPv4 address [can be multiple, for shared-ip]
 #  -x IPv4 address [can be multiple, for exclusive-ip]
 #  -R Ipv4 network to proxy, in CIDR notation
-#  -I image file to install for alien, s10, or lx zone
+#  -I image file to install for alien, s10, bhyve, or lx zone
 #  -d directory to create [can be multiple]
 #  -D dataset to delegate [will be created if it doesn't exist]
 #  -o overlay for partial root [can be multiple, passed to install]
@@ -22,6 +22,7 @@
 #  -n create this many zones, all the same
 #  -6 set up link-local ipv6 addresses
 #  -F create a flow with the given properties
+#  -V the zvol for bhyve to use
 #
 # FIXMES:
 # add full IPv6
@@ -56,6 +57,7 @@ DOIP6=""
 NCMDLINE=""
 SYSIDCFGFILE=""
 FLOWPROPS=""
+BHYVEVOL=""
 
 #
 # these associative arrays track the interface to address mapping
@@ -66,23 +68,29 @@ typeset -A xifipmap
 usage() {
     LXUSAGE=""
     S10USAGE=""
+    BHYVEUSAGE=""
+    VOLUSAGE=""
     if [ -f /etc/zones/SUNWlx.xml ]; then
 	LXUSAGE="|lx"
     fi
     if [ -f /etc/zones/SUNWsolaris10.xml ]; then
 	S10USAGE="|s10"
     fi
-    echo "Usage: $0 -z zone_name [-t whole|sparse|alien${LXUSAGE}${S10USAGE}]"
-    echo "  [-T template] [-I image_file]"
-    echo "  [-i ip_address] [-x ip_address] [-R ip_network/prefix]"
-    echo "  [-B] [-d extra_dir] [-o overlay] [-O overlay]"
-    echo "  [-S|-s shared_dir] [ -D dataset] [-U user]"
-    echo "  [-6] [-n number_of_zones] [-F flow_props]"
-    echo "  [-K action=arg[=arg...]]"
+    if [ -f /usr/lib/brand/bhyve/platform.xml ]; then
+	BHYVEUSAGE="|bhyve"
+	VOLUSAGE=" [-V volume]"
+    fi
+    echo "Usage: $0 -z zone_name [-t whole|sparse|alien${BHYVEUSAGE}${LXUSAGE}${S10USAGE}]"
+    echo "  [-T template] [-I image_file] [-U user]"
+    echo "  [-i ip_address] [-x ip_address] [-R ip_network/prefix] [-6]"
+    echo "  [-d extra_dir] [-o overlay] [-O overlay]"
+    echo "  [-S|-s shared_dir] [-D dataset]${VOLUSAGE}"
+    echo "  [-B] [-n number_of_zones] [-F flow_props]"
+    #echo "  [-K action=arg[=arg...]]"
     exit 1
 }
 
-while getopts "6BT:t:z:i:x:R:I:o:O:d:D:s:S:U:n:K:F:" opt; do
+while getopts "6BT:t:z:i:x:R:I:o:O:d:D:s:S:U:n:K:F:V:" opt; do
 case $opt in
 6)
 	DOIP6="Y"
@@ -151,6 +159,9 @@ K)
 F)
 	FLOWPROPS="$OPTARG"
 	;;
+V)
+	BHYVEVOL="$OPTARG"
+	;;
 esac
 done
 
@@ -185,6 +196,9 @@ whole|TRIBwhole)
 	;;
 alien|TRIBalien)
 	ZBRAND="TRIBalien"
+	;;
+bhyve)
+	ZBRAND="bhyve"
 	;;
 lx|SUNWlx)
 	ZBRAND="SUNWlx"
@@ -301,6 +315,69 @@ SUNWlx)
 	#
 	IMGFLAG="-t"
 	;;
+bhyve)
+	if [ ! -f /usr/lib/brand/bhyve/platform.xml ]; then
+	    echo "ERROR: bhyve not found - is it available?"
+	    usage
+	fi
+	if [ ! -f /var/sadm/overlays/installed/bhyve ]; then
+	    echo "ERROR: bhyve not found - is it available?"
+	    echo "  To install, zap install-overlay bhyve"
+	    usage
+	fi
+	if [[ -n $ZTEMPLATE ]]; then
+	    echo "ERROR: templates must be sparse-root"
+	    usage
+	fi
+	if [[ -n $ZOVERLAY || -n $ZADDOVERLAY ]]; then
+	   echo "ERROR: cannot specify overlays for bhyve zones"
+	   usage
+	fi
+	#
+	# Check that we're given an image to install. It's validated, and
+	# possibly downloaded, after all the other checks have passed
+	#
+	if [[ -z $ZISOFILE ]]; then
+	    echo "ERROR: a bhyve zone requires an image to be specified"
+	    usage
+	fi
+	#
+	# Check that we're given a volume to install to
+	#
+	if [[ -z $BHYVEVOL ]]; then
+	    echo "ERROR: a bhyve zone requires a zvol to be specified with -V"
+	    usage
+	fi
+	if [[ -n $ZIP4 ]]; then
+	    echo "ERROR: bhyve zones must be exclusive-ip"
+	    usage
+	fi
+	if [[ -n $ZBLANK ]]; then
+	    echo "ERROR: bhyve zones cannot be blank"
+	    usage
+	fi
+	if [[ -n $ZUSERS ]]; then
+	    echo "ERROR: cannot assign users for bhyve zones"
+	    usage
+	fi
+	if [[ -n $ZDIRS ]]; then
+	    echo "ERROR: cannot create directories for bhyve zones"
+	    usage
+	fi
+	if [[ -n $ZDATASETS ]]; then
+	    echo "ERROR: cannot share datasets for bhyve zones"
+	    usage
+	fi
+	if [[ -n $ZSHARED || -n $ZROSHARED ]]; then
+	    echo "ERROR: cannot share directories for bhyve zones"
+	    usage
+	fi
+	#
+	# the zone installation script expects a different flag
+	# from my alien installer: -s for zfs streams, -t for tarballs
+	#
+	IMGFLAG="-t"
+	;;
 esac
 
 #
@@ -349,8 +426,17 @@ if [[ -n $RIP4 && $ZBRAND = SUNWlx ]]; then
     echo "ERROR: proxy zones must not be of type lx"
     usage
 fi
+if [[ -n $RIP4 && $ZBRAND = bhyve ]]; then
+    echo "ERROR: proxy zones must not be of type bhyve"
+    usage
+fi
 if [[ -n $RIP4 && -n $NZONES ]]; then
     echo "ERROR: cannot build multiple proxy zones"
+    usage
+fi
+# temporary restriction?
+if [[ -n $NZONES && $ZBRAND = bhyve ]]; then
+    echo "ERROR: cannot build multiple bhyve zones"
     usage
 fi
 
@@ -668,6 +754,20 @@ SUNWsolaris10)
 	    usage
 	fi
 	;;
+bhyve)
+	if [[ $ZISOFILE != /* ]]; then
+	    echo "ERROR: image name must be absolute or specify a valid download"
+	    usage
+	fi
+	if [[ $ZISOFILE != *.iso ]]; then
+	    echo "ERROR: bhyve requires an iso image"
+	    usage
+	fi
+	if [ ! -f $ZISOFILE ]; then
+	    echo "ERROR: specified image not found"
+	    usage
+	fi
+	;;
 esac
 
 #
@@ -874,7 +974,12 @@ fi
 echo "/bin/rm -f ${ZSDIR}/zconfig.${ZNAME}" >> ${ZSDIR}/destroy.${ZNAME}
 echo "brand: $ZBRAND" >> ${ZSDIR}/zconfig.${ZNAME}
 echo "zone: $ZNAME" >> ${ZSDIR}/zconfig.${ZNAME}
-echo create -t $ZBRAND
+if [[ $ZBRAND = bhyve ]]; then
+    echo create -b
+    echo set brand=bhyve
+else
+    echo create -t $ZBRAND
+fi
 echo set autoboot=true
 echo set zonepath=${ZROOTBASE}/${ZNAME}
 if [[ -n $XIP4 ]]; then
@@ -1075,6 +1180,46 @@ if [[ $ZBRAND = SUNWlx ]]; then
 	echo set value=4.4.15
 	echo end
 fi
+#
+# for bhyve, there's a list of attributes we need
+#
+if [[ $ZBRAND = bhyve ]]; then
+    echo add device
+    echo set match=/dev/zvol/rdsk/rpool/${BHYVEVOL}
+    echo end
+    echo add attr
+    echo set name=bootdisk
+    echo set type=string
+    echo set value=rpool/${BHYVEVOL}
+    echo end
+    echo add fs
+    echo set dir=${ZISOFILE}
+    echo set special=${ZISOFILE}
+    echo set type=lofs
+    echo add options ro
+    echo add options nodevices
+    echo end
+    echo add attr
+    echo set name=cdrom
+    echo set type=string
+    echo set value=${ZISOFILE}
+    echo end
+    echo add attr
+    echo set name=vnc
+    echo set type=string
+    echo set value=on
+    echo end
+    echo add attr
+    echo set name=bootrom
+    echo set type=string
+    echo set value=BHYVE_RELEASE
+    echo end
+    echo add attr
+    echo set name=acpi
+    echo set type=string
+    echo set value=off
+    echo end
+fi
 echo verify
 echo commit
 }
@@ -1118,7 +1263,7 @@ for OVL in $ZADDOVERLAY
 do
 	printf " -O $OVL"
 done
-if [[ -n $ZISOFILE ]]; then
+if [[ -n $ZISOFILE && $ZBRAND != bhyve ]]; then
     printf " $IMGFLAG $ZISOFILE"
 fi
 if [[ $ZBRAND = SUNWsolaris10 ]]; then
