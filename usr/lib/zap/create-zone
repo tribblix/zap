@@ -23,6 +23,7 @@
 #  -6 set up link-local ipv6 addresses
 #  -F create a flow with the given properties
 #  -V the zvol for bhyve to use
+#  -m ram size for bhyve
 #
 # FIXMES:
 # add full IPv6
@@ -58,6 +59,7 @@ NCMDLINE=""
 SYSIDCFGFILE=""
 FLOWPROPS=""
 BHYVEVOL=""
+BHYVERAM=""
 
 #
 # these associative arrays track the interface to address mapping
@@ -70,6 +72,7 @@ usage() {
     S10USAGE=""
     BHYVEUSAGE=""
     VOLUSAGE=""
+    MEMUSAGE=""
     if [ -f /etc/zones/SUNWlx.xml ]; then
 	LXUSAGE="|lx"
     fi
@@ -79,18 +82,19 @@ usage() {
     if [ -f /usr/lib/brand/bhyve/platform.xml ]; then
 	BHYVEUSAGE="|bhyve"
 	VOLUSAGE=" [-V volume]"
+	MEMUSAGE=" [-m ram_size]"
     fi
     echo "Usage: $0 -z zone_name [-t whole|sparse|alien${BHYVEUSAGE}${LXUSAGE}${S10USAGE}]"
     echo "  [-T template] [-I image_file] [-U user]"
     echo "  [-i ip_address] [-x ip_address] [-R ip_network/prefix] [-6]"
     echo "  [-d extra_dir] [-o overlay] [-O overlay]"
     echo "  [-S|-s shared_dir] [-D dataset]${VOLUSAGE}"
-    echo "  [-B] [-n number_of_zones] [-F flow_props]"
+    echo "  [-B] [-n number_of_zones] [-F flow_props]${MEMUSAGE}"
     #echo "  [-K action=arg[=arg...]]"
     exit 1
 }
 
-while getopts "6BT:t:z:i:x:R:I:o:O:d:D:s:S:U:n:K:F:V:" opt; do
+while getopts "6BT:t:z:i:x:R:I:o:O:d:D:s:S:U:n:K:F:V:m:" opt; do
 case $opt in
 6)
 	DOIP6="Y"
@@ -161,6 +165,9 @@ F)
 	;;
 V)
 	BHYVEVOL="$OPTARG"
+	;;
+m)
+	BHYVERAM="$OPTARG"
 	;;
 esac
 done
@@ -438,6 +445,20 @@ fi
 if [[ -n $NZONES && $ZBRAND = bhyve ]]; then
     echo "ERROR: cannot build multiple bhyve zones"
     usage
+fi
+if [[ -n $BHYVEVOL && $ZBRAND != bhyve ]]; then
+    echo "ERROR: -V option only valid for bhyve"
+    usage
+fi
+if [[ -n $BHYVERAM && $ZBRAND != bhyve ]]; then
+    echo "ERROR: -m option only valid for bhyve"
+    usage
+fi
+if [[ -n $BHYVERAM ]]; then
+    if [[ $BHYVERAM != *G && $BHYVERAM != *M ]]; then
+	echo "ERROR: -m must be in G or M"
+	usage
+    fi
 fi
 
 #
@@ -1219,6 +1240,13 @@ if [[ $ZBRAND = bhyve ]]; then
     echo set type=string
     echo set value=off
     echo end
+    if [[ -n $BHYVERAM ]]; then
+	echo add attr
+	echo set name=ram
+	echo set type=string
+	echo set value=$BHYVERAM
+	echo end
+    fi
 fi
 echo verify
 echo commit
