@@ -22,7 +22,8 @@
 #  -n create this many zones, all the same
 #  -6 set up link-local ipv6 addresses
 #  -F create a flow with the given properties
-#  -V the zvol for bhyve to use
+#  -v existing zvol for bhyve to use
+#  -V size of new volume for bhyve
 #  -m ram size for bhyve
 #
 # FIXMES:
@@ -59,7 +60,9 @@ NCMDLINE=""
 SYSIDCFGFILE=""
 FLOWPROPS=""
 BHYVEVOL=""
+BHYVEVOLSIZE=""
 BHYVERAM=""
+BHYVEPOOL="rpool"
 
 #
 # these associative arrays track the interface to address mapping
@@ -81,7 +84,7 @@ usage() {
     fi
     if [ -f /usr/lib/brand/bhyve/platform.xml ]; then
 	BHYVEUSAGE="|bhyve"
-	VOLUSAGE=" [-V volume]"
+	VOLUSAGE=" [-v volume | -V volsize]"
 	MEMUSAGE=" [-m ram_size]"
     fi
     echo "Usage: $0 -z zone_name [-t whole|sparse|alien${BHYVEUSAGE}${LXUSAGE}${S10USAGE}]"
@@ -94,7 +97,7 @@ usage() {
     exit 1
 }
 
-while getopts "6BT:t:z:i:x:R:I:o:O:d:D:s:S:U:n:K:F:V:m:" opt; do
+while getopts "6BT:t:z:i:x:R:I:o:O:d:D:s:S:U:n:K:F:v:V:m:" opt; do
 case $opt in
 6)
 	DOIP6="Y"
@@ -163,8 +166,11 @@ K)
 F)
 	FLOWPROPS="$OPTARG"
 	;;
-V)
+v)
 	BHYVEVOL="$OPTARG"
+	;;
+V)
+	BHYVEVOLSIZE="$OPTARG"
 	;;
 m)
 	BHYVERAM="$OPTARG"
@@ -341,19 +347,34 @@ bhyve)
 	   usage
 	fi
 	#
-	# Check that we're given an image to install. It's validated, and
+	# Check that we're either given an existing zvol or
+	# given an image to install. It's validated, and
 	# possibly downloaded, after all the other checks have passed
 	#
-	if [[ -z $ZISOFILE ]]; then
-	    echo "ERROR: a bhyve zone requires an image to be specified"
+	if [[ -z $BHYVEVOL && -z $ZISOFILE ]]; then
+	    echo "ERROR: bhyve zones require an image or volume to be specified"
+	    usage
+	fi
+	if [[ -n $BHYVEVOL && -n $ZISOFILE ]]; then
+	    echo "ERROR: bhyve zones require only one of image or volume"
 	    usage
 	fi
 	#
-	# Check that we're given a volume to install to
+	# volume checks
 	#
-	if [[ -z $BHYVEVOL ]]; then
-	    echo "ERROR: a bhyve zone requires a zvol to be specified with -V"
+	if [[ -z $BHYVEVOL && -z $BHYVEVOLSIZE ]]; then
+	    echo "ERROR: bhyve zones require either a zvol or size"
 	    usage
+	fi
+	if [[ -n $BHYVEVOL && -n $BHYVEVOLSIZE ]]; then
+	    echo "ERROR: bhyve zones require only one of zvol or size"
+	    usage
+	fi
+	if [[ -n $BHYVEVOL ]]; then
+	    if [[ ! -e /dev/zvol/rdsk/$BHYVEVOL ]]; then
+		echo "ERROR: specified bhyve volume does not exist"
+		usage
+	    fi
 	fi
 	if [[ -n $ZIP4 ]]; then
 	    echo "ERROR: bhyve zones must be exclusive-ip"
@@ -447,6 +468,10 @@ if [[ -n $NZONES && $ZBRAND = bhyve ]]; then
     usage
 fi
 if [[ -n $BHYVEVOL && $ZBRAND != bhyve ]]; then
+    echo "ERROR: -v option only valid for bhyve"
+    usage
+fi
+if [[ -n $BHYVEVOLSIZE && $ZBRAND != bhyve ]]; then
     echo "ERROR: -V option only valid for bhyve"
     usage
 fi
@@ -457,6 +482,12 @@ fi
 if [[ -n $BHYVERAM ]]; then
     if [[ $BHYVERAM != *G && $BHYVERAM != *M ]]; then
 	echo "ERROR: -m must be in G or M"
+	usage
+    fi
+fi
+if [[ -n $BHYVEVOLSIZE ]]; then
+    if [[ $BHYVEVOLSIZE != *G && $BHYVEVOLSIZE != *M ]]; then
+	echo "ERROR: -V must be in G or M"
 	usage
     fi
 fi
@@ -776,17 +807,20 @@ SUNWsolaris10)
 	fi
 	;;
 bhyve)
-	if [[ $ZISOFILE != /* ]]; then
-	    echo "ERROR: image name must be absolute or specify a valid download"
-	    usage
-	fi
-	if [[ $ZISOFILE != *.iso ]]; then
-	    echo "ERROR: bhyve requires an iso image"
-	    usage
-	fi
-	if [ ! -f $ZISOFILE ]; then
-	    echo "ERROR: specified image not found"
-	    usage
+	# require an image if we're not passed a prefilled volume
+	if [[ -n $ZISOFILE ]]; then
+	    if [[ $ZISOFILE != /* ]]; then
+		echo "ERROR: image name must be absolute or specify a valid download"
+		usage
+	    fi
+	    if [[ $ZISOFILE != *.iso ]]; then
+		echo "ERROR: bhyve requires an iso image"
+		usage
+	    fi
+	    if [ ! -f $ZISOFILE ]; then
+		echo "ERROR: specified image not found"
+		usage
+	    fi
 	fi
 	;;
 esac
@@ -1206,25 +1240,27 @@ fi
 #
 if [[ $ZBRAND = bhyve ]]; then
     echo add device
-    echo set match=/dev/zvol/rdsk/rpool/${BHYVEVOL}
+    echo set match=/dev/zvol/rdsk/${BHYVEVOL}
     echo end
     echo add attr
     echo set name=bootdisk
     echo set type=string
-    echo set value=rpool/${BHYVEVOL}
+    echo set value=${BHYVEVOL}
     echo end
-    echo add fs
-    echo set dir=${ZISOFILE}
-    echo set special=${ZISOFILE}
-    echo set type=lofs
-    echo add options ro
-    echo add options nodevices
-    echo end
-    echo add attr
-    echo set name=cdrom
-    echo set type=string
-    echo set value=${ZISOFILE}
-    echo end
+    if [[ -n $ZISOFILE ]]; then
+	echo add fs
+	echo set dir=${ZISOFILE}
+	echo set special=${ZISOFILE}
+	echo set type=lofs
+	echo add options ro
+	echo add options nodevices
+	echo end
+	echo add attr
+	echo set name=cdrom
+	echo set type=string
+	echo set value=${ZISOFILE}
+	echo end
+    fi
     echo add attr
     echo set name=vnc
     echo set type=string
@@ -1401,6 +1437,39 @@ do
     /usr/sbin/zfs create -p ${ZPARENT}
     /usr/sbin/zfs create -o mountpoint=none ${DSET}
 done
+#
+# volumes for bhyve - create and set
+#
+# FIXME allow user to specify pool to use
+#
+if [[ $ZBRAND = bhyve ]]; then
+    BHYVEPOOL=rpool
+    if [[ -z $BHYVEVOL ]]; then
+	if [[ -n $BHYVEVOLSIZE ]]; then
+	    VOLENUM=0
+	    BVOLNAME=${ZNAME}_bhvol${VOLENUM}
+	    /usr/sbin/zfs get type ${BHYVEPOOL}/${BVOLNAME} > /dev/null 2>&1
+	    ZESTATUS=$?
+	    while [ $ZESTATUS -eq 0 ]
+	    do
+		VOLENUM=$(($VOLENUM+1))
+		BVOLNAME=${ZNAME}_bhvol${VOLENUM}
+		/usr/sbin/zfs get type ${BHYVEPOOL}/${BVOLNAME} > /dev/null 2>&1
+		ZESTATUS=$?
+	    done
+	    /usr/sbin/zfs create -V $BHYVEVOLSIZE ${BHYVEPOOL}/${BVOLNAME}
+	    BHYVEVOL=${BHYVEPOOL}/${BVOLNAME}
+	    if [ ! -f ${ZSDIR}/destroy.${ZNAME} ]; then
+		echo "#!/bin/sh" > ${ZSDIR}/destroy.${ZNAME}
+		/usr/bin/chmod a+x ${ZSDIR}/destroy.${ZNAME}
+	    fi
+	    echo "/usr/sbin/zfs destroy ${BHYVEPOOL}/${BVOLNAME}" >> ${ZSDIR}/destroy.${ZNAME}
+	else
+	    echo "ERROR: bhyve volume logic error"
+	    exit 1
+	fi
+    fi
+fi
 
 ZCFGFILE=/tmp/zap.zcfg.`date '+%F-%T'`.$$
 create_configuration > ${ZCFGFILE}
@@ -1489,7 +1558,7 @@ fi
 # do some minimalist configuration of the zone
 #
 /usr/bin/cp /etc/resolv.conf ${ZROOTBASE}/${ZNAME}/root/etc
-if [[ $ZBRAND != SUNWlx ]]; then
+if [[ $ZBRAND != SUNWlx && $ZBRAND != bhyve ]]; then
     /usr/bin/cp /etc/default/init ${ZROOTBASE}/${ZNAME}/root/etc/default/init
 fi
 
