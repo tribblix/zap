@@ -121,6 +121,14 @@ NEWVER="$1"
 NEWURL=$(validate $NEWVER) || bail "$NEWURL"
 
 #
+# before we do anything, apply any urgent fixes
+#
+# if metainit hangs around, it causes boot failures with varpd
+# no system should really have this as a valid service
+#
+/usr/sbin/svccfg delete svc:/system/metainit:default > /dev/null 2>&1
+
+#
 # find the current BE and matching FS dataset
 #
 OLDBE=`$BEADM list -H | awk -F\; '{if ($3=="NR") print $1}'`
