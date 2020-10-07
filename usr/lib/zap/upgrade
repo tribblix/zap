@@ -269,6 +269,14 @@ $DOIT /usr/bin/zap -C ${ALTROOT} install TRIBdrv-graphics-agpgart
 #
 $DOIT /usr/bin/pkgadm sync -R ${ALTROOT} -q
 #
+# remove any remnants of the old OI repo
+# the oi.repo file is packaged so should have already gone
+#
+$DOIT /usr/bin/rm -f ${ALTROOT}/etc/zap/repositories/oi.aliases
+$DOIT /usr/bin/rm -f ${ALTROOT}/etc/zap/repositories/oi.aliases.bak
+$DOIT /usr/bin/rm -f ${ALTROOT}/etc/zap/repositories/oi.catalog
+$DOIT /usr/bin/rm -f ${ALTROOT}/etc/zap/repositories/oi.catalog.bak
+#
 # refresh common administratively modified files
 #
 $DOIT /usr/bin/cp -p /etc/passwd ${ALTROOT}/etc/passwd
