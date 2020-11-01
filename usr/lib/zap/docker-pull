@@ -1,0 +1,105 @@
+#!/bin/sh
+#
+# pull docker image, optionally with tag
+#
+# loosely based on something Carlos Neira did for zcage
+#
+ZAPLIBDIR="/usr/lib/zap"
+
+#
+# commands we need
+#
+JQ=/usr/bin/jq
+if [ ! -x $JQ ]; then
+    echo "Missing utility $JQ"
+    exit 1
+fi
+CURL=/usr/bin/curl
+if [ ! -x $CURL ]; then
+    echo "Missing utility $CURL"
+    exit 1
+fi
+
+usage() {
+    echo "Usage: $0 image [tag]"
+    exit 1
+}
+
+case $# in
+    0)
+	usage
+	;;
+    1)
+	IMAGE="$1"
+	TAG="latest"
+	;;
+    2)
+	IMAGE="$1"
+	TAG="$2"
+	;;
+    *)
+	usage
+	;;
+esac
+
+	
+#
+# bare words are really "library/xxx"
+#
+case $IMAGE in
+    */*)
+	DLNAME=${IMAGE//\//_}
+	;;
+    *)
+	DLNAME="library_$IMAGE"
+	IMAGE="library/${IMAGE}"
+	;;
+esac
+
+CACHEDIR=`${ZAPLIBDIR}/zap-cfg ${CTXARGS} docker-dir`
+MDIR=${CACHEDIR}/manifests
+LDIR=${CACHEDIR}/layers
+
+MFILE="${MDIR}/${DLNAME}-${TAG}.manifest"
+
+blobsums="/tmp/blobsums-$(uuidgen).txt"
+mkdir -p ${MDIR}
+mkdir -p ${LDIR}
+
+TOKEN=`${CURL} --silent \
+--header 'GET' \
+"https://auth.docker.io/token?service=registry.docker.io&scope=repository:${IMAGE}:pull" \
+| $JQ -r '.token'`
+
+#
+# save the manifest, in case we need it later
+#
+${CURL} --silent \
+--request 'GET' \
+--header "Authorization: Bearer ${TOKEN}" \
+"https://registry-1.docker.io/v2/${IMAGE}/manifests/${TAG}" > ${MFILE}
+
+#
+# if we've already got the layer, use that
+#
+# uniquify the list, although only the null layer will be duplicated
+#
+cat ${MFILE} | $JQ -r '.fsLayers[].blobSum' |sort | uniq > $blobsums
+NLAYERS=$(wc -l $blobsums|awk '{print $1}')
+ILAYER=0
+echo "Downloading"
+while read BLOBSUM
+do
+    ILAYER=$(($ILAYER+1))
+    echo "${ILAYER}/${NLAYERS} $BLOBSUM"
+    if [ ! -f ${LDIR}/${BLOBSUM}.gz ]; then
+	 ${CURL} --silent --location \
+		 --request 'GET' \
+		 --header "Authorization: Bearer ${TOKEN}" \
+		 "https://registry-1.docker.io/v2/${IMAGE}/blobs/${BLOBSUM}" \
+		 > ${LDIR}/${BLOBSUM}.gz
+    fi
+done < $blobsums
+
+# Clean up 
+rm -f $blobsums

@@ -1,0 +1,150 @@
+#!/bin/sh
+#
+# unpack docker image, optionally with tag
+#
+ZAPLIBDIR="/usr/lib/zap"
+
+#
+# commands we need
+#
+JQ=/usr/bin/jq
+if [ ! -x $JQ ]; then
+    echo "Missing utility $JQ"
+    exit 1
+fi
+TAR=/usr/gnu/bin/tar
+if [ ! -x $TAR ]; then
+    echo "Missing utility $TAR"
+    exit 1
+fi
+
+usage() {
+    echo "Usage: $0 directory image [tag]"
+    exit 1
+}
+
+case $# in
+    0)
+	usage
+	;;
+    1)
+	usage
+	;;
+    2)
+	DESTDIR="$1"
+	IMAGE="$2"
+	TAG="latest"
+	;;
+    3)
+	DESTDIR="$1"
+	IMAGE="$2"
+	TAG="$3"
+	;;
+    *)
+	usage
+	;;
+esac
+
+	
+#
+# bare words are really "library/xxx"
+#
+case $IMAGE in
+    */*)
+	DLNAME=${IMAGE//\//_}
+	;;
+    *)
+	DLNAME="library_$IMAGE"
+	IMAGE="library/${IMAGE}"
+	;;
+esac
+
+#
+# DESTDIR must be an absolute path
+# and must not exist
+#
+case $DESTDIR in
+    /*)
+	if [ -e "${DESTDIR}" ]; then
+	    echo "ERROR: destination already exists"
+	    exit 1
+	fi
+	;;
+    *)
+	echo "ERROR: destination must be an absolute path"
+	exit 1
+	;;
+esac
+
+CACHEDIR=`${ZAPLIBDIR}/zap-cfg ${CTXARGS} docker-dir`
+MDIR=${CACHEDIR}/manifests
+LDIR=${CACHEDIR}/layers
+
+MFILE="${MDIR}/${DLNAME}-${TAG}.manifest"
+
+if [ ! -f "${MFILE}" ]; then
+    echo "ERROR: cannot find manifest for $IMAGE"
+    exit 1
+fi
+
+blobsums="/tmp/blobsums-$(uuidgen).txt"
+
+#
+# we've downloaded the layers, first verify them
+#
+# uniquify the list, although only the null layer will be duplicated
+#
+cat ${MFILE} | $JQ -r '.fsLayers[].blobSum' | sort | uniq > $blobsums
+echo "Verifying layers"
+while read BLOBSUM
+do
+    if [ -f ${LDIR}/${BLOBSUM}.gz ]; then
+	CKSCHEME=${BLOBSUM%%:*}
+	CKSUM=${BLOBSUM#*:}
+	VSUM=$(openssl ${CKSCHEME} ${LDIR}/${BLOBSUM}.gz)
+	VSUM=${VSUM#* }
+	if [ "X$CKSUM" != "X$VSUM" ]; then
+	    echo "ERROR: corrupt layer ${BLOBSUM}"
+	    exit 1
+	fi
+    else
+	echo "ERROR: missing layer ${BLOBSUM}"
+	exit 1
+    fi
+done < $blobsums
+
+#
+# now unpack
+#
+# they're listed in stacking order, with the top layer at the top
+# or first, so need to reverse
+#
+cat ${MFILE} | $JQ -r '.fsLayers[].blobSum' | rev -l > $blobsums
+NLAYERS=$(wc -l $blobsums|awk '{print $1}')
+ILAYER=0
+mkdir -p ${DESTDIR}
+if [ ! -d ${DESTDIR} ]; then
+    echo "ERROR: missing destination"
+    exit 1
+fi
+cd $DESTDIR
+echo "Unpacking $NLAYERS layers"
+while read BLOBSUM
+do
+    ILAYER=$(($ILAYER+1))
+    echo "${ILAYER}/${NLAYERS} $BLOBSUM"
+    $TAR xf ${LDIR}/${BLOBSUM}.gz
+    for fname in `find . -name '.wh.*'`
+    do
+	ofname=${fname/.wh./}
+	if [ -f "${ofname}" ]; then
+	    rm -f ${ofname}
+	else
+	    echo "unhandled whiteout ${fname}"
+	fi
+	rm -f ${fname}
+    done
+done < $blobsums
+
+# Clean up 
+rm -f $blobsums
