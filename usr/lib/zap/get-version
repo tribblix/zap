@@ -29,12 +29,15 @@ do
     for repo in $repolist
     do
 	if [ -f ${CFGDIR}/repositories/${repo}.catalog ]; then
-	    FPKG=`/usr/bin/nawk -F'|' '{if ($1 == npkg) print $1"."$2}' npkg=${PKG} ${CFGDIR}/repositories/${repo}.catalog`
-	    if [ -n "$FPKG" ]; then
-		echo "${FPKG} ${repo}"
-		PFOUND="y"
-		break
-	    fi
+	    IFS='|'
+	    while read npkg nver line
+	    do
+		if [ "$npkg" = "$PKG" ]; then
+		    echo "${npkg}.${nver} ${repo}"
+		    PFOUND="y"
+		    break 2
+		fi
+	    done < ${CFGDIR}/repositories/${repo}.catalog
 	fi
     done
     if [ -z "$PFOUND" ]; then
