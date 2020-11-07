@@ -391,3 +391,17 @@ TRIBxorg-driver-video-radeonhd
 TRIBxfce-ambiance-radiance
 TRIBdrv-graphics-nvidia
 TRIBabiword28
+TRIBawscli-python-27
+TRIBboto3-python-27
+TRIBbotocore-python-27
+TRIBcolorama-python-27
+TRIBdateutil-python-27
+TRIBfutures-python-27
+TRIBjmespath-python-27
+TRIBrsa-python-27
+TRIBs3transfer-python-27
+TRIByaml-python-27
+TRIBpip-python-27
+TRIBurllib3-python-27
+TRIBpysocks-python-27
+TRIBvirtualenv-python-27
