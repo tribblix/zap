@@ -1,8 +1,12 @@
 #!/bin/ksh
 
 ZAPLIBDIR="/usr/lib/zap"
+ODIR="/var/sadm/overlays"
+INSTODIR="${ODIR}"
+CFGODIR="${ODIR}"
 PKGARGS=""
 DESTROOT=""
+SRCARGS=""
 NINSTALLED=0
 NFAILED=0
 DOPKGS=""
@@ -18,6 +22,9 @@ case $1 in
 	    echo "ERROR: alternate root $DESTROOT doesn't exist"
 	    exit 1
 	fi
+	CFGODIR="${DESTROOT}/${ODIR}"
+	INSTODIR="${DESTROOT}/${ODIR}"
+	OVLARGS="-C ${DESTROOT}"
 	;;
 esac
 
@@ -31,6 +38,8 @@ case $1 in
 	    echo "ERROR: alternate root $DESTROOT doesn't exist"
 	    exit 1
 	fi
+	INSTODIR="${DESTROOT}/${ODIR}"
+	OVLARGS="-R ${DESTROOT}"
 	;;
 esac
 
@@ -49,6 +58,7 @@ fi
 case $1 in
 -s)
 	SRCEXTRA="$2"
+	SRCARGS="-s ${SRCEXTRA}"
 	shift
 	shift
 	if [ ! -d "$SRCEXTRA" ]; then
@@ -65,6 +75,19 @@ case $# in
 	exit 1
 	;;
 esac
+
+#
+# if we're passed an overlay, treat it as such
+#
+for ovl in $*
+do
+    if [ -f ${INSTODIR}/${ovl}.ovl ]; then
+	if [ ! -f ${INSTODIR}/installed/${ovl} ]; then
+	    echo "Installing matching overlay $ovl"
+	    ${ZAPLIBDIR}/install-overlay ${OVLARGS} ${SRCARGS} $ovl
+	fi
+    fi
+done
 
 #
 # first look for and download any packages we need
