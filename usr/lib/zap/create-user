@@ -27,10 +27,7 @@ PASSWD_FILE="/etc/passwd"
 GROUP_FILE="/etc/group"
 
 #
-# TODO: -R for alternate root (ie, zones, installer)
 # TODO: auths and profiles
-#
-# TODO: check homedir is absolute
 #
 
 #
@@ -104,8 +101,11 @@ fi
 if [ -n "$USER_GROUP" ]; then
     GRPENTRY=`/usr/bin/nawk -v X=$USER_GROUP -F: '{if ($1 == X) print $0}' $GROUP_FILE`
     if [ -z "$GRPENTRY" ]; then
-	echo "ERROR: group $USER_GROUP does not exist"
-	exit 1
+	GRPENTRY=`/usr/bin/nawk -v X=$USER_GROUP -F: '{if ($3 == X) print $0}' $GROUP_FILE`
+	if [ -z "$GRPENTRY" ]; then
+	    echo "ERROR: group $USER_GROUP does not exist"
+	    exit 1
+	fi
     fi
 fi
 #
@@ -152,6 +152,10 @@ if [ -z "$USER_DIR" ]; then
     fi
     USER_DIR=${BASE_DIR}/${USER_NAME}
 else
+    if [ ${USER_DIR:0:1} != / ]; then
+	echo "ERROR: home directory must be an abolute path"
+	exit 1
+    fi
     BASE_DIR=${USER_DIR%/*}
     if [ ! -d "$BASE_DIR" ]; then
 	echo "ERROR: parent $BASE_DIR for home directory not found"
@@ -177,7 +181,7 @@ if [ -n "${USER_UID}" ]; then
 	echo "ERROR: uid too large"
 	exit 1
     fi
-    # the follwoing check also catches not-a-number
+    # the following check also catches not-a-number
     if [ ${USER_UID} -le ${SYS_UID_MIN} ]; then
 	echo "ERROR: uid too small (or invalid)"
 	exit 1
