@@ -23,18 +23,17 @@ USER_COMMENT=""
 BASE_DIR="/export/home"
 USER_DIR=""
 USER_SHELL="/usr/bin/bash"
+PROFILE=""
 PASSWD_FILE="/etc/passwd"
 GROUP_FILE="/etc/group"
-
-#
-# TODO: auths and profiles
-#
+PROFILE_FILE="/etc/security/prof_attr"
 
 #
 # the options cdgsu here mirror useradd
 # and all are optional
+# P only accepts a single profile
 #
-while getopts "c:d:g:s:u:" opt; do
+while getopts "c:d:g:s:u:P:" opt; do
 case $opt in
 c)
 	USER_COMMENT="$OPTARG"
@@ -50,6 +49,9 @@ s)
 	;;
 u)
 	USER_UID="$OPTARG"
+	;;
+P)
+	PROFILE="$OPTARG"
 	;;
 esac
 done
@@ -167,6 +169,16 @@ if [ -d "${USER_DIR}" ]; then
     exit 1
 fi
 #
+# check profile for -P is valid
+#
+if [ -n "${PROFILE}" ]; then
+    PROFENTRY=`/usr/bin/nawk -v X="${PROFILE}" -F: '{if ($1 == X) print $0}' $PROFILE_FILE`
+    if [ -z "$PROFENTRY" ]; then
+	echo "ERROR: profile ${PROFILE} not recognised"
+	exit 1
+    fi
+fi
+#
 # if a uid was supplied it must not be in use
 # and if we aren't given a group then the uid mustn't be
 # is use as a gid either
@@ -229,4 +241,8 @@ if [ -z "${USER_GROUP}" ]; then
     USER_GROUP="${USER_NAME}"
 fi
 
-/usr/sbin/useradd -m -Z -c "${USER_COMMENT}" -s "${USER_SHELL}" -d "${USER_DIR}" -g "${USER_GROUP}" -u "${USER_UID}" ${USER_NAME}
+if [ -n "${PROFILE}" ]; then
+    /usr/sbin/useradd -m -Z -c "${USER_COMMENT}" -P "${PROFILE}" -s "${USER_SHELL}" -d "${USER_DIR}" -g "${USER_GROUP}" -u "${USER_UID}" ${USER_NAME}
+else
+    /usr/sbin/useradd -m -Z -c "${USER_COMMENT}" -s "${USER_SHELL}" -d "${USER_DIR}" -g "${USER_GROUP}" -u "${USER_UID}" ${USER_NAME}
+fi
