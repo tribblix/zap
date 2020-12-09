@@ -85,6 +85,9 @@ do
 	    echo "Ambiguity for ca: please use catalan or canada"
 	    exit 0
 	    ;;
+	canad*)
+	    LPKGLIST="${LPKGLIST} en en-extra fr fr-extra"
+	    ;;
 	catalan*)
 	    LPKGLIST="${LPKGLIST} ca ca-extra"
 	    ;;
