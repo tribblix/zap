@@ -337,6 +337,8 @@ TRIBrbtools-python-27
 TRIBtexttable-python-27
 TRIBtqdm-python-27
 SUNWiconv-unicode
+SUNWPython
+SUNWPython-devel
 SUNWuiu8
 TRIBdev-java-jdk
 TRIBjava
@@ -405,3 +407,10 @@ TRIBpip-python-27
 TRIBurllib3-python-27
 TRIBpysocks-python-27
 TRIBvirtualenv-python-27
+TRIBwebkit127
+TRIBgstreamer
+TRIBgstreamer-plugins-base
+TRIBgstreamer-plugins-good
+TRIBv-openssl11
+TRIBterminal-lilyterm
+TRIBvte-pct
