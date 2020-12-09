@@ -1,0 +1,44 @@
+ZAP and user accounts
+=====================
+
+The zap utility allows you to create and delete users on your system.
+
+The syntax is
+
+  zap create-user [flags] username
+
+or
+
+  zap delete-user username
+
+The valid flags for create-user, all of which are optional, are:
+
+-c comment
+
+A textual description of this account, often the user's full name.
+
+-d homedir
+
+The new user's home directory. If not given, /export/home/username
+will be used.
+
+-g gid
+
+You can specify the name or id of an existing group that you wish to
+use as this user's primary group. If not given, a new group with the
+same id and name as the new user will be created and used.
+
+-u uid
+
+You can specify the numeric id for the new user. If not given, a free
+id will be allocated.
+
+-s shell
+
+You can specify the shell for the new user. If not given,
+/usr/bin/bash will be used.
+
+-P "profile"
+
+You can specify an execution profile to be allocated to the new
+user. For example, "Primary Administrator".

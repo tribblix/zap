@@ -10,7 +10,7 @@ In this process:
  - the version of zap appropriate to the new release is installed in
    the alternate boot environment
 
- - all the overlays and packages in the alternate boor environment are
+ - all the overlays and packages in the alternate boot environment are
    updated
 
  - the alternate boot environment is activated and booted into

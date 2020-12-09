@@ -30,6 +30,9 @@ case $# in
     remove-locale)
       HELP_FILE=${HELP_DIR}/help.add-locale.txt
       ;;
+    delete-user)
+      HELP_FILE=${HELP_DIR}/help.create-user.txt
+      ;;
     *)
       HELP_FILE=${HELP_DIR}/help.${1}.txt
       ;;
