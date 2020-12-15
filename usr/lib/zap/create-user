@@ -4,7 +4,7 @@
 #
 
 usage() {
-    echo "Usage: $0 [-c comment] [-d homedir] [-g gid] [-u uid] [-s shell] name"
+    echo "Usage: $0 [-c comment] [-d homedir] [-g gid] [-u uid] [-s shell] [-P profile] name"
     exit 1
 }
 
