@@ -3,7 +3,7 @@
 # update a package (if necessary)
 #
 # note that the check isn't that the available version is newer than the
-# installed verson, merely that it's different
+# installed version, merely that it's different
 #
 # note also that if called with multiple packages, they are handled
 # sequentially and in isolation
