@@ -7,14 +7,16 @@ the zone.
 
 The syntax of the subcommand is:
 
-create-zone -z zone_name [-t whole|sparse|alien|lx|s10]
-    [-T template] [-I image_file]
-    [-i ip_address] [-x ip_address] [-R ip_network/prefix]
-    [-B] [-d extra_dir] [-o overlay] [-O overlay]
-    [-S|-s shared_dir] [-U user] [-D dataset]
-    [-6] [-n number] [-F flow_props]
+create-zone -z zone_name [-t whole|sparse|alien|bhyve|lx|s10]
+    [-T template] [-I image_file] [-U user]
+    [-i ip_address] [-x ip_address] [-R ip_network/prefix] [-6]
+    [-d extra_dir] [-o overlay] [-O overlay]
+    [-S|-s shared_dir] [-D dataset] [-v volume | -V volsize]
+    [-B] [-n number] [-F flow_props] [-m ram_size] [-f firmware]
 
-Supplying the zone_name is mandatory; all other arguments are optional.
+Supplying the zone_name is mandatory; all other arguments are
+optional. Not all arguments are relevant to all zone types, and not
+all zone types will be available on all systems.
 
 The -t flag specifies the zone type, which may be whole, sparse, or
 alien. For a whole-root zone, the zone has its own copy of all
@@ -22,7 +24,9 @@ required file systems. In a sparse-root zone the file systems
 containing the operating system - /lib, /usr, and /sbin - are
 inherited read-only from the global zone (or an alternate source - see
 the -T flag). An alien-root zone contains file systems derived from an
-image of an alternative illumos distribution. If running an LX-enabled
+image of an alternative illumos distribution. If bhyve is installed,
+the bhyve zone type is also available, allowing the construction of
+virtual machines using the bhyve hypervisor. If running an LX-enabled
 variant, the lx zone type is also available, allowing construction of
 a Linux zone. The default is to create a sparse-root zone. If the
 TRIBsys-zones-brand-s10 package is installed, then you can create a
@@ -89,6 +93,14 @@ template.
 
 For s10 zones, the -I flag specifies the absolute path to an image
 from a Solaris 10 physical system.
+
+For bhyve zones, the -I flag specifies an ISO image as the bhyve
+virtual machine's CDROM drive. The -m flag specifies the memory to be
+allocated to the virtual machine, default 1G. The -V flag specifies
+the size of a ZFS volume to be used as the bhyve virtual machine's
+hard disk. The -v flag specifies an existing volume to be used as the
+bhyve virtual machine's hard disk. The -f flag specifies the firmware
+image to be used.
 
 For alien and lx zones, the -I flag can specify either the absolute
 path to an image file or a logical image to be downloaded. For an

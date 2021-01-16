@@ -22,6 +22,7 @@
 #  -n create this many zones, all the same
 #  -6 set up link-local ipv6 addresses
 #  -F create a flow with the given properties
+#  -f bhyve firmware (in /usr/share/bhyve/firmware)
 #  -v existing zvol for bhyve to use
 #  -V size of new volume for bhyve
 #  -m ram size for bhyve
@@ -63,6 +64,7 @@ BHYVEVOL=""
 BHYVEVOLSIZE=""
 BHYVERAM=""
 BHYVEPOOL="rpool"
+BHYVEFW=BHYVE_RELEASE
 
 #
 # these associative arrays track the interface to address mapping
@@ -85,7 +87,7 @@ usage() {
     if [ -f /usr/lib/brand/bhyve/platform.xml ]; then
 	BHYVEUSAGE="|bhyve"
 	VOLUSAGE=" [-v volume | -V volsize]"
-	MEMUSAGE=" [-m ram_size]"
+	MEMUSAGE=" [-m ram_size] [-f firmware]"
     fi
     echo "Usage: $0 -z zone_name [-t whole|sparse|alien${BHYVEUSAGE}${LXUSAGE}${S10USAGE}]"
     echo "  [-T template] [-I image_file] [-U user]"
@@ -97,7 +99,7 @@ usage() {
     exit 1
 }
 
-while getopts "6BT:t:z:i:x:R:I:o:O:d:D:s:S:U:n:K:F:v:V:m:" opt; do
+while getopts "6BT:t:z:i:x:R:I:o:O:d:D:s:S:U:n:K:F:f:v:V:m:" opt; do
 case $opt in
 6)
 	DOIP6="Y"
@@ -165,6 +167,9 @@ K)
 	;;
 F)
 	FLOWPROPS="$OPTARG"
+	;;
+f)
+	BHYVEFW="$OPTARG"
 	;;
 v)
 	BHYVEVOL="$OPTARG"
@@ -336,6 +341,14 @@ bhyve)
 	if [ ! -f /var/sadm/overlays/installed/bhyve ]; then
 	    echo "ERROR: bhyve not found - is it available?"
 	    echo "  To install, zap install-overlay bhyve"
+	    usage
+	fi
+	if [ ! -d /usr/share/bhyve/firmware ]; then
+	    echo "ERROR: bhyve firmware not found - is it available?"
+	    usage
+	fi
+	if [ ! -f /usr/share/bhyve/firmware/${BHYVEFW}.fd ]; then
+	    echo "ERROR: requested bhyve firmware $BHYVEFW not found"
 	    usage
 	fi
 	if [[ -n $ZTEMPLATE ]]; then
@@ -1269,7 +1282,7 @@ if [[ $ZBRAND = bhyve ]]; then
     echo add attr
     echo set name=bootrom
     echo set type=string
-    echo set value=BHYVE_RELEASE
+    echo set value=${BHYVEFW}
     echo end
     echo add attr
     echo set name=acpi
