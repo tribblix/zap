@@ -175,7 +175,7 @@ case $SCHEME in
 		DLNAME="proxmox-alpine-3.12.tar.xz"
 		;;
 	    arch|archlinux)
-		DLFILE="archlinux-base_20200508-1_amd64.tar.gz"
+		DLFILE="archlinux-base_20201116-1_amd64.tar.gz"
 		DLNAME="proxmox-archlinux.tar.gz"
 		echo "WARN: arch is not supported by the LX brand"
 		;;
@@ -188,7 +188,7 @@ case $SCHEME in
 		DLNAME="proxmox-centos-7.tar.xz"
 		;;
 	    centos-8)
-		DLFILE="centos-8-default_20191016_amd64.tar.xz"
+		DLFILE="centos-8-default_20201210_amd64.tar.xz"
 		DLNAME="proxmox-centos-8.tar.xz"
 		;;
 	    debian-6)
@@ -208,8 +208,12 @@ case $SCHEME in
 		DLNAME="proxmox-debian-9.tar.gz"
 		;;
 	    debian-10)
-		DLFILE="debian-10-standard_10.5-1_amd64.tar.gz"
+		DLFILE="debian-10-standard_10.7-1_amd64.tar.gz"
 		DLNAME="proxmox-debian-10.tar.gz"
+		;;
+	    devuan|devuan-3)
+		DLFILE="devuan-3.0-standard_3.0_amd64.tar.gz"
+		DLNAME="proxmox-devuan-3.tar.gz"
 		;;
 	    fedora-24)
 		DLFILE="fedora-24-default_20161207_amd64.tar.xz"
@@ -244,16 +248,24 @@ case $SCHEME in
 		DLNAME="proxmox-fedora-31.tar.xz"
 		;;
 	    fedora-32)
-		DLFILE="fedora-32-default_20020430_amd64.tar.xz"
+		DLFILE="fedora-32-default_20200430_amd64.tar.xz"
 		DLNAME="proxmox-fedora-32.tar.xz"
+		;;
+	    fedora-33)
+		DLFILE="fedora-33-default_20201115_amd64.tar.xz"
+		DLNAME="proxmox-fedora-33.tar.xz"
 		;;
 	    gentoo)
 		DLFILE="gentoo-current-default_20200310_amd64.tar.xz"
 		DLNAME="proxmox-gentoo.tar.xz"
 		echo "WARN: gentoo is not supported by the LX brand"
 		;;
-	    opensuse-42|opensuse)
+	    opensuse-42)
 		DLFILE="opensuse-42.3-default_20171214_amd64.tar.xz"
+		DLNAME="proxmox-opensuse-42.tar.xz"
+		;;
+	    opensuse-15|opensuse)
+		DLFILE="opensuse-15.2-default_20200824_amd64.tar.xz"
 		DLNAME="proxmox-opensuse-42.tar.xz"
 		;;
 	    ubuntu-*)
