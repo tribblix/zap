@@ -71,6 +71,7 @@ TRIBopenjdk8u201
 TRIBopenjdk8u212
 TRIBopenjdk8u222
 TRIBopenjdk8u232
+TRIBopenjdk8u242
 TRIBlibxml2-python-276
 TRIBv-python-276
 TRIBv-python-335
@@ -264,6 +265,7 @@ TRIBhttpie-python-36
 TRIBhttplib2-python-36
 TRIBdjango-python-36
 TRIBdjango2-python-36
+TRIBdjango2-python-37
 TRIBnose-python-36
 TRIBpsutil-python-36
 TRIBprettytable-python-36
@@ -416,3 +418,5 @@ TRIBgstreamer-plugins-good
 TRIBv-openssl11
 TRIBterminal-lilyterm
 TRIBvte-pct
+TRIBicedtea-web
+TRIBpkgsrc
