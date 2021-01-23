@@ -276,6 +276,11 @@ TRIBalien)
 	fi
 	;;
 SUNWsolaris10)
+	if [ ! -f /etc/zones/SUNWsolaris10.xml ]; then
+	    echo "ERROR: s10 brand not found"
+	    echo "  To install, zap install TRIBsys-zones-brand-s10"
+	    usage
+	fi
 	if [[ -n $ZTEMPLATE ]]; then
 	    echo "ERROR: templates must be sparse-root"
 	    usage
@@ -334,13 +339,13 @@ SUNWlx)
 	IMGFLAG="-t"
 	;;
 bhyve)
-	if [ ! -f /usr/lib/brand/bhyve/platform.xml ]; then
-	    echo "ERROR: bhyve not found - is it available?"
+	if [ ! -f /var/sadm/overlays/installed/bhyve ]; then
+	    echo "ERROR: bhyve not found"
+	    echo "  To install, zap install-overlay bhyve"
 	    usage
 	fi
-	if [ ! -f /var/sadm/overlays/installed/bhyve ]; then
+	if [ ! -f /usr/lib/brand/bhyve/platform.xml ]; then
 	    echo "ERROR: bhyve not found - is it available?"
-	    echo "  To install, zap install-overlay bhyve"
 	    usage
 	fi
 	if [ ! -d /usr/share/bhyve/firmware ]; then
