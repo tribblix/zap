@@ -1289,6 +1289,15 @@ if [[ $ZBRAND = bhyve ]]; then
     echo set type=string
     echo set value=off
     echo end
+    case $ZISOFILE in
+	*omnios*|*tribblix*|*hipster*|XStream*)
+    echo add attr
+    echo set name=xhci
+    echo set type=string
+    echo set value=off
+    echo end
+        ;;
+    esac
     if [[ -n $BHYVERAM ]]; then
 	echo add attr
 	echo set name=ram
