@@ -174,7 +174,7 @@ remove-locale)
 	;;
 create-user)
 	shift
-	exec ${ZAPLIBDIR}/create-user $*
+	exec ${ZAPLIBDIR}/create-user "$@"
 	;;
 delete-user)
 	shift
