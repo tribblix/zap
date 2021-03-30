@@ -828,6 +828,25 @@ bhyve)
 	# require an image if we're not passed a prefilled volume
 	if [[ -n $ZISOFILE ]]; then
 	    if [[ $ZISOFILE != /* ]]; then
+		#
+		# check validity of the name
+		#
+		DLFILE=`${ZAPLIBDIR}/retrieve-image -n $ZISOFILE`
+		if [[ $DLFILE = /* ]]; then
+		    if [ -f $DLFILE ]; then
+			echo "Using cached image $DLFILE for $ZISOFILE"
+			ZISOFILE="$DLFILE"
+		    else
+			echo "Downloading $ZISOFILE"
+			DLFILE=`${ZAPLIBDIR}/retrieve-image $ZISOFILE`
+			if [ -f $DLFILE ]; then
+			    echo "Using downloaded image $DLFILE for $ZISOFILE"
+			    ZISOFILE="$DLFILE"
+			fi
+		    fi
+		fi
+	    fi
+	    if [[ $ZISOFILE != /* ]]; then
 		echo "ERROR: image name must be absolute or specify a valid download"
 		usage
 	    fi
