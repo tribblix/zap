@@ -96,6 +96,32 @@ case $SCHEME in
 	CKURL="${DLPREFIX}${RELDIR}/${DLNAME}.sha256"
 	CKNAME="${DLNAME}.sha256"
 	;;
+    tribblix)
+	DLPREFIX="https://pkgs.tribblix.org/iso/"
+	DLSUFFIX=".iso"
+	TRIBTYPE="tribblix"
+	#
+	# we expect a marker of the form m##[.#] or m##lx[.#]
+	#
+	RELVER=${1#*:}
+	#
+	# allow specification without the leading 0
+	#
+	case $RELVER in
+	    m*)
+		RELVER="0${RELVER}"
+		;;
+	esac
+	case $RELVER in
+	    *lx*)
+		TRIBTYPE="omnitribblix"
+		;;
+	esac
+	DLNAME="${TRIBTYPE}-${RELVER}${DLSUFFIX}"
+	URL="${DLPREFIX}/${DLNAME}"
+	CKURL="${DLPREFIX}/${DLNAME}.sha256"
+	CKNAME="${DLNAME}.sha256"
+	;;
     ubuntu)
 	#
 	# these are the cloud images https://cloud-images.ubuntu.com/
