@@ -72,6 +72,8 @@ TRIBopenjdk8u212
 TRIBopenjdk8u222
 TRIBopenjdk8u232
 TRIBopenjdk8u242
+TRIBopenjdk8u252
+TRIBopenjdk8u262
 TRIBlibxml2-python-276
 TRIBv-python-276
 TRIBv-python-335
@@ -131,6 +133,7 @@ TRIBv-go-19
 TRIBv-go-110
 TRIBv-go-111
 TRIBv-go-112
+TRIBv-go-113
 TRIBgnu-ghostscript
 TRIBperl-510
 TRIBperl-510-extra
@@ -420,3 +423,6 @@ TRIBterminal-lilyterm
 TRIBvte-pct
 TRIBicedtea-web
 TRIBpkgsrc
+TRIBgtkimageview
+TRIBgtkglext
+TRIBpangox-compat
