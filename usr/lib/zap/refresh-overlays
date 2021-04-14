@@ -43,7 +43,7 @@ refresh_repo() {
 	mv ${CFGDIR}/repositories/${frepo}.overlays.tmp ${CFGDIR}/repositories/${frepo}.overlays
 	/usr/bin/awk -F'|' '{print $1}' ${CFGDIR}/repositories/${frepo}.overlays | while read novl
 	do
-	    ${ZAPLIBDIR}/get-overlay-meta $novl | read tovl nver trepo
+	    ${ZAPLIBDIR}/get-overlay-meta ${CTXARGS} $novl | read tovl nver trepo
 	    #
 	    # check that this repo is the authoritative source for this overlay
 	    #
