@@ -302,6 +302,9 @@ $DOIT /usr/bin/cp -p /etc/zones/index ${ALTROOT}/etc/zones/index.pre-upgrade
 $DOIT /usr/bin/cp -p /etc/default/init ${ALTROOT}/etc/default/init
 $DOIT /usr/bin/cp -p /etc/ipadm/ipadm.conf ${ALTROOT}/etc/ipadm/ipadm.conf
 $DOIT /usr/bin/cp -p /etc/dladm/* ${ALTROOT}/etc/dladm
+$DOIT /usr/bin/cp -p /var/adm/utmpx ${ALTROOT}/var/adm
+$DOIT /usr/bin/cp -p /var/adm/wtmpx ${ALTROOT}/var/adm
+$DOIT /usr/bin/cp -p /var/log/syslog ${ALTROOT}/var/log
 grep /swap /etc/vfstab >> ${ALTROOT}/etc/vfstab
 #
 # FIXME: these 2 often get mangled, need fixing properly
