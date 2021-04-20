@@ -194,7 +194,11 @@ $DOIT ${ZAPLIBDIR}/instzap -R $ALTROOT ${CACHE_DIR}/${NPKG} TRIBzap
 # must refresh the overlays and catalog, as contents and dependencies
 # may have changed
 #
-$DOIT /usr/bin/zap -C ${ALTROOT} refresh-overlays
+# unfortunately old versions of refresh-overlays do not correctly
+# handle alternate contexts, so make sure we use a fixed copy
+#
+#$DOIT /usr/bin/zap -C ${ALTROOT} refresh-overlays
+$DOIT ${ALTROOT}/${ZAPLIBDIR}/refresh-overlays -C ${ALTROOT}
 #
 # first we must update SUNWcsd
 #
