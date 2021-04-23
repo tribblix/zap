@@ -428,3 +428,17 @@ TRIBgtkimageview
 TRIBgtkglext
 TRIBpangox-compat
 TRIBgtksourceview
+TRIBjsonschema-python-27
+TRIBfunctools32-python-27
+TRIBjsonrpclib-python-27
+TRIBprettytable-python-27
+TRIBply-python-27
+TRIBsimplejson-python-27
+TRIBsetuptools-python-27
+TRIBpyasn1-python-27
+TRIBpycurl-python-27
+TRIBpyopenssl-27
+TRIBcryptography-python-27
+TRIBenum-python-27
+TRIBidna-python-27
+TRIBipaddress-python-27
