@@ -728,7 +728,7 @@ fi
 #
 # if given users to share, verify they and their home directory exist
 # the assumption is that the user and their home directory
-# are local, hence the explict check against /etc/passwd rather than
+# are local, hence the explicit check against /etc/passwd rather than
 # getent which may select from a nameservice
 #
 if [[ -n $ZUSERS ]]; then
