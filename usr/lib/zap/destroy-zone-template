@@ -22,12 +22,12 @@ done
 
 if [[ -z $TNAME ]]; then
    echo "ERROR: template name must be specified"
-   usage
+   exit 1
 fi
 
 #
 # the naming convention for the template adds a TRIBtemplate- prefix
-# check for conflicts
+# check it exists
 #
 TBRANDFILE="/etc/zones/TRIBtemplate-${TNAME}.xml"
 if [ ! -f "$TBRANDFILE" ]; then
