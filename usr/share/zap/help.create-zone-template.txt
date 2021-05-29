@@ -1,14 +1,21 @@
-ZAP and zone creation
-=====================
+ZAP and zone templates
+======================
 
-The zap utility allows you to create zones with a given specification
-and control the software installed in the zone.
+The zap utility allows you to create template zones to a given
+specification which can then be used to create sparse root zones.
 
 The syntax of the subcommand is:
 
-create-zone-template -T template_name [-d extra_dir] [-o overlay] [-O overlay]
+create-zone-template [-t whole|alien] -T template_name
+  [-d extra_dir] [-o overlay] [-O overlay] [-I image_file]
 
 Supplying the template_name is mandatory; other arguments are optional.
+
+The -t flag specifies the type of template zone. The default (whole)
+is to construct a whole-root template based on the global zone.
+Alternatively, with the alien type, it is possible to create a
+template from an image in the same way as an alien-root zone is
+created.
 
 The -T flag specifies the name of a template. Once constructed, this
 template can be used as the argument to the -T flag of 'zap
@@ -31,6 +38,10 @@ can be used multiple times to add multiple overlays. Unlike the -o flag
 which specifies that the template contains a subset of the packages in
 the global zone, the -O flag adds extra packages, and does not require
 the overlays or packages to be present in the global zone.
+
+The -I flag specifies an image for an alien template. For an alien
+template, the -I flag is required, and the -o and -O flags must not be
+used.
 
 A note on implementation: the templates can be found under
 /export/zone-templates.

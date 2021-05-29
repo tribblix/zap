@@ -5,26 +5,37 @@
 # Usage:
 #
 #  -T name of template
+#  -t brand - whole, alien [default whole]
+#  -I image file to install for alien template
 #  -d directory to create [can be multiple]
 #  -o overlay for partial root [can be multiple, passed to install]
 #  -O add overlay [can be multiple, passed to install]
 #
 
+ZAPLIBDIR="/usr/lib/zap"
 ZROOTBASE="/export/zone-templates"
+ZBRAND=whole
+ZISOFILE=""
 ZOVERLAY=""
 ZADDOVERLAY=""
 ZDIRS=""
 
 usage() {
-  echo "Usage: $0 -T template_name"
-  echo "  [-d extra_dir] [-o overlay] [-O overlay]"
+  echo "Usage: $0 [-t whole|alien] -T template_name"
+  echo "  [-d extra_dir] [-I image_file] [-o overlay] [-O overlay]"
   exit 1
 }
 
-while getopts "T:o:O:d:" opt; do
+while getopts "T:t:I:o:O:d:" opt; do
 case $opt in
 T)
 	TNAME="$OPTARG"
+	;;
+t)
+	ZBRAND="$OPTARG"
+	;;
+I)
+	ZISOFILE="$OPTARG"
 	;;
 o)
 	ZOVERLAY="${ZOVERLAY} $OPTARG"
@@ -60,6 +71,63 @@ if [ -f "$TBRANDFILE" ]; then
 fi
 
 #
+# check valid brand
+#
+case $ZBRAND in
+    whole)
+	if [[ -n $ZISOFILE ]]; then
+	    echo "ERROR: an image is valid only for alien templates"
+	    exit 1
+	fi
+	;;
+    alien)
+	if [[ -z $ZISOFILE ]]; then
+	    echo "ERROR: an image is required for alien templates"
+	    exit 1
+	fi
+	if [[ -n $ZOVERLAY ]]; then
+	    echo "ERROR: cannot specify overlays for alien templates"
+	    exit 1
+	fi
+	if [[ -n $ZADDOVERLAY ]]; then
+	    echo "ERROR: cannot specify overlays for alien templates"
+	    exit 1
+	fi
+	if [[ $ZISOFILE != /* ]]; then
+	    #
+	    # check validity of the name
+	    #
+	    DLFILE=`${ZAPLIBDIR}/retrieve-image -n $ZISOFILE`
+	    if [[ $DLFILE = /* ]]; then
+		if [ -f $DLFILE ]; then
+		    echo "Using cached image $DLFILE for $ZISOFILE"
+		    ZISOFILE="$DLFILE"
+		else
+		    echo "Downloading $ZISOFILE"
+		    DLFILE=`${ZAPLIBDIR}/retrieve-image $ZISOFILE`
+		    if [ -f $DLFILE ]; then
+			echo "Using downloaded image $DLFILE for $ZISOFILE"
+			ZISOFILE="$DLFILE"
+		    fi
+		fi
+	    fi
+	fi
+	if [[ $ZISOFILE != /* ]]; then
+	    echo "ERROR: image name must be absolute or specify a valid download"
+	    usage
+	fi
+	if [ ! -f $ZISOFILE ]; then
+	    echo "ERROR: specified image not found"
+	    usage
+	fi
+	;;
+    *)
+	echo "ERROR: invalid brand $ZBRAND"
+	exit 1
+	;;
+esac
+
+#
 # check any overlays are valid
 # -o - error if this overlay isn't installed
 # -o/-O - error if this is not a valid overlay 
@@ -86,12 +154,15 @@ done
 create_install_opts() {
 for OVL in $ZOVERLAY
 do
-	printf " -o $OVL"
+    printf " -o $OVL"
 done
 for OVL in $ZADDOVERLAY
 do
-	printf " -O $OVL"
+    printf " -O $OVL"
 done
+if [[ -n $ZISOFILE ]]; then
+    printf " -i $ZISOFILE"
+fi
 }
 
 #
@@ -126,7 +197,7 @@ fi
 # we want to specify just the zone root, but have to supply a zone name
 # as well
 #
-/usr/lib/brand/whole-root/pkgcreatezone -T -R ${ZROOTBASE}/${TNAME} -z template-${TNAME} `create_install_opts`
+/usr/lib/brand/${ZBRAND}-root/pkgcreatezone -T -R ${ZROOTBASE}/${TNAME} -z template-${TNAME} `create_install_opts`
 
 #
 # Now create a zone xml file that matches the template locations
