@@ -457,3 +457,6 @@ SUNWxvnc
 TRIBwapiti3-python-37
 TRIBwapiti3-python-39
 TRIBx11-libxmuu
+TRIBblix-libmcrypt
+TRIBblix-libmhash
+TRIBblix-mcrypt
