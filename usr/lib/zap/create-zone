@@ -24,7 +24,7 @@
 #  -F create a flow with the given properties
 #  -f bhyve firmware (in /usr/share/bhyve/firmware)
 #  -v existing zvol for bhyve to use
-#  -V size of new volume for bhyve
+#  -V size of new volume for bhyve (may be repeated)
 #  -m ram size for bhyve
 #
 # FIXMES:
@@ -61,7 +61,7 @@ NCMDLINE=""
 SYSIDCFGFILE=""
 FLOWPROPS=""
 BHYVEVOL=""
-BHYVEVOLSIZE=""
+BHYVEVOLSIZES=""
 BHYVERAM=""
 BHYVEPOOL="rpool"
 BHYVEFW=BHYVE_RELEASE
@@ -175,7 +175,7 @@ v)
 	BHYVEVOL="$OPTARG"
 	;;
 V)
-	BHYVEVOLSIZE="$OPTARG"
+	BHYVEVOLSIZES="${BHYVEVOLSIZES} ${OPTARG}"
 	;;
 m)
 	BHYVERAM="$OPTARG"
@@ -380,11 +380,11 @@ bhyve)
 	#
 	# volume checks
 	#
-	if [[ -z $BHYVEVOL && -z $BHYVEVOLSIZE ]]; then
+	if [[ -z $BHYVEVOL && -z $BHYVEVOLSIZES ]]; then
 	    echo "ERROR: bhyve zones require either a zvol or size"
 	    usage
 	fi
-	if [[ -n $BHYVEVOL && -n $BHYVEVOLSIZE ]]; then
+	if [[ -n $BHYVEVOL && -n $BHYVEVOLSIZES ]]; then
 	    echo "ERROR: bhyve zones require only one of zvol or size"
 	    usage
 	fi
@@ -489,7 +489,7 @@ if [[ -n $BHYVEVOL && $ZBRAND != bhyve ]]; then
     echo "ERROR: -v option only valid for bhyve"
     usage
 fi
-if [[ -n $BHYVEVOLSIZE && $ZBRAND != bhyve ]]; then
+if [[ -n $BHYVEVOLSIZES && $ZBRAND != bhyve ]]; then
     echo "ERROR: -V option only valid for bhyve"
     usage
 fi
@@ -503,11 +503,14 @@ if [[ -n $BHYVERAM ]]; then
 	usage
     fi
 fi
-if [[ -n $BHYVEVOLSIZE ]]; then
-    if [[ $BHYVEVOLSIZE != *G && $BHYVEVOLSIZE != *M ]]; then
-	echo "ERROR: -V must be in G or M"
-	usage
-    fi
+if [[ -n $BHYVEVOLSIZES ]]; then
+    for BHYVEVOLSIZE in $BHYVEVOLSIZES
+    do
+	if [[ $BHYVEVOLSIZE != *G && $BHYVEVOLSIZE != *M ]]; then
+	    echo "ERROR: -V must be in G or M"
+	    usage
+	fi
+    done
 fi
 
 #
@@ -1275,15 +1278,25 @@ fi
 #
 # for bhyve, there's a list of attributes we need
 #
+# the initial disk must be called "bootdisk", then the remainder
+# are called "diskN", where N must start from zero
+#
 if [[ $ZBRAND = bhyve ]]; then
-    echo add device
-    echo set match=/dev/zvol/rdsk/${BHYVEVOL}
-    echo end
-    echo add attr
-    echo set name=bootdisk
-    echo set type=string
-    echo set value=${BHYVEVOL}
-    echo end
+    VOLNUM=0
+    VOLSTR="bootdisk"
+    for BHYVEVOL in $BHYVEVOLS
+    do
+	echo add device
+	echo set match=/dev/zvol/rdsk/${BHYVEVOL}
+	echo end
+	echo add attr
+	echo set name=${VOLSTR}
+	echo set type=string
+	echo set value=${BHYVEVOL}
+	echo end
+	VOLSTR=disk${VOLNUM}
+	VOLNUM=$(($VOLNUM+1))
+    done
     if [[ -n $ZISOFILE ]]; then
 	echo add fs
 	echo set dir=${ZISOFILE}
@@ -1491,25 +1504,28 @@ done
 if [[ $ZBRAND = bhyve ]]; then
     BHYVEPOOL=rpool
     if [[ -z $BHYVEVOL ]]; then
-	if [[ -n $BHYVEVOLSIZE ]]; then
-	    VOLENUM=0
-	    BVOLNAME=${ZNAME}_bhvol${VOLENUM}
-	    /usr/sbin/zfs get type ${BHYVEPOOL}/${BVOLNAME} > /dev/null 2>&1
-	    ZESTATUS=$?
-	    while [ $ZESTATUS -eq 0 ]
+	if [[ -n $BHYVEVOLSIZES ]]; then
+	    for BHYVEVOLSIZE in $BHYVEVOLSIZES
 	    do
-		VOLENUM=$(($VOLENUM+1))
+		VOLENUM=0
 		BVOLNAME=${ZNAME}_bhvol${VOLENUM}
 		/usr/sbin/zfs get type ${BHYVEPOOL}/${BVOLNAME} > /dev/null 2>&1
 		ZESTATUS=$?
+		while [ $ZESTATUS -eq 0 ]
+		do
+		    VOLENUM=$(($VOLENUM+1))
+		    BVOLNAME=${ZNAME}_bhvol${VOLENUM}
+		    /usr/sbin/zfs get type ${BHYVEPOOL}/${BVOLNAME} > /dev/null 2>&1
+		    ZESTATUS=$?
+		done
+		/usr/sbin/zfs create -V $BHYVEVOLSIZE ${BHYVEPOOL}/${BVOLNAME}
+		BHYVEVOLS="${BHYVEVOLS} ${BHYVEPOOL}/${BVOLNAME}"
+		if [ ! -f ${ZSDIR}/destroy.${ZNAME} ]; then
+		    echo "#!/bin/sh" > ${ZSDIR}/destroy.${ZNAME}
+		    /usr/bin/chmod a+x ${ZSDIR}/destroy.${ZNAME}
+		fi
+		echo "/usr/sbin/zfs destroy ${BHYVEPOOL}/${BVOLNAME}" >> ${ZSDIR}/destroy.${ZNAME}
 	    done
-	    /usr/sbin/zfs create -V $BHYVEVOLSIZE ${BHYVEPOOL}/${BVOLNAME}
-	    BHYVEVOL=${BHYVEPOOL}/${BVOLNAME}
-	    if [ ! -f ${ZSDIR}/destroy.${ZNAME} ]; then
-		echo "#!/bin/sh" > ${ZSDIR}/destroy.${ZNAME}
-		/usr/bin/chmod a+x ${ZSDIR}/destroy.${ZNAME}
-	    fi
-	    echo "/usr/sbin/zfs destroy ${BHYVEPOOL}/${BVOLNAME}" >> ${ZSDIR}/destroy.${ZNAME}
 	else
 	    echo "ERROR: bhyve volume logic error"
 	    exit 1
