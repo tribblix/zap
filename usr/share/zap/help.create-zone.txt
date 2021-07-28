@@ -99,7 +99,7 @@ virtual machine's CDROM drive. The -m flag specifies the memory to be
 allocated to the virtual machine, default 1G. The -f flag specifies
 the firmware image to be used. The -v flag specifies an existing
 volume to be used as the bhyve virtual machine's hard disk. The -V
-flag specifies the size of a ZFS volume which wiuill be created to be
+flag specifies the size of a ZFS volume which will be created to be
 used as the bhyve virtual machine's hard disk. Multiple instances of
 -V will create multiple disk devices for the bhyve guest.
 
