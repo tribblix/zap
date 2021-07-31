@@ -442,6 +442,11 @@ TRIBcryptography-python-27
 TRIBenum-python-27
 TRIBidna-python-27
 TRIBipaddress-python-27
+TRIBlibxml2-python-27
+TRIBdocutils-python-27
+TRIBpycparser-python-27
+TRIBcffi-python-27
+TRIBcertifi-python-27
 SUNWxwinc
 SUNWxwopt
 SUNWxwice
