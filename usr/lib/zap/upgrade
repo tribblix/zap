@@ -195,10 +195,10 @@ $DOIT ${ZAPLIBDIR}/instzap -R $ALTROOT ${CACHE_DIR}/${NPKG} TRIBzap
 # may have changed
 #
 # unfortunately old versions of refresh-overlays do not correctly
-# handle alternate contexts, so make sure we use a fixed copy
+# handle alternate contexts, so use a fixed copy from the new BE
 #
-#$DOIT /usr/bin/zap -C ${ALTROOT} refresh-overlays
 $DOIT ${ALTROOT}/${ZAPLIBDIR}/refresh-overlays -C ${ALTROOT}
+$DOIT ${ALTROOT}/${ZAPLIBDIR}/refresh-filelist -C ${ALTROOT}
 #
 # first we must update SUNWcsd
 #
@@ -340,18 +340,6 @@ for zname in `/usr/sbin/zoneadm list -icp | awk -F: '{if ($6 == "alien-root") pr
 do
     grep "^${zname}:" /etc/zones/index >> ${ALTROOT}/etc/zones/index
 done
-
-#
-# FIXME - bootloader switch
-#
-# Originally, the upgrade script forced grub as the bootloader on
-# upgrade. This is clearly wrong now that new installs start with the
-# new loader, as we would then force a switch to the old grub.
-# Therefore, we no longer force anything. However, that still leaves
-# systems that were installed with loader but then had grub forced
-# on upgrade, which will then be switched at the *next* upgrade.
-# We need to check for that and undo the grub selection in that case.
-#
 
 #
 # need to update the boot archive
