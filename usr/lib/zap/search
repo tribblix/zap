@@ -47,13 +47,13 @@ fi
 #
 npkg=`${ZAPLIBDIR}/resolve-alias $PKG`
 if [ "X${PKG}" != "X${npkg}" ]; then
-    echo Match: $PKG is an alias for $npkg
+    echo $PKG is an alias for $npkg
 fi
 
 #
 # look for packages in overlays
 #
-/usr/bin/grep $PKG ${DESTROOT}/var/sadm/overlays/*.pkgs | while read match
+for match in $(/usr/bin/grep $PKG ${DESTROOT}/var/sadm/overlays/*.pkgs)
 do
     OVL=${match%%:*}
     OVL=${OVL##*/}
@@ -70,7 +70,7 @@ do
 	else
 	   PSTATUS="Uninstalled"
 	fi
-	echo Match: ${PSTATUS} package $FPKG in ${OSTATUS} overlay $OVL
+	echo ${PSTATUS} package $FPKG in ${OSTATUS} overlay $OVL
 	pmap[$FPKG]="$PSTATUS"
     fi
 done
@@ -78,7 +78,7 @@ done
 #
 # then search the catalogs
 #
-cat ${DESTROOT}/etc/zap/repositories/*.catalog | awk -F'|' '{print $1}' | /usr/bin/grep $PKG | while read FPKG
+for FPKG in $(awk -F'|' -v pkg=$PKG '{if ($1 ~ pkg) print $1}' ${DESTROOT}/etc/zap/repositories/*.catalog)
 do
     if [[ -z ${pmap[$FPKG]} ]]; then
 	if [ -d ${DESTROOT}/var/sadm/pkg/${FPKG} ]; then
@@ -86,6 +86,7 @@ do
 	else
 	   PSTATUS="Uninstalled"
 	fi
-	echo Match: ${PSTATUS} package $FPKG
+	echo ${PSTATUS} package $FPKG
+	pmap[$FPKG]="$PSTATUS"
     fi
 done
