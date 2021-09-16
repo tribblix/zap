@@ -75,6 +75,7 @@ TRIBopenjdk8u232
 TRIBopenjdk8u242
 TRIBopenjdk8u252
 TRIBopenjdk8u262
+TRIBopenjdk8u272
 TRIBlibxml2-python-276
 TRIBv-python-276
 TRIBv-python-335
@@ -466,3 +467,15 @@ TRIBblix-libmcrypt
 TRIBblix-libmhash
 TRIBblix-mcrypt
 TRIBxfce-notes-plugin
+TRIBcurio-python-37
+TRIBtoml-python-37
+TRIBmcross-python-37
+TRIBgoogle-api-core-python-37
+TRIBgoogle-auth-python-37
+TRIBgoogle-api-python-37
+TRIBgapi-common-python-37
+TRIBgauth-h2-python-37
+TRIBprotobuf-python-37
+TRIBhttplib2-python-37
+TRIBuritemplate-python-37
+TRIBwfuzz-python-37
