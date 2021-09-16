@@ -150,6 +150,12 @@ case $SCHEME in
 	    focal)
 		RELVER="20.04"
 		;;
+	    groovy)
+		RELVER="20.10"
+		;;
+	    hirsute)
+		RELVER="21.04"
+		;;
 	esac
 	URL="${DLPREFIX}${RELVER}/release/ubuntu-${RELVER}-server-cloudimg-amd64-root${DLSUFFIX}"
 	CKURL="${DLPREFIX}${RELVER}/release/SHA256SUMS"
@@ -200,6 +206,14 @@ case $SCHEME in
 		DLFILE="alpine-3.12-default_20200823_amd64.tar.xz"
 		DLNAME="proxmox-alpine-3.12.tar.xz"
 		;;
+	    alpine-3.13)
+		DLFILE="alpine-3.13-default_20210419_amd64.tar.xz"
+		DLNAME="proxmox-alpine-3.13.tar.xz"
+		;;
+	    alpine-3.14)
+		DLFILE="alpine-3.14-default_20210623_amd64.tar.xz"
+		DLNAME="proxmox-alpine-3.14.tar.xz"
+		;;
 	    arch|archlinux)
 		DLFILE="archlinux-base_20201116-1_amd64.tar.gz"
 		DLNAME="proxmox-archlinux.tar.gz"
@@ -236,6 +250,10 @@ case $SCHEME in
 	    debian-10)
 		DLFILE="debian-10-standard_10.7-1_amd64.tar.gz"
 		DLNAME="proxmox-debian-10.tar.gz"
+		;;
+	    debian-11)
+		DLFILE="debian-11-standard_11.0-1_amd64.tar.gz"
+		DLNAME="proxmox-debian-11.tar.gz"
 		;;
 	    devuan|devuan-3)
 		DLFILE="devuan-3.0-standard_3.0_amd64.tar.gz"
@@ -280,6 +298,10 @@ case $SCHEME in
 	    fedora-33)
 		DLFILE="fedora-33-default_20201115_amd64.tar.xz"
 		DLNAME="proxmox-fedora-33.tar.xz"
+		;;
+	    fedora-34)
+		DLFILE="fedora-34-default_20210427_amd64.tar.xz"
+		DLNAME="proxmox-fedora-34.tar.xz"
 		;;
 	    gentoo)
 		DLFILE="gentoo-current-default_20200310_amd64.tar.xz"
