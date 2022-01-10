@@ -542,3 +542,8 @@ TRIBv-python-38-tests
 TRIBv-python-38-tkinter
 TRIBsix-python-38
 TRIBsix-python-27
+TRIBfastimport-python-37
+TRIBexifread-python-37
+TRIBpatiencediff-python-37
+TRIBlibcloud-python-37
+TRIBmsgpack-python-37
