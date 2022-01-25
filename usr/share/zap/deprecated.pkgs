@@ -556,3 +556,6 @@ TRIBcached-property-python-37
 TRIBconfigargparse-python-37
 TRIBborg-python-37
 TRIBxdg-python-27
+TRIBasgiref-python-37
+TRIBsqlparse-python-37
+TRIBdjango3-python-37
