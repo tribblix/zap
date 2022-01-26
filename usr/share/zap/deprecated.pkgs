@@ -559,3 +559,6 @@ TRIBxdg-python-27
 TRIBasgiref-python-37
 TRIBsqlparse-python-37
 TRIBdjango3-python-37
+TRIBbcrypt-python-37
+TRIBpynacl-python-37
+TRIBparamiko-python-37
