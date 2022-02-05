@@ -563,3 +563,7 @@ TRIBdjango3-python-37
 TRIBbcrypt-python-37
 TRIBpynacl-python-37
 TRIBparamiko-python-37
+TRIBpandas-python-37
+TRIBscipy-python-37
+TRIBnumpy-python-37
+TRIBpybind11-python-37
