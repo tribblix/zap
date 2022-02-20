@@ -586,3 +586,8 @@ TRIBgnureadline-python-37
 TRIBmako-python-37
 TRIBcrtsh-python-37
 TRIBnose-python-37
+TRIBdetect-secrets-python-37
+TRIBhttpie-python-37
+TRIBpillow-python-37
+TRIBdefusedxml-python-37
+TRIBdulwich-python-37
