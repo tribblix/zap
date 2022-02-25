@@ -613,3 +613,6 @@ TRIBpackaging-python-37
 TRIBbabel-python-37
 TRIBmarkupsafe-python-37
 TRIBpyparsing-python-37
+TRIBmeson-python-37
+TRIBtqdm-python-37
+TRIBlibxml2-python-37
