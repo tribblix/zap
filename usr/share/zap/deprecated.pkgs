@@ -616,3 +616,7 @@ TRIBpyparsing-python-37
 TRIBmeson-python-37
 TRIBtqdm-python-37
 TRIBlibxml2-python-37
+TRIBawscli-python-37
+TRIBrsa-python-37
+TRIBcolorama-python-37
+TRIBpyasn1-python-37
