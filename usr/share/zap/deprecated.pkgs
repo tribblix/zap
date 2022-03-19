@@ -622,3 +622,7 @@ TRIBcolorama-python-37
 TRIBpyasn1-python-37
 TRIBecdsa-python-37
 TRIBecdsa-python-39
+TRIBaws-ecs-cli
+TRIBdocker-pycreds-python-39
+TRIBdocker-python-39
+TRIBwebsocket-python-39
