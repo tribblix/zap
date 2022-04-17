@@ -14,6 +14,7 @@ TRIBv-thunderbird-24
 TRIBv-thunderbird-31
 TRIBv-thunderbird-38
 TRIBv-thunderbird-45
+TRIBv-thunderbird-52
 TRIBv-apache-ant-184
 TRIBv-apache-ant-193
 TRIBv-apache-maven-33
@@ -77,6 +78,8 @@ TRIBopenjdk8u252
 TRIBopenjdk8u262
 TRIBopenjdk8u272
 TRIBopenjdk8u282
+TRIBopenjdk8u292
+TRIBopenjdk8u292-src
 TRIBlibxml2-python-276
 TRIBv-python-276
 TRIBv-python-335
@@ -689,3 +692,4 @@ TRIBzipp-python-37
 TRIBsetup-scm-python-37
 TRIBmore-itertools-python-37
 TRIBtoml-python-37
+TRIBperl-522-module-sun-solaris
