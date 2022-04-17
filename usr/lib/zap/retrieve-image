@@ -71,7 +71,7 @@ case $SCHEME in
 	DLNAME=${1##*/}
 	;;
     omnios|omniosce)
-	DLPREFIX="https://downloads.omniosce.org/media/"
+	DLPREFIX="https://downloads.omnios.org/media/"
 	DLSUFFIX=".zfs.bz2"
 	#
 	# we expect a marker of the form r1510XX[y] or bloody
@@ -91,7 +91,7 @@ case $SCHEME in
 		RELDIR=${RELVER:0:7}
 		;;
 	esac
-	DLNAME="omniosce-${RELVER}${DLSUFFIX}"
+	DLNAME="omnios-${RELVER}${DLSUFFIX}"
 	URL="${DLPREFIX}${RELDIR}/${DLNAME}"
 	CKURL="${DLPREFIX}${RELDIR}/${DLNAME}.sha256"
 	CKNAME="${DLNAME}.sha256"
@@ -214,8 +214,12 @@ case $SCHEME in
 		DLFILE="alpine-3.14-default_20210623_amd64.tar.xz"
 		DLNAME="proxmox-alpine-3.14.tar.xz"
 		;;
+	    alpine-3.15)
+		DLFILE="alpine-3.15-default_20211202_amd64.tar.xz"
+		DLNAME="proxmox-alpine-3.15.tar.xz"
+		;;
 	    arch|archlinux)
-		DLFILE="archlinux-base_20201116-1_amd64.tar.gz"
+		DLFILE="archlinux-base_20211202-1_amd64.tar.gz"
 		DLNAME="proxmox-archlinux.tar.gz"
 		echo "WARN: arch is not supported by the LX brand"
 		;;
@@ -252,12 +256,16 @@ case $SCHEME in
 		DLNAME="proxmox-debian-10.tar.gz"
 		;;
 	    debian-11)
-		DLFILE="debian-11-standard_11.0-1_amd64.tar.gz"
+		DLFILE="debian-11-standard_11.3-1_amd64.tar.gz"
 		DLNAME="proxmox-debian-11.tar.gz"
 		;;
-	    devuan|devuan-3)
+	    devuan-3)
 		DLFILE="devuan-3.0-standard_3.0_amd64.tar.gz"
 		DLNAME="proxmox-devuan-3.tar.gz"
+		;;
+	    devuan|devuan-4)
+		DLFILE="devuan-4.0-standard_4.0_amd64.tar.gz"
+		DLNAME="proxmox-devuan-4.tar.gz"
 		;;
 	    fedora-24)
 		DLFILE="fedora-24-default_20161207_amd64.tar.xz"
@@ -303,6 +311,10 @@ case $SCHEME in
 		DLFILE="fedora-34-default_20210427_amd64.tar.xz"
 		DLNAME="proxmox-fedora-34.tar.xz"
 		;;
+	    fedora-35)
+		DLFILE="fedora-35-default_20211111_amd64.tar.xz"
+		DLNAME="proxmox-fedora-35.tar.xz"
+		;;
 	    gentoo)
 		DLFILE="gentoo-current-default_20200310_amd64.tar.xz"
 		DLNAME="proxmox-gentoo.tar.xz"
@@ -313,8 +325,8 @@ case $SCHEME in
 		DLNAME="proxmox-opensuse-42.tar.xz"
 		;;
 	    opensuse-15|opensuse)
-		DLFILE="opensuse-15.2-default_20200824_amd64.tar.xz"
-		DLNAME="proxmox-opensuse-42.tar.xz"
+		DLFILE="opensuse-15.3-default_20210925_amd64.tar.xz"
+		DLNAME="proxmox-opensuse-15.tar.xz"
 		;;
 	    ubuntu-*)
 		UVER=${RELVER:7:11}
