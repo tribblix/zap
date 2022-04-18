@@ -127,5 +127,5 @@ a dataset, the argument is taken as a parent and each zone will get
 a dataset named after the zone name.
 
 The -F flag allows the specification of flow properties, specifically
-maxbw and priority, and will create a flow using flowadm(1M). Configuring
+maxbw and priority, and will create a flow using flowadm(8). Configuring
 a flow requires an exclusive-ip zone.
