@@ -135,3 +135,8 @@ remove-locale name [name...]
 
   This subcommand allows you to remove locales. Run 'zap help remove-locale'
   for details.
+
+staticnet [-y]
+
+  This subcommand converts the network configuration from dynamic
+  using nwam to a fixed static configuration.

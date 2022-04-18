@@ -192,6 +192,10 @@ copy-repo)
 	shift
 	exec ${ZAPLIBDIR}/copy-repo $*
 	;;
+staticnet)
+	shift
+	exec ${ZAPLIBDIR}/staticnet-nwam.sh $*
+	;;
 help)
 	shift
 	exec ${ZAPLIBDIR}/zap-help $*
