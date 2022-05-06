@@ -1,0 +1,60 @@
+#!/bin/ksh
+#
+# This is a helper for install; it will suggest matching packages
+# from the catalog. It will only be called for packages that don't
+# match, so we know the easy matches (overlays, catalogs) have
+# already failed to match
+#
+# also changes the text to be appropriate when called as a "did you mean"
+# helper to install
+#
+
+CFGDIR="/etc/zap"
+ZAPLIBDIR="/usr/lib/zap"
+DESTROOT=""
+PKGARGS=""
+
+case $1 in
+-R)
+	DESTROOT="$2"
+	PKGARGS="-R ${DESTROOT}"
+	shift
+	shift
+	if [ ! -d "$DESTROOT" ]; then
+	    echo "ERROR: alternate root $DESTROOT doesn't exist"
+	    exit 1
+	fi
+	;;
+esac
+
+case $# in
+1)
+	PKG="$1"
+	;;
+*)
+	echo "Usage: zap search [ -R altroot] search_term"
+	exit 1
+	;;
+esac
+
+#
+# keep track of packages we have found
+# so as not to repeat them
+#
+typeset -A pmap
+
+#
+# just search the catalogs
+#
+for FPKG in $(awk -F'|' -v pkg=$PKG '{if ($1 ~ pkg) print $1}' ${DESTROOT}/etc/zap/repositories/*.catalog)
+do
+    if [[ -z ${pmap[$FPKG]} ]]; then
+	if [ -d ${DESTROOT}/var/sadm/pkg/${FPKG} ]; then
+	   PSTATUS="already installed"
+	else
+	   PSTATUS="not installed"
+	fi
+	echo "Did you mean $FPKG (${PSTATUS})?"
+	pmap[$FPKG]="$PSTATUS"
+    fi
+done

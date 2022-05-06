@@ -135,6 +135,7 @@ do
   done
   if [ "$ISINST" = "false" ]; then
     echo "No source for package ${pkg}"
+    ${ZAPLIBDIR}/psearch $pkg
     NFAILED=$(($NFAILED+1))
   else
     NINSTALLED=$(($NINSTALLED+1))
