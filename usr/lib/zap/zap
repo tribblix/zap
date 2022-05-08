@@ -43,16 +43,19 @@ case $1 in
 	;;
 esac
 
+#
+# short names are undocumented
+#
 case $1 in
 upgrade)
 	shift
 	exec ${ZAPLIBDIR}/upgrade $*
 	;;
-retrieve)
+r|get|retrieve)
 	shift
 	exec ${ZAPLIBDIR}/retrieve-pkg ${CTXARGS} $*
 	;;
-install)
+i|ip|add|install)
 	shift
 	exec ${ZAPLIBDIR}/install-pkg ${CTXARGS} $*
 	;;
@@ -60,39 +63,39 @@ install-recursive)
 	shift
 	exec ${ZAPLIBDIR}/install-recursive ${CTXARGS} $*
 	;;
-update)
+up|update)
 	shift
 	exec ${ZAPLIBDIR}/update-package ${CTXARGS} $*
 	;;
-uninstall)
+d|dp|del|delete|uninstall)
 	shift
 	exec ${ZAPLIBDIR}/delpkg ${PKGARGS} $*
 	;;
-install-overlay)
+io|add-overlay|install-overlay)
 	shift
 	exec ${ZAPLIBDIR}/install-overlay ${CTXARGS} $*
 	;;
-update-overlay)
+uo|update-overlay)
 	shift
 	exec ${ZAPLIBDIR}/update-overlay ${CTXARGS} $*
 	;;
-uninstall-overlay)
+do|delete-overlay|uninstall-overlay)
 	shift
 	exec ${ZAPLIBDIR}/uninstall-overlay $*
 	;;
-list-overlays)
+lo|list-overlays)
 	shift
 	exec ${ZAPLIBDIR}/list-overlays $*
 	;;
-verify-overlay)
+vo|verify-overlay)
 	shift
 	exec ${ZAPLIBDIR}/verify-overlay $*
 	;;
-list-packages)
+lp|list-packages)
 	shift
 	exec /usr/bin/pkginfo ${PKGARGS} `${ZAPLIBDIR}/resolve-alias $*`
 	;;
-verify-packages)
+vp|verify-packages)
 	shift
 	exec ${ZAPLIBDIR}/verify-packages $*
 	;;
@@ -128,11 +131,11 @@ set-hostname)
 	shift
 	exec ${ZAPLIBDIR}/set-hostname ${CTXARGS} $*
 	;;
-create-zone)
+cz|create-zone)
 	shift
 	exec ${ZAPLIBDIR}/create-zone $*
 	;;
-destroy-zone)
+dz|destroy-zone)
 	shift
 	exec ${ZAPLIBDIR}/destroy-zone $*
 	;;
@@ -172,11 +175,11 @@ remove-locale)
 	shift
 	exec ${ZAPLIBDIR}/add-locale ${PKGARGS} -d $*
 	;;
-create-user)
+useradd|create-user)
 	shift
 	exec ${ZAPLIBDIR}/create-user "$@"
 	;;
-delete-user)
+userdel|delete-user)
 	shift
 	exec ${ZAPLIBDIR}/delete-user $*
 	;;
@@ -196,7 +199,7 @@ staticnet)
 	shift
 	exec ${ZAPLIBDIR}/staticnet-nwam.sh $*
 	;;
-help)
+h|help)
 	shift
 	exec ${ZAPLIBDIR}/zap-help $*
 	;;
