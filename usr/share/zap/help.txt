@@ -101,6 +101,11 @@ set-hostname hostname | -d domainname
   This subcommand updates the current hostname (and the /etc/nodename
   file) or, with -d, the current domainname.
 
+set-timezone timezone
+
+  This subcommand updates the current timezone and, if appropriate,
+  notifies running processes that it's changed.
+
 create-zone [args]
 
   This subcommand simplifies the creation of non-global zones. Run

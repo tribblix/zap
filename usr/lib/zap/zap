@@ -131,6 +131,10 @@ set-hostname)
 	shift
 	exec ${ZAPLIBDIR}/set-hostname ${CTXARGS} $*
 	;;
+set-timezone)
+	shift
+	exec ${ZAPLIBDIR}/set-timezone ${CTXARGS} $*
+	;;
 cz|create-zone)
 	shift
 	exec ${ZAPLIBDIR}/create-zone $*

@@ -1,0 +1,52 @@
+#!/bin/ksh
+#
+# set the timezone
+#
+
+DESTROOT=""
+case $1 in
+-C|-R)
+	DESTROOT="$2"
+	shift
+	shift
+	if [ ! -d "$DESTROOT" ]; then
+	    echo "ERROR: alternate root $DESTROOT doesn't exist"
+	    exit 1
+	fi
+	;;
+esac
+
+case $# in
+1)
+	NEWTZ="$1"
+	;;
+*)
+	echo "Usage: set-timezone timezone"
+	exit 1
+	;;
+esac
+
+#
+# sanity check
+#
+if [ -z "$NEWTZ" ]; then
+    echo "ERROR: empty timezone"
+    exit 1
+fi
+if [ ! -f "/usr/share/lib/zoneinfo/${NEWTZ}" ]; then
+    echo "ERROR: invalid timezone $NEWTZ"
+    exit 1
+fi
+if [ ! -f ${DESTROOT}/etc/default/init ]; then
+    echo "ERROR: missing init, is that a valid alternate root?"
+    exit 1
+fi
+
+#
+# update /etc/default/init
+# if changing the current environment, trigger tzreload
+#
+sed -i "s:^TZ=\(.*\):TZ=${NEWTZ}:" ${DESTROOT}/etc/default/init
+if [ -z "${DESTROOT}" ]; then
+    /usr/sbin/tzreload
+fi
