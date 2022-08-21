@@ -203,6 +203,10 @@ staticnet)
 	shift
 	exec ${ZAPLIBDIR}/staticnet-nwam.sh $*
 	;;
+unconfigure|sys-unconfig)
+	shift
+	exec ${ZAPLIBDIR}/unconfigure $*
+	;;
 h|help)
 	shift
 	exec ${ZAPLIBDIR}/zap-help $*

@@ -1,0 +1,109 @@
+#!/bin/sh
+#
+# this script may be called as
+#   zap unconfigure
+# or
+#   zap sys-unconfig
+# for those with ancient Solaris muscle memory
+#
+# it will wipe, as far as possible, all configuration and history
+# from the system - the resulting image will be blank and ready for
+# usage anew
+#
+# the primary aim of this script is to generate cloud images
+#
+
+usage() {
+    echo "Usage: $0 [flags]"
+    echo "  where possible flags are"
+    echo "  -a wipe everything possible"
+    echo "  -b clean old boot environments"
+    echo "  -j remove the jack user"
+    echo "  -z delete all non-global zones"
+    echo "  "
+    exit 1
+}
+
+DOBE=""
+DOJACK=""
+DOZONES=""
+
+while getopts "abjz" opt; do
+case $opt in
+a)
+    DOBE="y"
+    DOJACK="y"
+    DOZONES="y"
+    ;;
+b)
+    DOBE="y"
+    ;;
+j)
+    DOJACK="y"
+    ;;
+z)
+    DOZONES="y"
+    ;;
+esac
+done
+
+if [ -n "${DOBE}" ]; then
+    echo "Deleting old boot environments"
+    for BNAME in $(/usr/sbin/beadm list -H | awk -F';' '{if ($3 != "NR" ) print $1}')
+    do
+	/usr/sbin/beadm destroy ${BNAME}
+    done
+fi
+if [ -n "${DOJACK}" ]; then
+    echo "Deleting jack user"
+    zap delete-user -r jack
+fi
+if [ -n "${DOZONES}" ]; then
+    echo "Deleting non-global zones"
+    for ZNAME in $(/usr/sbin/zoneadm list -inc)
+    do
+	zap destroy-zone -z ${ZNAME}
+    done
+fi
+
+#
+# the following are always done, this is mostly around tidying up
+# and removing unnecessary clutter
+#
+zap clean-cache -a
+passwd -N root
+rm /etc/ssh/*key*
+rm -fr /root/.ssh
+rm /root/.bash_history
+rm -f /etc/zap/repositories/*.bak
+# clean all logs
+rm -f /var/adm/messages.*
+cat /dev/null > /var/adm/messages
+cat /dev/null > /var/adm/wtmpx
+cat /dev/null > /var/adm/utmpx
+cat /dev/null > /var/adm/lastlog
+cat /dev/null > /var/adm/lastlog
+rm -f /var/log/syslog.*
+cat /dev/null > /var/log/syslog
+if [ -f /var/log/slim.log ]; then
+  cat /dev/null > /var/log/slim.log
+fi
+if [ -f /var/adm/sulog ]; then
+  cat /dev/null > /var/adm/sulog
+fi
+rm -f /var/log/Xorg*
+cat /dev/null > /var/cron/log
+# and any crash dumps
+rm -f $(find /var/crash -type f)
+# and any saved core files
+rm -f $(find /var/cores -type f)
+# and any mailboxes and messages
+rm -f $(find /var/mail -type f)
+rm -f $(find /var/spool/mqueue -type f)
+rm -f $(find /var/spool/clientmqueue -type f)
+
+# to force device reconfiguration at next boot
+touch /reconfigure
+
+sync
+sync
