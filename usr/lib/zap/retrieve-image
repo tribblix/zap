@@ -178,6 +178,10 @@ case $SCHEME in
 	DLPREFIX="http://download.proxmox.com/images/system/"
 	RELVER=${1#*:}
 	case $RELVER in
+	    alma|almalinux)
+		DLFILE="almalinux-8-default_20210928_amd64.tar.xz"
+		DLNAME="proxmox-almalinux-8.tar.xz"
+		;;
 	    alpine-3.6)
 		DLFILE="alpine-3.6-default_20180913_amd64.tar.xz"
 		DLNAME="proxmox-alpine-3.6.tar.xz"
@@ -217,6 +221,10 @@ case $SCHEME in
 	    alpine-3.15)
 		DLFILE="alpine-3.15-default_20211202_amd64.tar.xz"
 		DLNAME="proxmox-alpine-3.15.tar.xz"
+		;;
+	    alpine-3.16)
+		DLFILE="alpine-3.16-default_20220622_amd64.tar.xz"
+		DLNAME="proxmox-alpine-3.16.tar.xz"
 		;;
 	    arch|archlinux)
 		DLFILE="archlinux-base_20211202-1_amd64.tar.gz"
@@ -315,6 +323,10 @@ case $SCHEME in
 		DLFILE="fedora-35-default_20211111_amd64.tar.xz"
 		DLNAME="proxmox-fedora-35.tar.xz"
 		;;
+	    fedora-36)
+		DLFILE="fedora-36-default_20220622_amd64.tar.xz"
+		DLNAME="proxmox-fedora-36.tar.xz"
+		;;
 	    gentoo)
 		DLFILE="gentoo-current-default_20200310_amd64.tar.xz"
 		DLNAME="proxmox-gentoo.tar.xz"
@@ -328,10 +340,14 @@ case $SCHEME in
 		DLFILE="opensuse-15.3-default_20210925_amd64.tar.xz"
 		DLNAME="proxmox-opensuse-15.tar.xz"
 		;;
+	    rocky|rockylinux)
+		DLFILE="rockylinux-8-default_20210929_amd64.tar.xz"
+		DLNAME="proxmox-rockylinux-8.tar.xz"
+		;;
 	    ubuntu-*)
 		UVER=${RELVER:7:11}
 		#
-		# LTS releases have updates
+		# LTS releases might have updates
 		#
 		UUVER=""
 		case $UVER in
@@ -343,9 +359,6 @@ case $SCHEME in
 			;;
 		    18.04)
 			UUVER=".1"
-			;;
-		    20.04)
-			UUVER=""
 			;;
 		esac
 		DLFILE="ubuntu-${UVER}-standard_${UVER}${UUVER}-1_amd64.tar.gz"
