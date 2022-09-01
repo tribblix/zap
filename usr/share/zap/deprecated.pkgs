@@ -537,6 +537,7 @@ TRIBaws-ecs-cli
 TRIBdocker-pycreds-python-39
 TRIBdocker-python-39
 TRIBwebsocket-python-39
+TRIByaswfp-python-39
 TRIBblix-slony12
 TRIBblix-repmgr12
 TRIBblix-citus12
@@ -608,3 +609,17 @@ TRIBe19-elementary
 TRIBlib-lcms
 TRIBopenexr-viewer
 TRIBilmbase
+TRIBdateparser-python-39
+TRIBelastic-dsl-python-39
+TRIBelasticsearch-python-39
+TRIBgeoip2-python-39
+TRIBhtml2text-python-39
+TRIBimapclient-python-39
+TRIBkafka-python-39
+TRIBlibmaxminddb
+TRIBlxml-python-39
+TRIBmail-parser-python-39
+TRIBmailsuite-python-39
+TRIBmaxminddb-python-39
+TRIBparsedmarc-python-39
+TRIBxmltodict-python-39
