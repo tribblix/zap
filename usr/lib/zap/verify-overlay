@@ -72,8 +72,9 @@ STATUS=0
 #
 # first check dependencies on other overlays
 #
-for novl in `/usr/bin/grep '^REQUIRES=' ${OVL} | /usr/bin/sed s:REQUIRES=::`
+for tovl in `/usr/bin/grep '^REQUIRES=' ${OVL}`
 do
+    novl=${tovl#REQUIRES=}
     if [ ! -f ${ODIR}/installed/${novl} ]; then
 	echo "ERROR: prerequisite overlay ${novl} is not installed"
 	STATUS=1
