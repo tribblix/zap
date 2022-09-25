@@ -2,10 +2,6 @@
 #
 # upgrade to a new version of Tribblix
 #
-# the current upgrade is from m18 (or earlier) to m19
-# which crosses the loader boundary - grub is kept by default,
-# but m20 will be new-loader only
-#
 
 ZAPLIBDIR="/usr/lib/zap"
 CFGDIR="/etc/zap"
