@@ -627,3 +627,5 @@ TRIBparsedmarc-python-39
 TRIBxmltodict-python-39
 TRIBlibwnck
 TRIBqt4
+TRIBsys-lib-processor
+TRIBsys-kernel-dtrace-xdt
