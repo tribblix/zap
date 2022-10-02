@@ -47,6 +47,8 @@ ZISOFILE=""
 IMGFLAG="-i"
 ZOVERLAY=""
 ZADDOVERLAY=""
+ZPACKAGE=""
+ZADDPACKAGE=""
 ZDIRS=""
 ZDATASETS=""
 ZSHARED=""
@@ -92,14 +94,14 @@ usage() {
     echo "Usage: $0 -z zone_name [-t whole|sparse|alien${BHYVEUSAGE}${LXUSAGE}${S10USAGE}]"
     echo "  [-T template] [-I image_file] [-U user]"
     echo "  [-i ip_address] [-x ip_address] [-R ip_network/prefix] [-6]"
-    echo "  [-d extra_dir] [-o overlay] [-O overlay]"
-    echo "  [-S|-s shared_dir] [-D dataset]${VOLUSAGE}"
+    echo "  [-o overlay] [-O overlay] [-p package] [-P package]"
+    echo "  [-d extra_dir] [-S|-s shared_dir] [-D dataset]${VOLUSAGE}"
     echo "  [-B] [-n number_of_zones] [-F flow_props]${MEMUSAGE}"
     #echo "  [-K action=arg[=arg...]]"
     exit 1
 }
 
-while getopts "6BT:t:z:i:x:R:I:o:O:d:D:s:S:U:n:K:F:f:v:V:m:" opt; do
+while getopts "6BT:t:z:i:x:R:I:o:O:p:P:d:D:s:S:U:n:K:F:f:v:V:m:" opt; do
 case $opt in
 6)
 	DOIP6="Y"
@@ -138,6 +140,14 @@ o)
 O)
 	ZADDOVERLAY="${ZADDOVERLAY} $OPTARG"
 	NCMDLINE="${NCMDLINE} -O $OPTARG"
+	;;
+p)
+	ZPACKAGE="${ZPACKAGE} $OPTARG"
+	NCMDLINE="${NCMDLINE} -p $OPTARG"
+	;;
+P)
+	ZADDPACKAGE="${ZADDPACKAGE} $OPTARG"
+	NCMDLINE="${NCMDLINE} -P $OPTARG"
 	;;
 d)
 	ZDIRS="${ZDIRS} $OPTARG"
@@ -239,6 +249,10 @@ TRIBsparse)
 	   echo "ERROR: cannot specify overlays for sparse-root zones"
 	   usage
 	fi
+	if [[ -n $ZPACKAGE || -n $ZADDPACKAGE ]]; then
+	   echo "ERROR: cannot specify packages for sparse-root zones"
+	   usage
+	fi
 	if [[ -n $ZISOFILE ]]; then
 	    echo "ERROR: cannot install a sparse-root zone from an image"
 	    usage
@@ -266,6 +280,10 @@ TRIBalien)
 	   echo "ERROR: cannot specify overlays for alien zones"
 	   usage
 	fi
+	if [[ -n $ZPACKAGE || -n $ZADDPACKAGE ]]; then
+	   echo "ERROR: cannot specify packages for alien zones"
+	   usage
+	fi
 	#
 	# Check that we're given an image to install. It's validated, and
 	# possibly downloaded, after all the other checks have passed
@@ -287,6 +305,10 @@ SUNWsolaris10)
 	fi
 	if [[ -n $ZOVERLAY || -n $ZADDOVERLAY ]]; then
 	   echo "ERROR: cannot specify overlays for s10 zones"
+	   usage
+	fi
+	if [[ -n $ZPACKAGE || -n $ZADDPACKAGE ]]; then
+	   echo "ERROR: cannot specify packages for s10 zones"
 	   usage
 	fi
 	#
@@ -314,6 +336,10 @@ SUNWlx)
 	fi
 	if [[ -n $ZOVERLAY || -n $ZADDOVERLAY ]]; then
 	   echo "ERROR: cannot specify overlays for lx zones"
+	   usage
+	fi
+	if [[ -n $ZPACKAGE || -n $ZADDPACKAGE ]]; then
+	   echo "ERROR: cannot specify packages for lx zones"
 	   usage
 	fi
 	#
@@ -362,6 +388,10 @@ bhyve)
 	fi
 	if [[ -n $ZOVERLAY || -n $ZADDOVERLAY ]]; then
 	   echo "ERROR: cannot specify overlays for bhyve zones"
+	   usage
+	fi
+	if [[ -n $ZPACKAGE || -n $ZADDPACKAGE ]]; then
+	   echo "ERROR: cannot specify packages for bhyve zones"
 	   usage
 	fi
 	#
@@ -776,6 +806,18 @@ do
 	    echo "ERROR: unrecognized overlay ${OVL}"
 	    exit 1
 	fi
+done
+#
+# check any packages are valid
+# -p - error if this package isn't installed
+#
+for APKG in $ZPACKAGE
+do
+    NPKG=$(/usr/lib/zap/resolve-alias $APKG)
+    if [ ! -f /var/sadm/pkg/${NPKG}/pkginfo ]; then
+	echo "ERROR: unrecognized package ${APKG}"
+	exit 1
+    fi
 done
 
 #
@@ -1385,6 +1427,14 @@ done
 for OVL in $ZADDOVERLAY
 do
 	printf " -O $OVL"
+done
+for APKG in $ZPACKAGE
+do
+	printf " -p $APKG"
+done
+for APKG in $ZADDPACKAGE
+do
+	printf " -P $APKG"
 done
 if [[ -n $ZISOFILE && $ZBRAND != bhyve ]]; then
     printf " $IMGFLAG $ZISOFILE"

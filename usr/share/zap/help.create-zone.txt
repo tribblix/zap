@@ -10,7 +10,7 @@ The syntax of the subcommand is:
 create-zone -z zone_name [-t whole|sparse|alien|bhyve|lx|s10]
     [-T template] [-I image_file] [-U user]
     [-i ip_address] [-x ip_address] [-R ip_network/prefix] [-6]
-    [-d extra_dir] [-o overlay] [-O overlay]
+    [-d extra_dir] [-o overlay] [-O overlay] [-p package] [-P package]
     [-S|-s shared_dir] [-D dataset] [-v volume | -V volsize]
     [-B] [-n number] [-F flow_props] [-m ram_size] [-f firmware]
 
@@ -66,6 +66,19 @@ requires that the zone type be specified as whole. Unlike the -o flag
 which specifies that the zone contains a subset of the packages in the
 global zone, the -O flag adds extra packages, and does not require the
 overlays or packages to be present in the global zone.
+
+The -p flag specifies a package to be copied to the zone. This flag
+can be used multiple times to require multiple packages. The use of
+this flag requires that the zone type be specified as whole and for
+the -o flag to be used, and allows you to copy individual packages
+into the new zone.
+
+The -O flag specifies a package to be added to the zone. This flag can
+be used multiple times to add multiple package. The use of this flag
+requires that the zone type be specified as whole. Unlike the -p flag
+which copies a package from the global zone, the -P flag adds extra
+packages, and does not require the package to be present in the global
+zone.
 
 The -S flag specifies a directory (that must be present in the global
 zone) to be shared with the zone. The shared directory will be mounted
