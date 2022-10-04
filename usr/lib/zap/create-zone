@@ -3,29 +3,31 @@
 # Create a zone
 #
 # Usage:
-#  -T template (implies sparse)
-#  -t brand - sparse, whole, alien, s10, bhyve, or lx [default sparse]
-#  -z zone_name - zone name [required]
-#  -i IPv4 address [can be multiple, for shared-ip]
-#  -x IPv4 address [can be multiple, for exclusive-ip]
-#  -R Ipv4 network to proxy, in CIDR notation
-#  -I image file to install for alien, s10, bhyve, or lx zone
+#  -6 set up link-local ipv6 addresses
+#  -B blank boot
 #  -d directory to create [can be multiple]
 #  -D dataset to delegate [will be created if it doesn't exist]
+#  -f bhyve firmware (in /usr/share/bhyve/firmware)
+#  -F create a flow with the given properties
+#  -i IPv4 address [can be multiple, for shared-ip]
+#  -I image file to install for alien, s10, bhyve, or lx zone
+#  -K konfigurator arguments
+#  -m ram size for bhyve
+#  -n create this many zones, all the same
 #  -o overlay for partial root [can be multiple, passed to install]
 #  -O add overlay [can be multiple, passed to install]
-#  -S share directory r/w with the zone
+#  -p package for partial root [can be multiple, passed to install]
+#  -P add package [can be multiple, passed to install]
+#  -R Ipv4 network to proxy, in CIDR notation
 #  -s share directory r/o with the zone
+#  -S share directory r/w with the zone
+#  -t brand - sparse, whole, alien, s10, bhyve, or lx [default sparse]
+#  -T template (implies sparse)
 #  -U share user and their homedir with the zone
-#  -B blank boot
-#  -K konfigurator arguments
-#  -n create this many zones, all the same
-#  -6 set up link-local ipv6 addresses
-#  -F create a flow with the given properties
-#  -f bhyve firmware (in /usr/share/bhyve/firmware)
 #  -v existing zvol for bhyve to use
 #  -V size of new volume for bhyve (may be repeated)
-#  -m ram size for bhyve
+#  -x IPv4 address [can be multiple, for exclusive-ip]
+#  -z zone_name - zone name [required]
 #
 # FIXMES:
 # add full IPv6
@@ -95,13 +97,13 @@ usage() {
     echo "  [-T template] [-I image_file] [-U user]"
     echo "  [-i ip_address] [-x ip_address] [-R ip_network/prefix] [-6]"
     echo "  [-o overlay] [-O overlay] [-p package] [-P package]"
-    echo "  [-d extra_dir] [-S|-s shared_dir] [-D dataset]${VOLUSAGE}"
+    echo "  [-d extra_dir] [-s|-S shared_dir] [-D dataset]${VOLUSAGE}"
     echo "  [-B] [-n number_of_zones] [-F flow_props]${MEMUSAGE}"
     #echo "  [-K action=arg[=arg...]]"
     exit 1
 }
 
-while getopts "6BT:t:z:i:x:R:I:o:O:p:P:d:D:s:S:U:n:K:F:f:v:V:m:" opt; do
+while getopts "6Bd:D:f:F:i:I:K:m:n:o:O:p:P:R:s:S:t:T:U:v:V:x:z:" opt; do
 case $opt in
 6)
 	DOIP6="Y"
