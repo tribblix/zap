@@ -12,6 +12,7 @@
 #  -F create a flow with the given properties
 #  -i IPv4 address [can be multiple, for shared-ip]
 #  -I image file to install for alien, s10, bhyve, or lx zone
+#  -k ssh public key, enables cloud-init
 #  -K konfigurator arguments
 #  -m ram size for bhyve
 #  -n create this many zones, all the same
@@ -71,6 +72,7 @@ BHYVERAM=""
 BHYVEPOOL="rpool"
 BHYVEFW=BHYVE_RELEASE
 CLOUDINIT=""
+SSHKEYFILE=""
 
 #
 # these associative arrays track the interface to address mapping
@@ -100,12 +102,13 @@ usage() {
     echo "  [-i ip_address] [-x ip_address] [-R ip_network/prefix] [-6]"
     echo "  [-o overlay] [-O overlay] [-p package] [-P package]"
     echo "  [-d extra_dir] [-s|-S shared_dir] [-D dataset]${VOLUSAGE}"
-    echo "  [-B] [-c] [-n number_of_zones] [-F flow_props]${MEMUSAGE}"
+    echo "  [-B] [-n number_of_zones] [-F flow_props]${MEMUSAGE}"
+    echo "  [-c] [-k sshkey_file]"
     #echo "  [-K action=arg[=arg...]]"
     exit 1
 }
 
-while getopts "6Bcd:D:f:F:i:I:K:m:n:o:O:p:P:R:s:S:t:T:U:v:V:x:z:" opt; do
+while getopts "6Bcd:D:f:F:i:I:k:K:m:n:o:O:p:P:R:s:S:t:T:U:v:V:x:z:" opt; do
 case $opt in
 6)
 	DOIP6="Y"
@@ -178,6 +181,11 @@ U)
 	;;
 n)
 	NZONES="$OPTARG"
+	;;
+k)
+	SSHKEYFILE="$OPTARG"
+	NCMDLINE="${NCMDLINE} -k $OPTARG"
+	CLOUDINIT="Y"
 	;;
 K)
 	KARGS="${KARGS} $OPTARG"
@@ -549,6 +557,12 @@ if [[ -n $BHYVEVOLSIZES ]]; then
 	    usage
 	fi
     done
+fi
+if [[ -n $SSHKEYFILE ]]; then
+    if [ ! -f "${SSHKEYFILE}" ]; then
+	echo "ERROR: ssh key file $SSHKEYFILE does not exist"
+	usage
+    fi
 fi
 
 #
@@ -1414,6 +1428,15 @@ if [[ $ZBRAND = bhyve ]]; then
 		echo end
 	    fi
 	fi
+	# the file specified here is copied later into the zone at the fixed
+	# location we give here, as cloud-init runs in the zone context
+	if [[ -n $SSHKEYFILE ]]; then
+	    echo add attr
+	    echo set name=sshkey
+	    echo set type=string
+	    echo set value=/sshkey.pub
+	    echo end
+	fi
     fi
 fi
 echo verify
@@ -1719,6 +1742,16 @@ if [[ $ZBRAND = SUNWsolaris10 ]]; then
     /usr/bin/cp ${ZROOTBASE}/${ZNAME}/root/etc/nsswitch.dns ${ZROOTBASE}/${ZNAME}/root/etc/nsswitch.conf
     /usr/bin/cp /etc/.login ${ZROOTBASE}/${ZNAME}/root/etc/.login
     /usr/bin/cp /etc/profile ${ZROOTBASE}/${ZNAME}/root/etc/profile
+fi
+
+#
+# copy an ssh key to wherever the zone might expect it
+#
+if [[ -n $SSHKEYFILE ]]; then
+    if [[ $ZBRAND = bhyve ]]; then
+	# the /sshkey.pub name here must match the zone attribute
+	/usr/bin/cp $SSHKEYFILE ${ZROOTBASE}/${ZNAME}/root/sshkey.pub
+    fi
 fi
 
 #

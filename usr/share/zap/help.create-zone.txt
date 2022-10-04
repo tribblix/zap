@@ -12,7 +12,8 @@ create-zone -z zone_name [-t whole|sparse|alien|bhyve|lx|s10]
     [-i ip_address] [-x ip_address] [-R ip_network/prefix] [-6]
     [-d extra_dir] [-o overlay] [-O overlay] [-p package] [-P package]
     [-S|-s shared_dir] [-D dataset] [-v volume | -V volsize]
-    [-B] [-c] [-n number] [-F flow_props] [-m ram_size] [-f firmware]
+    [-B] [-n number] [-F flow_props] [-m ram_size] [-f firmware]
+    [-c] [-k sshkey_file]
 
 Supplying the zone_name is mandatory; all other arguments are
 optional. Not all arguments are relevant to all zone types, and not
@@ -128,6 +129,10 @@ image names are
 
 The -c flag will build a cloud-init configuration for the zone. This
 is currently only supported for bhyve zones.
+
+The -k flag specifies a file containing an ssh public key that can be
+used to allow passwordless login to the zone via ssh. This is
+currently only supported for bhyve zones and will enable cloud-init.
 
 The -B flag boots the zone as a blank system, with no processes (other
 than init) running. It's the responsibility of the user to run any
