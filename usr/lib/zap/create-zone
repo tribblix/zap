@@ -5,6 +5,7 @@
 # Usage:
 #  -6 set up link-local ipv6 addresses
 #  -B blank boot
+#  -c enable cloud-init
 #  -d directory to create [can be multiple]
 #  -D dataset to delegate [will be created if it doesn't exist]
 #  -f bhyve firmware (in /usr/share/bhyve/firmware)
@@ -69,6 +70,7 @@ BHYVEVOLSIZES=""
 BHYVERAM=""
 BHYVEPOOL="rpool"
 BHYVEFW=BHYVE_RELEASE
+CLOUDINIT=""
 
 #
 # these associative arrays track the interface to address mapping
@@ -98,12 +100,12 @@ usage() {
     echo "  [-i ip_address] [-x ip_address] [-R ip_network/prefix] [-6]"
     echo "  [-o overlay] [-O overlay] [-p package] [-P package]"
     echo "  [-d extra_dir] [-s|-S shared_dir] [-D dataset]${VOLUSAGE}"
-    echo "  [-B] [-n number_of_zones] [-F flow_props]${MEMUSAGE}"
+    echo "  [-B] [-c] [-n number_of_zones] [-F flow_props]${MEMUSAGE}"
     #echo "  [-K action=arg[=arg...]]"
     exit 1
 }
 
-while getopts "6Bd:D:f:F:i:I:K:m:n:o:O:p:P:R:s:S:t:T:U:v:V:x:z:" opt; do
+while getopts "6Bcd:D:f:F:i:I:K:m:n:o:O:p:P:R:s:S:t:T:U:v:V:x:z:" opt; do
 case $opt in
 6)
 	DOIP6="Y"
@@ -112,6 +114,10 @@ case $opt in
 B)
 	ZBLANK="Y"
 	NCMDLINE="${NCMDLINE} -B"
+	;;
+c)
+	CLOUDINIT="Y"
+	NCMDLINE="${NCMDLINE} -c"
 	;;
 T)
 	ZTEMPLATE="$OPTARG"
@@ -1179,6 +1185,11 @@ do
 	echo set physical=znic$ZENUM
 	if [[ -z $DOIP6 ]]; then
 	    echo set allowed-address=$IP/$ZCIDR
+	    # defrouter populates the gateway4 value in cloud-init
+	    ZGW=`get_gateway $XIP4`
+	    if [[ -n $ZGW ]]; then
+		echo set defrouter=$ZGW
+	    fi
 	fi
 	echo end
 	# in S11 allowed-address can be a list, but in illumos
@@ -1385,6 +1396,24 @@ if [[ $ZBRAND = bhyve ]]; then
 	echo set type=string
 	echo set value=$BHYVERAM
 	echo end
+    fi
+    if [[ -n $CLOUDINIT ]]; then
+	echo add attr
+	echo set name=cloud-init
+	echo set type=string
+	echo set value=on
+	echo end
+	# try and get resolvers from resolv.conf
+	if [ -f /etc/resolv.conf ]; then
+	    RESOLVERS=`grep nameserver /etc/resolv.conf | awk '{printf $2","}' | sed 's:,$::'`
+	    if [[ -n $RESOLVERS ]]; then
+		echo add attr
+		echo set name=resolvers
+		echo set type=string
+		echo set value=$RESOLVERS
+		echo end
+	    fi
+	fi
     fi
 fi
 echo verify
