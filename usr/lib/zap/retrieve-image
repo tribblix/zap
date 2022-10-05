@@ -72,7 +72,7 @@ case $SCHEME in
 	;;
     omnios|omniosce)
 	DLPREFIX="https://downloads.omnios.org/media/"
-	DLSUFFIX=".zfs.bz2"
+	DLSUFFIX=".zfs.xz"
 	#
 	# we expect a marker of the form r1510XX[y] or bloody
 	#
@@ -84,7 +84,6 @@ case $SCHEME in
 	case $RELVER in
 	    bloody*)
 		RELDIR="bloody"
-		DLSUFFIX=".zfs.xz"
 		;;
 
 	    *)
