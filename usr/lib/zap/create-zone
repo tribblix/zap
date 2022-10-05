@@ -1350,18 +1350,21 @@ fi
 # the initial disk must be called "bootdisk", then the remainder
 # are called "diskN", where N must start from zero
 #
+# note that we loop over $BHYVEVOLS and $BHYVEVOL, only one will
+# be set
+#
 if [[ $ZBRAND = bhyve ]]; then
     VOLNUM=0
     VOLSTR="bootdisk"
-    for BHYVEVOL in $BHYVEVOLS
+    for BHVOL in $BHYVEVOLS $BHYVEVOL
     do
 	echo add device
-	echo set match=/dev/zvol/rdsk/${BHYVEVOL}
+	echo set match=/dev/zvol/rdsk/${BHVOL}
 	echo end
 	echo add attr
 	echo set name=${VOLSTR}
 	echo set type=string
-	echo set value=${BHYVEVOL}
+	echo set value=${BHVOL}
 	echo end
 	VOLSTR=disk${VOLNUM}
 	VOLNUM=$(($VOLNUM+1))
