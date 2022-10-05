@@ -156,6 +156,12 @@ case $SCHEME in
 	    hirsute)
 		RELVER="21.04"
 		;;
+	    impish)
+		RELVER="21.10"
+		;;
+	    jammy)
+		RELVER="22.04"
+		;;
 	esac
 	URL="${DLPREFIX}${RELVER}/release/ubuntu-${RELVER}-server-cloudimg-amd64-root${DLSUFFIX}"
 	CKURL="${DLPREFIX}${RELVER}/release/SHA256SUMS"
