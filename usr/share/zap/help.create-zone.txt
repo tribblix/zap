@@ -109,13 +109,18 @@ For s10 zones, the -I flag specifies the absolute path to an image
 from a Solaris 10 physical system.
 
 For bhyve zones, the -I flag specifies an ISO image as the bhyve
-virtual machine's CDROM drive. The -m flag specifies the memory to be
-allocated to the virtual machine, default 1G. The -f flag specifies
-the firmware image to be used. The -v flag specifies an existing
-volume to be used as the bhyve virtual machine's hard disk. The -V
-flag specifies the size of a ZFS volume which will be created to be
-used as the bhyve virtual machine's hard disk. Multiple instances of
--V will create multiple disk devices for the bhyve guest.
+virtual machine's CDROM drive. Once the system has been installed from
+the ISO, you need to remove it and reboot the zone, which you can
+conveniently do with the following command:
+  zap remove-cd -z zone_name -r
+
+For bhyve zones, the -m flag specifies the memory to be allocated to
+the virtual machine, default 1G. The -f flag specifies the firmware
+image to be used. The -v flag specifies an existing volume to be used
+as the bhyve virtual machine's hard disk. The -V flag specifies the
+size of a ZFS volume which will be created to be used as the bhyve
+virtual machine's hard disk. Multiple instances of -V will create
+multiple disk devices for the bhyve guest.
 
 For alien and lx zones, the -I flag can specify either the absolute
 path to an image file or a logical image to be downloaded. For an

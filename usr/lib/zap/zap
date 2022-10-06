@@ -207,6 +207,10 @@ unconfigure|sys-unconfig)
 	shift
 	exec ${ZAPLIBDIR}/unconfigure $*
 	;;
+remove-cd|remove-cdrom|remove-iso)
+	shift
+	exec ${ZAPLIBDIR}/remove-cd $*
+	;;
 h|help)
 	shift
 	exec ${ZAPLIBDIR}/zap-help $*
