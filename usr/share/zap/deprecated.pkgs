@@ -76,6 +76,7 @@ TRIBv-go-111
 TRIBv-go-112
 TRIBv-go-113
 TRIBv-go-114
+TRIBv-go-115
 TRIBgnu-ghostscript
 TRIBblix-php-56
 TRIBblix-php-56pg
@@ -630,3 +631,4 @@ TRIBlibwnck
 TRIBqt4
 TRIBsys-lib-processor
 TRIBsys-kernel-dtrace-xdt
+TRIBblix-allmark
