@@ -89,6 +89,12 @@ flag may be specified multiple times to share multiple directories.
 The -s flag is similar to -S, but the directory will be read-only in
 the zone.
 
+For bhyve zones, directories shared with -s and -S will be shared with
+the guest using virtfs. If the guest has 9p support it can mount the
+directories using, for example on Linux
+  mount -t 9p -o trans=virtio,uname=root bhyvefs0 /mnt
+where the shared directories will be tagged bhyvefs0 and so on.
+
 The -D flag specifies a zfs dataset to be delegated to the zone. The
 dataset will be created if it does not exist.
 

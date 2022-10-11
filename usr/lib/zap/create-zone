@@ -460,10 +460,6 @@ bhyve)
 	    echo "ERROR: cannot share datasets for bhyve zones"
 	    usage
 	fi
-	if [[ -n $ZSHARED || -n $ZROSHARED ]]; then
-	    echo "ERROR: cannot share directories for bhyve zones"
-	    usage
-	fi
 	#
 	# the zone installation script expects a different flag
 	# from my alien installer: -s for zfs streams, -t for tarballs
@@ -1407,6 +1403,32 @@ if [[ $ZBRAND = bhyve ]]; then
     echo end
         ;;
     esac
+    # share directories over virtfs
+    # note that the fs configuration has already been done, here
+    # we set the attributes for bhyve to pick them up
+    # note that we set the tag to a standardised "bhyvefsN" rather than a
+    # string derived from the shared name, so that's what you'll need to
+    # mount in the guest, via eg
+    # mount -t 9p -o trans=virtio,uname=root bhyvefs0 /mnt/foo
+    VFSNUM=0
+    for DIR in $ZSHARED
+    do
+	echo add attr
+	echo set name=virtfs${VFSNUM}
+	echo set type=string
+	echo set value=bhyvefs${VFSNUM},${DIR}
+	echo end
+	VFSNUM=$(($VFSNUM+1))
+    done
+    for DIR in $ZROSHARED
+    do
+	echo add attr
+	echo set name=virtfs${VFSNUM}
+	echo set type=string
+	echo set value=bhyvefs${VFSNUM},${DIR},ro
+	echo end
+	VFSNUM=$(($VFSNUM+1))
+    done
     if [[ -n $BHYVERAM ]]; then
 	echo add attr
 	echo set name=ram
