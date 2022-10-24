@@ -1740,8 +1740,7 @@ fi
 #
 if [[ -n ${ZBLANK} ]]; then
     if [ -f ${ZROOTBASE}/${ZNAME}/root/etc/inittab ]; then
-	/usr/bin/mv ${ZROOTBASE}/${ZNAME}/root/etc/inittab ${ZROOTBASE}/${ZNAME}/root/etc/inittab.full
-	/usr/bin/cat ${ZROOTBASE}/${ZNAME}/root/etc/inittab.full | /usr/bin/sed 's:/lib/svc/bin/svc.startd:/usr/bin/sleep Inf:'  > ${ZROOTBASE}/${ZNAME}/root/etc/inittab
+        /usr/bin/sed -i 's:/lib/svc/bin/svc.startd:/usr/bin/sleep Inf:' ${ZROOTBASE}/${ZNAME}/root/etc/inittab
     fi
 fi
 
