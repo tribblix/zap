@@ -632,3 +632,15 @@ TRIBqt4
 TRIBsys-lib-processor
 TRIBsys-kernel-dtrace-xdt
 TRIBblix-allmark
+TRIBgnome-doc-utils
+TRIBlib-perl-5-appconfig
+TRIBlib-perl-5-chart
+TRIBlib-perl-5-dbd-mysql
+TRIBlib-perl-5-gd
+TRIBlib-perl-5-gdgraph
+TRIBlib-perl-5-gdtextutil
+TRIBlib-perl-5-mailtools
+TRIBlib-perl-5-mime-tools
+TRIBlib-perl-5-template
+TRIBlib-perl-5-template-gd
+TRIBlib-perl-5-xml-twig
