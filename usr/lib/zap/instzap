@@ -3,6 +3,17 @@
 # installs a package from a zap file if not already installed
 #
 ZAPLIBDIR="/usr/lib/zap"
+UTEXT=""
+
+#
+# called with -u if part of update
+#
+case $1 in
+-u)
+    UTEXT="new version of "
+    shift
+    ;;
+esac
 
 case $1 in
 -R)
@@ -34,7 +45,7 @@ else
 	echo "Zap source file ${DIR} doesn't exist"
 	exit 1
     fi
-    echo "Installing $PKG"
+    echo "Installing ${UTEXT}$PKG"
     ZTMP=/tmp/zap.tmp.`date '+%F-%T'`.$$
     /usr/bin/rm -fr ${ZTMP}
     /usr/bin/mkdir ${ZTMP}

@@ -116,8 +116,8 @@ do
 	    for SRCDIR in $SRCLIST
 	    do
 		if [ -f ${SRCDIR}/${AVERSION}.zap ]; then
-		    ${ZAPLIBDIR}/delpkg ${PKGARGS} $pkg
-		    ${ZAPLIBDIR}/instzap ${PKGARGS} ${SRCDIR}/${AVERSION}.zap ${pkg}
+		    ${ZAPLIBDIR}/delpkg -u ${PKGARGS} $pkg
+		    ${ZAPLIBDIR}/instzap -u ${PKGARGS} ${SRCDIR}/${AVERSION}.zap ${pkg}
 		    break
 		fi
 	    done

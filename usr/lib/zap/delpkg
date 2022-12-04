@@ -3,6 +3,17 @@
 # deletes those packages passed on the command line
 #
 ZAPLIBDIR="/usr/lib/zap"
+UTEXT=""
+
+#
+# called with -u if part of update
+#
+case $1 in
+-u)
+    UTEXT="old version of "
+    shift
+    ;;
+esac
 
 case $1 in
 -R)
@@ -17,7 +28,7 @@ for inpkg in $*
 do
 	pkg=`${ZAPLIBDIR}/resolve-alias $inpkg`
 	if [ -f ${DESTROOT}/var/sadm/pkg/${pkg}/pkginfo ]; then
-                echo "Removing $pkg package"
+                echo "Removing ${UTEXT}$pkg"
                 /usr/sbin/pkgrm -n -a ${ZAPLIBDIR}/pkg.force ${BFLAGS} $pkg
         fi
 done
