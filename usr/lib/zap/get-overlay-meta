@@ -34,7 +34,7 @@ esac
 for repo in `${ZAPLIBDIR}/zap-cfg ${CTXARGS} list-overlay-repos`
 do
     if [ -f ${CFGDIR}/repositories/${repo}.overlays ]; then
-	FOVL=`/usr/bin/nawk -F'|' '{if ($1 == novl) print $1,$2}' novl=${OVL} ${CFGDIR}/repositories/${repo}.overlays`
+	FOVL=`/usr/bin/awk -F'|' '{if ($1 == novl) print $1,$2}' novl=${OVL} ${CFGDIR}/repositories/${repo}.overlays`
 	if [ -n "$FOVL" ]; then
 	    echo "${FOVL} ${repo}"
 	    exit 0

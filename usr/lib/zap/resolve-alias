@@ -44,7 +44,7 @@ fi
 for repo in $REPOLIST
 do
     if [ -f ${CFGDIR}/repositories/${repo}.aliases ]; then
-	FPKG=`/usr/bin/nawk -F'|' '{if ($1 == npkg) print $2}' npkg=${PKG} ${CFGDIR}/repositories/${repo}.aliases`
+	FPKG=`/usr/bin/awk -F'|' '{if ($1 == npkg) print $2}' npkg=${PKG} ${CFGDIR}/repositories/${repo}.aliases`
 	if [ -n "$FPKG" ]; then
 	    echo "${FPKG}"
 	    break

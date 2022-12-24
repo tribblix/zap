@@ -34,7 +34,7 @@ esac
 for repo in `${ZAPLIBDIR}/zap-cfg ${CTXARGS} list-pkg-repos`
 do
     if [ -f ${CFGDIR}/repositories/${repo}.catalog ]; then
-	FPKG=`/usr/bin/nawk -F'|' '{if ($1 == npkg) print $1,$2,$4,$5}' npkg=${PKG} ${CFGDIR}/repositories/${repo}.catalog`
+	FPKG=`/usr/bin/awk -F'|' '{if ($1 == npkg) print $1,$2,$4,$5}' npkg=${PKG} ${CFGDIR}/repositories/${repo}.catalog`
 	if [ -n "$FPKG" ]; then
 	    echo "${FPKG} ${repo}"
 	    exit 0

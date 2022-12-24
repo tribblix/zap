@@ -38,7 +38,7 @@ esac
 repo=`${ZAPLIBDIR}/get-version ${CTXARGS} ${PKG}`
 repo=${repo#* }
 if [ -f ${CFGDIR}/repositories/${repo}.catalog ]; then
-    FPKG=`/usr/bin/nawk -F'|' '{if ($1 == npkg) print $3}' npkg=${PKG} ${CFGDIR}/repositories/${repo}.catalog`
+    FPKG=`/usr/bin/awk -F'|' '{if ($1 == npkg) print $3}' npkg=${PKG} ${CFGDIR}/repositories/${repo}.catalog`
     if [ -n "$FPKG" ]; then
 	for npkg in $FPKG
 	do
