@@ -42,10 +42,24 @@ if [[ -n "$INST" && -n "$UNINST" ]]; then
     exit 1
 fi
 
+#
+# for verbose we want the overlay descriptions
+# grab them in one pass here
+#
+typeset -A omap
+if [[ -n "$VERBOSE" ]]; then
+    grep '^NAME=' ${DESTROOT}/${ODIR}/*.ovl | while read line
+    do
+	namestr=${line##*:}
+	namestr=${namestr##*=}
+	fstr=${line%%:*}
+	omap[$fstr]="$namestr"
+    done
+fi
+
 print_verbose() {
     if [[ -n "$VERBOSE" ]]; then
-	DESC=`awk -F= '{if ($1 == "NAME") print $2}' ${DESTROOT}/${ODIR}/${OVL}.ovl`
-	echo "${1} [${DESC}] ${2}"
+	echo "${1} [${omap[${DESTROOT}/${ODIR}/${OVL}.ovl]}] ${2}"
     else
 	echo "${1} ${2}"
     fi
