@@ -83,6 +83,8 @@ TRIBv-go-116
 TRIBgnu-ghostscript
 TRIBblix-php-56
 TRIBblix-php-56pg
+TRIBblix-php-7
+TRIBblix-php-7pg
 TRIBlib-nspr-header-nspr
 TRIBsys-lib-mozilla-nss-header
 TRIBsys-prerequisite-gnu
