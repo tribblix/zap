@@ -652,3 +652,9 @@ TRIBlib-perl-5-xml-twig
 TRIBv-amaya-1144
 TRIBtzlocal-python-39
 TRIBpycryptodome-python-39
+TRIBshib-log4shib
+TRIBshib-opensaml-c
+TRIBshib-xerces-c
+TRIBshib-xmlsecurity-c
+TRIBshib-xmltooling-c
+TRIBshib-shibboleth-sp
