@@ -553,6 +553,11 @@ TRIBblix-citus12
 TRIBblix-pgroonga12
 TRIBblix-plproxy12
 TRIBblix-postgres12
+TRIBblix-slony11
+TRIBblix-repmgr11
+TRIBblix-pgroonga11
+TRIBblix-plproxy11
+TRIBblix-postgres11
 TRIBargcomplete-python-37
 TRIBargh-python-37
 TRIBhumanize-python-37
@@ -658,3 +663,7 @@ TRIBshib-xerces-c
 TRIBshib-xmlsecurity-c
 TRIBshib-xmltooling-c
 TRIBshib-shibboleth-sp
+TRIBblix-pgroonga13
+TRIBblix-pgroonga14
+TRIBblix-pgroonga15
+TRIBgroonga
