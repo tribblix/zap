@@ -127,16 +127,12 @@ case $SCHEME in
 	#
 	# syntax expected is 'ubuntu:YY.MM'
 	#
+	# we remove releases that are end of life
+	#
 	DLPREFIX="https://cloud-images.ubuntu.com/releases/"
 	DLSUFFIX=".tar.xz"
 	RELVER=${1#*:}
 	case $RELVER in
-	    lucid)
-		RELVER="10.04"
-		;;
-	    precise)
-		RELVER="12.04"
-		;;
 	    trusty)
 		RELVER="14.04"
 		;;
@@ -149,17 +145,11 @@ case $SCHEME in
 	    focal)
 		RELVER="20.04"
 		;;
-	    groovy)
-		RELVER="20.10"
-		;;
-	    hirsute)
-		RELVER="21.04"
-		;;
-	    impish)
-		RELVER="21.10"
-		;;
 	    jammy)
 		RELVER="22.04"
+		;;
+	    kinetic)
+		RELVER="22.10"
 		;;
 	esac
 	URL="${DLPREFIX}${RELVER}/release/ubuntu-${RELVER}-server-cloudimg-amd64-root${DLSUFFIX}"
@@ -183,9 +173,13 @@ case $SCHEME in
 	DLPREFIX="http://download.proxmox.com/images/system/"
 	RELVER=${1#*:}
 	case $RELVER in
-	    alma|almalinux)
+	    alma8|almalinux8)
 		DLFILE="almalinux-8-default_20210928_amd64.tar.xz"
 		DLNAME="proxmox-almalinux-8.tar.xz"
+		;;
+	    alma|almalinux|almalinux9)
+		DLFILE="almalinux-9-default_20221108_amd64.tar.xz"
+		DLNAME="proxmox-almalinux-9.tar.xz"
 		;;
 	    alpine-3.6)
 		DLFILE="alpine-3.6-default_20180913_amd64.tar.xz"
@@ -231,9 +225,13 @@ case $SCHEME in
 		DLFILE="alpine-3.16-default_20220622_amd64.tar.xz"
 		DLNAME="proxmox-alpine-3.16.tar.xz"
 		;;
+	    alpine-3.17)
+		DLFILE="alpine-3.17-default_20221129_amd64.tar.xz"
+		DLNAME="proxmox-alpine-3.17.tar.xz"
+		;;
 	    arch|archlinux)
-		DLFILE="archlinux-base_20211202-1_amd64.tar.gz"
-		DLNAME="proxmox-archlinux.tar.gz"
+		DLFILE="archlinux-base_20221111-1_amd64.tar.zst"
+		DLNAME="proxmox-archlinux.tar.zst"
 		echo "WARN: arch is not supported by the LX brand"
 		;;
 	    centos-6)
@@ -247,6 +245,10 @@ case $SCHEME in
 	    centos-8)
 		DLFILE="centos-8-default_20201210_amd64.tar.xz"
 		DLNAME="proxmox-centos-8.tar.xz"
+		;;
+	    centos-9|centos-9-stream)
+		DLFILE="centos-9-stream-default_20221109_amd64.tar.xz"
+		DLNAME="proxmox-centos-9.tar.xz"
 		;;
 	    debian-6)
 		DLFILE="debian-6.0-standard_6.0-7_amd64.tar.gz"
@@ -269,8 +271,8 @@ case $SCHEME in
 		DLNAME="proxmox-debian-10.tar.gz"
 		;;
 	    debian-11)
-		DLFILE="debian-11-standard_11.3-1_amd64.tar.gz"
-		DLNAME="proxmox-debian-11.tar.gz"
+		DLFILE="debian-11-standard_11.6-1_amd64.tar.zst"
+		DLNAME="proxmox-debian-11.tar.zst"
 		;;
 	    devuan-3)
 		DLFILE="devuan-3.0-standard_3.0_amd64.tar.gz"
@@ -332,6 +334,10 @@ case $SCHEME in
 		DLFILE="fedora-36-default_20220622_amd64.tar.xz"
 		DLNAME="proxmox-fedora-36.tar.xz"
 		;;
+	    fedora-37)
+		DLFILE="fedora-37-default_20221119_amd64.tar.xz"
+		DLNAME="proxmox-fedora-37.tar.xz"
+		;;
 	    gentoo)
 		DLFILE="gentoo-current-default_20200310_amd64.tar.xz"
 		DLNAME="proxmox-gentoo.tar.xz"
@@ -342,18 +348,23 @@ case $SCHEME in
 		DLNAME="proxmox-opensuse-42.tar.xz"
 		;;
 	    opensuse-15|opensuse)
-		DLFILE="opensuse-15.3-default_20210925_amd64.tar.xz"
+		DLFILE="opensuse-15.4-default_20221109_amd64.tar.xz"
 		DLNAME="proxmox-opensuse-15.tar.xz"
 		;;
-	    rocky|rockylinux)
+	    rocky8|rockylinux8)
 		DLFILE="rockylinux-8-default_20210929_amd64.tar.xz"
 		DLNAME="proxmox-rockylinux-8.tar.xz"
+		;;
+	    rocky|rockylinux|rocky9|rockylinux9)
+		DLFILE="rockylinux-9-default_20221109_amd64.tar.xz"
+		DLNAME="proxmox-rockylinux-9.tar.xz"
 		;;
 	    ubuntu-*)
 		UVER=${RELVER:7:11}
 		#
 		# LTS releases might have updates
 		#
+		EXT="gz"
 		UUVER=""
 		case $UVER in
 		    14.04)
@@ -365,9 +376,12 @@ case $SCHEME in
 		    18.04)
 			UUVER=".1"
 			;;
+		    21.10|22.04|22.10)
+			EXT="zst"
+			;;
 		esac
-		DLFILE="ubuntu-${UVER}-standard_${UVER}${UUVER}-1_amd64.tar.gz"
-		DLNAME="proxmox-ubuntu-${UVER}.tar.gz"
+		DLFILE="ubuntu-${UVER}-standard_${UVER}${UUVER}-1_amd64.tar.${EXT}"
+		DLNAME="proxmox-ubuntu-${UVER}.tar.${EXT}"
 		;;
 	    ubuntu)
 		UVER="18.04"
