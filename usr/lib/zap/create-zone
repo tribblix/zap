@@ -1401,6 +1401,30 @@ if [[ $ZBRAND = bhyve ]]; then
     echo set type=string
     echo set value=off
     echo end
+	;;
+    esac
+    case $ZISOFILE in
+	*S11-CBE*)
+    echo add attr
+    echo set name=hostbridge
+    echo set type=string
+    echo set value=none
+    echo end
+    echo add attr
+    echo set name=rng
+    echo set type=string
+    echo set value=off
+    echo end
+    echo add attr
+    echo set name=type
+    echo set type=string
+    echo set value=windows
+    echo end
+    echo add attr
+    echo set name=xhci
+    echo set type=string
+    echo set value=off
+    echo end
         ;;
     esac
     # share directories over virtfs
