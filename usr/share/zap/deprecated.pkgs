@@ -384,7 +384,6 @@ SUNWxwcft
 SUNWfont-xorg-iso8859-1
 SUNWfont-xorg-core
 SUNWttf-dejavu
-SUNWxwcft
 SUNWxwfsw
 SUNWxorg-clientlibs
 SUNWxvnc
@@ -569,7 +568,6 @@ TRIBhumanize-python-37
 TRIBargparse-python-37
 TRIBblessed-python-37
 TRIBattrs-python-37
-TRIBwcwidth-python-37
 TRIBboto3-python-37
 TRIBs3transfer-python-37
 TRIBbotocore-python-37
@@ -619,7 +617,6 @@ TRIBtypingext-python-37
 TRIBzipp-python-37
 TRIBsetup-scm-python-37
 TRIBmore-itertools-python-37
-TRIBtoml-python-37
 TRIBperl-522-module-sun-solaris
 TRIBlxadm
 TRIBxdg-python-37
