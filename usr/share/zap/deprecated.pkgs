@@ -330,6 +330,10 @@ TRIBv-python-38
 TRIBv-python-38-tests
 TRIBv-python-38-tkinter
 TRIBsix-python-38
+TRIBv-python-310
+TRIBv-python-310-tests
+TRIBv-python-310-tkinter
+TRIBsix-python-310
 TRIBsix-python-27
 TRIBfastimport-python-37
 TRIBexifread-python-37

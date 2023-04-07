@@ -9,6 +9,7 @@ node-v12
 node-v14
 gstreamer
 python38
+python310
 wapiti
 qt4-apps
 qt4-base
