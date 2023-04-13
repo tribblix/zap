@@ -536,3 +536,9 @@ TRIBblix-pgroonga13
 TRIBblix-pgroonga14
 TRIBblix-pgroonga15
 TRIBgroonga
+TRIBblix-citus14
+TRIBblix-plproxy14
+TRIBblix-postgres14
+TRIBblix-repmgr14
+TRIBblix-slony14
+TRIBblix-timescaledb14
