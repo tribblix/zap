@@ -3,13 +3,12 @@
 ZAPLIBDIR="/usr/lib/zap"
 ONAME=""
 ODIR="/var/sadm/overlays"
-PKGARGS=""
 DESTROOT=""
 
 case $1 in
 -R)
 	DESTROOT="$2"
-	PKGARGS="-R ${DESTROOT}"
+	CTXARGS="-C ${DESTROOT}"
 	ODIR="${DESTROOT}/${ODIR}"
 	shift
 	shift
