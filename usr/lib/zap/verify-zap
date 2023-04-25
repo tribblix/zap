@@ -45,10 +45,10 @@ EXITSTATUS=0
 
 for zfile in $*
 do
-	pkg=${zfile%%.*}
 	vpkg=${zfile%.*}
-	pdir=${pkg%/*}
-	pkg=${pkg##*/}
+	pdir=${zfile%/*}
+	pkg=${zfile##*/}
+	pkg=${pkg%%.*}
 	vpkg=${vpkg##*/}
 	${ZAPLIBDIR}/get-pkg-meta ${CTXARGS} $pkg | read fpkg fver fsize fhash frepo
 	if [ -n "$fhash" ]; then
