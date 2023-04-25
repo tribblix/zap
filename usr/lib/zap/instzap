@@ -29,8 +29,13 @@ case $# in
     DIR=$1
     PKG=$2
     ;;
+1)
+    DIR=$1
+    PKG=${DIR##*/}
+    PKG=${PKG%%.*}
+    ;;
 *)
-    echo "Usage: instzap [-R alt-root] source package"
+    echo "Usage: instzap [-R alt-root] source [package]"
     exit 1
     ;;
 esac
