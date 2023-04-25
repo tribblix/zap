@@ -3,13 +3,11 @@
 
 CFGDIR="/etc/zap"
 ZAPLIBDIR="/usr/lib/zap"
-ECHO="true"
 
 case $1 in
 -C)
 	DESTROOT="$2"
 	CTXARGS="-C ${DESTROOT}"
-	PKGARGS="-R ${DESTROOT}"
 	shift
 	shift
 	if [ ! -d "$DESTROOT" ]; then

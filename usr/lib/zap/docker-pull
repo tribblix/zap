@@ -56,7 +56,7 @@ case $IMAGE in
 	;;
 esac
 
-CACHEDIR=`${ZAPLIBDIR}/zap-cfg ${CTXARGS} docker-dir`
+CACHEDIR=`${ZAPLIBDIR}/zap-cfg docker-dir`
 MDIR=${CACHEDIR}/manifests
 LDIR=${CACHEDIR}/layers
 

@@ -12,12 +12,10 @@
 CFGDIR="/etc/zap"
 ZAPLIBDIR="/usr/lib/zap"
 DESTROOT=""
-PKGARGS=""
 
 case $1 in
 -R)
 	DESTROOT="$2"
-	PKGARGS="-R ${DESTROOT}"
 	shift
 	shift
 	if [ ! -d "$DESTROOT" ]; then

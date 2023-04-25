@@ -7,7 +7,6 @@
 CFGDIR="/etc/zap"
 ZAPLIBDIR="/usr/lib/zap"
 DESTROOT=""
-PKGARGS=""
 
 GREP="/usr/bin/grep"
 SED="/usr/bin/sed"
