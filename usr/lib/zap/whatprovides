@@ -14,6 +14,9 @@ BZCAT="/usr/bin/bzcat"
 if [ -x /usr/bin/pbzcat ]; then
     BZCAT="/usr/bin/pbzcat"
 fi
+if [ -x /usr/gnu/bin/grep ]; then
+    GREP="/usr/gnu/bin/grep"
+fi
 
 case $1 in
 -R|-C)
@@ -141,5 +144,6 @@ fi
 #
 # the sed here strips out the link targets which we're not interested in
 # at this point in time
+# for performance, grep before sed
 #
-${BZCAT} ${FLIST} | $SED 's:=[^ ]* : :' | $GREP "$PKG"
+${BZCAT} ${FLIST} | $GREP "$PKG" | $SED 's:=[^ ]* : :'
