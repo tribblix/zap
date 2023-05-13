@@ -102,6 +102,24 @@ rm -f $(find /var/mail -type f)
 rm -f $(find /var/spool/mqueue -type f)
 rm -f $(find /var/spool/clientmqueue -type f)
 
+# clean up any customizations
+# this will only work in the global zone
+rm -f /etc/defaultdomain
+PSPOOL="/var/sadm/pkg/SUNWcs/save/pspool/SUNWcs/reloc"
+if [ -f ${PSPOOL}/etc/inet/hosts ]; then
+    cp ${PSPOOL}/etc/inet/hosts /etc/inet/hosts
+    echo "tribblix" > /etc/nodename
+fi
+if [ -f ${PSPOOL}/etc/inet/networks ]; then
+    cp ${PSPOOL}/etc/inet/networks /etc/inet/networks
+fi
+if [ -f ${PSPOOL}/etc/inet/netmasks ]; then
+    cp ${PSPOOL}/etc/inet/netmasks /etc/inet/netmasks
+fi
+if [ -f ${PSPOOL}/etc/default/init ]; then
+    cp ${PSPOOL}/etc/default/init /etc/default/init
+fi
+
 # to force device reconfiguration at next boot
 touch /reconfigure
 
