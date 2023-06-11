@@ -55,6 +55,8 @@ TRIBv-go-113
 TRIBv-go-114
 TRIBv-go-115
 TRIBv-go-116
+TRIBv-go-117
+TRIBv-go-118
 TRIBgnu-ghostscript
 TRIBblix-php-56
 TRIBblix-php-56pg
@@ -552,3 +554,10 @@ TRIBlibsdl-ttf
 TRIBskopeo
 TRIBdrv-net-socal
 TRIBdrv-storage-sf
+TRIBcycler-python-39
+TRIBec2-metadata-python-39
+TRIBgixy-python-39
+TRIBmako-python-39
+TRIBnose-python-39
+TRIBtermcolor-python-39
+TRIBwebencodings-python-39
