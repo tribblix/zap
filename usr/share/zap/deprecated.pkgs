@@ -30,6 +30,10 @@ TRIBopenjdk8u312
 TRIBopenjdk8u312-src
 TRIBopenjdk8u322
 TRIBopenjdk8u322-src
+TRIBopenjdk8u332
+TRIBopenjdk8u332-src
+TRIBopenjdk8u342
+TRIBopenjdk8u342-src
 TRIBdjango-python-27
 TRIBdjango-python-37
 TRIBv-scala-212
