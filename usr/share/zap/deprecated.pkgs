@@ -585,3 +585,5 @@ TRIBpyasn1-modules-python-39
 TRIBprotobuf-python-39
 TRIBcachetools-python-39
 TRIBnet-ssh-ssh-key
+TRIBwfuzz-python-39
+TRIBchardet-python-39
