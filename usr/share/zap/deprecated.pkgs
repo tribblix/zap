@@ -660,3 +660,7 @@ TRIBclick-python-39
 TRIBjoblib-python-39
 TRIBpytz-python-39
 TRIBregex-python-39
+TRIBvirtualenv-python-39
+TRIBdistlib-python-39
+TRIBfilelock-python-39
+TRIBplatformdirs-python-39
