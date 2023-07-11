@@ -664,3 +664,6 @@ TRIBvirtualenv-python-39
 TRIBdistlib-python-39
 TRIBfilelock-python-39
 TRIBplatformdirs-python-39
+TRIBrapidjson-python-39
+TRIBsimplejson-python-39
+TRIBply-python-39
