@@ -705,3 +705,13 @@ TRIBpyasn1-python-39
 TRIBbotocore-python-39
 TRIBdateutil-python-39
 TRIBjmespath-python-39
+TRIBrequests-python-39
+TRIBcharset-norm-python-39
+TRIBurllib3-python-39
+TRIBbrotli-python-39
+TRIBidna-python-39
+TRIBpyopenssl-39
+TRIBpysocks-python-39
+TRIBcryptography-python-39
+TRIBcffi-python-39
+TRIBpycparser-python-39
