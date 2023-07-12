@@ -715,3 +715,7 @@ TRIBpysocks-python-39
 TRIBcryptography-python-39
 TRIBcffi-python-39
 TRIBpycparser-python-39
+TRIBgnureadline-python-39
+TRIBmagic-python-39
+TRIBcertifi-python-39
+TRIBxdg-python-39
