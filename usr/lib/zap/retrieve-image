@@ -151,6 +151,9 @@ case $SCHEME in
 	    kinetic)
 		RELVER="22.10"
 		;;
+	    lunar)
+		RELVER="23.04"
+		;;
 	esac
 	URL="${DLPREFIX}${RELVER}/release/ubuntu-${RELVER}-server-cloudimg-amd64-root${DLSUFFIX}"
 	CKURL="${DLPREFIX}${RELVER}/release/SHA256SUMS"
@@ -229,8 +232,12 @@ case $SCHEME in
 		DLFILE="alpine-3.17-default_20221129_amd64.tar.xz"
 		DLNAME="proxmox-alpine-3.17.tar.xz"
 		;;
+	    alpine-3.18)
+		DLFILE="alpine-3.18-default_20230607_amd64.tar.xz"
+		DLNAME="proxmox-alpine-3.18.tar.xz"
+		;;
 	    arch|archlinux)
-		DLFILE="archlinux-base_20221111-1_amd64.tar.zst"
+		DLFILE="archlinux-base_20230608-1_amd64.tar.zst"
 		DLNAME="proxmox-archlinux.tar.zst"
 		echo "WARN: arch is not supported by the LX brand"
 		;;
@@ -271,8 +278,12 @@ case $SCHEME in
 		DLNAME="proxmox-debian-10.tar.gz"
 		;;
 	    debian-11)
-		DLFILE="debian-11-standard_11.6-1_amd64.tar.zst"
+		DLFILE="debian-11-standard_11.7-1_amd64.tar.zst"
 		DLNAME="proxmox-debian-11.tar.zst"
+		;;
+	    debian-12)
+		DLFILE="debian-12-standard_12.0-1_amd64.tar.zst"
+		DLNAME="proxmox-debian-12.tar.zst"
 		;;
 	    devuan-3)
 		DLFILE="devuan-3.0-standard_3.0_amd64.tar.gz"
@@ -338,6 +349,10 @@ case $SCHEME in
 		DLFILE="fedora-37-default_20221119_amd64.tar.xz"
 		DLNAME="proxmox-fedora-37.tar.xz"
 		;;
+	    fedora-38)
+		DLFILE="fedora-38-default_20230607_amd64.tar.xz"
+		DLNAME="proxmox-fedora-38.tar.xz"
+		;;
 	    gentoo)
 		DLFILE="gentoo-current-default_20200310_amd64.tar.xz"
 		DLNAME="proxmox-gentoo.tar.xz"
@@ -376,7 +391,7 @@ case $SCHEME in
 		    18.04)
 			UUVER=".1"
 			;;
-		    21.10|22.04|22.10)
+		    21.10|22.04|22.10|23.04)
 			EXT="zst"
 			;;
 		esac
@@ -384,10 +399,10 @@ case $SCHEME in
 		DLNAME="proxmox-ubuntu-${UVER}.tar.${EXT}"
 		;;
 	    ubuntu)
-		UVER="18.04"
+		UVER="22.04"
 		UUVER=".1"
-		DLFILE="ubuntu-${UVER}-standard_${UVER}${UUVER}-1_amd64.tar.gz"
-		DLNAME="proxmox-ubuntu-${UVER}.tar.gz"
+		DLFILE="ubuntu-${UVER}-standard_${UVER}${UUVER}-1_amd64.tar.zst"
+		DLNAME="proxmox-ubuntu-${UVER}.tar.zst"
 		;;
 	    *)
 		echo "ERROR: Unknown proxmox image"
