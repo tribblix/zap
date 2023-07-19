@@ -154,6 +154,12 @@ case $SCHEME in
 	    lunar)
 		RELVER="23.04"
 		;;
+	    *.*)
+		:
+		;;
+	    *)
+		RELVER="22.04"
+		;;
 	esac
 	URL="${DLPREFIX}${RELVER}/release/ubuntu-${RELVER}-server-cloudimg-amd64-root${DLSUFFIX}"
 	CKURL="${DLPREFIX}${RELVER}/release/SHA256SUMS"
