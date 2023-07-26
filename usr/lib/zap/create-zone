@@ -1800,6 +1800,16 @@ if [[ -n $SSHKEYFILE ]]; then
 	# the /sshkey.pub name here must match the zone attribute
 	/usr/bin/cp $SSHKEYFILE ${ZROOTBASE}/${ZNAME}/root/sshkey.pub
     fi
+    if [[ $ZBRAND = TRIBwhole || $ZBRAND = TRIBsparse || $ZBRAND = TRIBalien ]]; then
+	# assume all illumos-type zones have the same directory structure
+	UHOME=`/usr/bin/awk -F: '{if ($1 == "root") print $6}' ${ZROOTBASE}/${ZNAME}/root/etc/passwd`
+	if [ -n "$UHOME" ]; then
+	    /usr/bin/mkdir -p -m 700 ${ZROOTBASE}/${ZNAME}/root/${UHOME}/.ssh
+	    /usr/bin/cp $SSHKEYFILE ${ZROOTBASE}/${ZNAME}/root/${UHOME}/.ssh/authorized_keys
+	    /usr/bin/chmod 600 ${ZROOTBASE}/${ZNAME}/root/${UHOME}/.ssh/authorized_keys
+	    /usr/bin/sed -i 's:^PermitRootLogin.*:PermitRootLogin without-password:' ${ZROOTBASE}/${ZNAME}/root/etc/ssh/sshd_config
+	fi
+    fi
 fi
 
 #
