@@ -73,6 +73,7 @@ BHYVEPOOL="rpool"
 BHYVEFW=BHYVE_RELEASE
 CLOUDINIT=""
 SSHKEYFILE=""
+ISROUTER=""
 
 #
 # these associative arrays track the interface to address mapping
@@ -97,7 +98,7 @@ usage() {
 	VOLUSAGE=" [-v volume | -V volsize]"
 	MEMUSAGE=" [-m ram_size] [-f firmware]"
     fi
-    echo "Usage: $0 -z zone_name [-t whole|sparse|alien${BHYVEUSAGE}${LXUSAGE}${S10USAGE}]"
+    echo "Usage: $0 -z zone_name [-t whole|sparse|alien${BHYVEUSAGE}${LXUSAGE}${S10USAGE}|router]"
     echo "  [-T template] [-I image_file] [-U user]"
     echo "  [-i ip_address] [-x ip_address] [-R ip_network/prefix] [-6]"
     echo "  [-o overlay] [-O overlay] [-p package] [-P package]"
@@ -227,6 +228,57 @@ if [ "X$ZNAME" = "Xglobal" ]; then
     echo "ERROR: the name global is reserved"
     exit 1
 fi
+
+#
+# router is a custom pseudo-brand; check it first
+# router zones are whole-root and must specify a network with -R
+# reset the brand, and check and set the properties we need
+# set a flag we can use later
+#
+# Note that router zones (-t router) are different from a proxy zone (given
+# by using -R with another brand). A router zone is completely defined and
+# controlled by the system, whereas a proxy zone is controlled by the user.
+#
+case $ZBRAND in
+router)
+	ZBRAND="TRIBwhole"
+	ISROUTER="y"
+	if [[ -z $RIP4 ]]; then
+	    echo "ERROR: Must specify a network with -R for a router zone"
+	    usage
+	fi
+	if [[ -n $ZIP4 ]]; then
+	    echo "ERROR: router zones require -x, not -i"
+	    usage
+	fi
+	if [[ -z $XIP4 ]]; then
+	    echo "ERROR: router zones require a primary interface be specified with -x"
+	    usage
+	fi
+	if [[ -n $ZBLANK ]]; then
+	    echo "ERROR: router zones cannot be blank"
+	    usage
+	fi
+	if [[ -n $NZONES ]]; then
+	    echo "ERROR: cannot build multiple router zones"
+	    usage
+	fi
+	# users cannot specify overlays for router zones
+	if [[ -n $ZOVERLAY || -n $ZADDOVERLAY ]]; then
+	   echo "ERROR: cannot specify overlays for router zones"
+	   usage
+	fi
+	# but we can, and do
+	ZOVERLAY="base"
+	# users cannot specify packages for router zones
+	if [[ -n $ZPACKAGE || -n $ZADDPACKAGE ]]; then
+	   echo "ERROR: cannot specify packages for router zones"
+	   usage
+	fi
+	# but we can, and do
+	ZADDPACKAGE="TRIBdnsmasq TRIBblix-haproxy2"
+	;;
+esac
 
 #
 # normalize the brand, reject unknown brands
