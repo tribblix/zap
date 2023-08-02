@@ -95,6 +95,34 @@ case $SCHEME in
 	CKURL="${DLPREFIX}${RELDIR}/${DLNAME}.sha256"
 	CKNAME="${DLNAME}.sha256"
 	;;
+    oi|openindiana)
+	DLPREFIX="https://dlc.openindiana.org/isos/hipster/"
+	DLSUFFIX=".iso"
+	RELVER="20230502"
+	RELDIR="${RELVER}"
+	#https://dlc.openindiana.org/isos/hipster/20230502/OI-hipster-gui-20230502.iso
+	# we expect a marker of the form gui|text|minimal|img
+	#
+	RELTYPE=${1#*:}
+	#
+	# extract the variant
+	#
+	case $RELTYPE in
+	    gui|text|minimal)
+		DLNAME="OI-hipster-${RELTYPE}-${RELVER}.iso"
+		;;
+	    img)
+		DLNAME="OI-hipster-cloudimage.img.gz"
+		;;
+	    *)
+		echo "ERROR: Expected openindiana:gui|text|minimal|img"
+		exit 2
+		;;
+	esac
+	URL="${DLPREFIX}${RELDIR}/${DLNAME}"
+	CKURL="${DLPREFIX}${RELDIR}/${DLNAME}.sha256sum"
+	CKNAME="${DLNAME}.sha256"
+	;;
     tribblix)
 	DLPREFIX="https://pkgs.tribblix.org/iso/"
 	DLSUFFIX=".iso"
@@ -477,7 +505,7 @@ case $MODE in
 		    ;;
 		*)
 		    CKSCHEME=${CKNAME##*.}
-		    CKVAL=`/usr/bin/cat $CKNAME`
+		    CKVAL=`/usr/bin/cat $CKNAME|awk '{print $1}`
 		    ;;
 	    esac
 	    DLVAL=`/usr/bin/openssl $CKSCHEME $FDLNAME | /usr/bin/awk '{print $NF}'`
