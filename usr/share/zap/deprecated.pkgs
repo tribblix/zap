@@ -639,3 +639,5 @@ TRIBtoml-python-39
 TRIBlib-perl-5-il-smf
 TRIBlib-perl-5-il-zones
 TRIBlib-perl-5-data-processor
+TRIBsys-lib-cpp-sunpro
+TRIBsunstudio-il-build
