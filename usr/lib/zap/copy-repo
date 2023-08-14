@@ -122,7 +122,7 @@ do
 	if [ -f "${DESTDIR}/${pkg}.${ver}.zap" ]; then
 	    rsize=`/usr/bin/stat -c '%s' ${DESTDIR}/${pkg}.${ver}.zap`
 	    if [ $rsize -eq $fsize ]; then
-		echo "Succesful download of ${pkg}.${ver}.zap"
+		echo "Successful download of ${pkg}.${ver}.zap"
 	    else
 		echo "ERROR: size mismatch for ${pkg}.${ver}.zap, retrying"
 		/usr/bin/rm -f ${DESTDIR}/${pkg}.${ver}.zap
