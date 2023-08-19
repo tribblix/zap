@@ -23,6 +23,23 @@ esac
 # of the repo it's contained in
 #
 repolist=`${ZAPLIBDIR}/zap-cfg ${CTXARGS} list-pkg-repos`
+
+#
+# there are two paths here
+#
+# for very few packages, simply look in the catalog for each
+#
+# for a larger number of packages, slurp the catalogs into arrays
+# and query the internal arrays, which has a higher setup cost
+#
+# the actual boundary here is a bit of a guess, but is based on
+# timing 'verify-overlay -a'
+#
+if [ $# -lt 7 ]; then
+
+#
+# the old path, simply read through the catalogs for each package
+#
 for PKG in $*
 do
     PFOUND=""
@@ -44,3 +61,37 @@ do
 	echo $PKG
     fi
 done
+
+else
+
+#
+# the new path, read the catalogs into two arrays
+#
+typeset -A map_ver
+typeset -A map_repo
+
+for repo in $repolist
+do
+    if [ -f ${CFGDIR}/repositories/${repo}.catalog ]; then
+	IFS='|'
+	while read npkg nver line
+	do
+	    if [ -z "${map_ver[$npkg]}" ]; then
+		# remember this if we've not seen it before
+		map_ver[$npkg]=$nver
+		map_repo[$npkg]=$repo
+	    fi
+	done < ${CFGDIR}/repositories/${repo}.catalog
+    fi
+done
+
+for PKG in $*
+do
+    if [ -n "${map_ver[$PKG]}" ]; then
+	echo ${PKG}.${map_ver[$PKG]} ${map_repo[$PKG]}
+    else
+	echo $PKG
+    fi
+done
+
+fi
