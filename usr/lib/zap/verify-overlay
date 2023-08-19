@@ -71,13 +71,17 @@ STATUS=0
 #
 # first check dependencies on other overlays
 #
-for tovl in `/usr/bin/grep '^REQUIRES=' ${OVL}`
+for tovl in $(<${OVL})
 do
-    novl=${tovl#REQUIRES=}
-    if [ ! -f ${ODIR}/installed/${novl} ]; then
-	echo "ERROR: prerequisite overlay ${novl} is not installed"
-	STATUS=1
-    fi
+    case $tovl in
+	REQUIRES*)
+	    novl=${tovl#REQUIRES=}
+	    if [ ! -f ${ODIR}/installed/${novl} ]; then
+		echo "ERROR: prerequisite overlay ${novl} is not installed"
+		STATUS=1
+	    fi
+	    ;;
+    esac
 done
 
 #
@@ -85,13 +89,13 @@ done
 #
 # first report on any uninstalled packages
 #
-for pkg in `cat ${PLIST}`
+for pkg in $(<${PLIST})
 do
   if [ ! -f ${DESTROOT}/var/sadm/pkg/${pkg}/pkginfo ]; then
       echo "ERROR: member package ${pkg} is not installed"
       STATUS=1
   else
-      npkg="${npkg} ${pkg}"
+      npkg+=" ${pkg}"
   fi
 done
 
