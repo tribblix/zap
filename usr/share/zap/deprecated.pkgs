@@ -646,3 +646,6 @@ TRIBlib-perl-5-data-processor
 TRIBsys-lib-cpp-sunpro
 TRIBsunstudio-il-build
 TRIBec2-api-tools
+TRIBgnu-pth
+TRIBgpa
+TRIBopensp
