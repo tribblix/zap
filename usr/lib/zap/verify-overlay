@@ -1,5 +1,6 @@
 #!/bin/ksh
 
+CFGDIR="/etc/zap"
 ZAPLIBDIR="/usr/lib/zap"
 ONAME=""
 ODIR="/var/sadm/overlays"
@@ -19,30 +20,31 @@ case $1 in
 	;;
 esac
 
-case $# in
-1)
-	ONAME="$1"
-	;;
-*)
-	echo "Usage: $0 [-R alt-root] overlay"
-	exit 1
-	;;
-esac
+#
+# the new path, read the catalogs into two arrays
+#
+typeset -A map_ver
+typeset -A map_repo
 
-#
-# -a means all (installed) overlays
-#
-case $ONAME in
--a)
-	cd ${ODIR}/installed
-	for novl in *
+repolist=`${ZAPLIBDIR}/zap-cfg ${CTXARGS} list-pkg-repos`
+for repo in $repolist
+do
+    if [ -f ${CFGDIR}/repositories/${repo}.catalog ]; then
+	IFS='|'
+	while read npkg nver line
 	do
-	    echo "Checking overlay ${novl}"
-	    ${ZAPLIBDIR}/verify-overlay ${PKGARGS} ${novl}
-	done
-	exit 0
-	;;
-esac
+	    if [ -z "${map_ver[$npkg]}" ]; then
+		# remember this if we've not seen it before
+		map_ver[$npkg]=$nver
+		map_repo[$npkg]=$repo
+	    fi
+	done < ${CFGDIR}/repositories/${repo}.catalog
+    fi
+done
+unset IFS
+
+do_verify_overlay() {
+ONAME=$1
 
 #
 # An overlay must contain a .ovl file and a .pkgs file
@@ -50,12 +52,12 @@ esac
 OVL="${ODIR}/${ONAME}.ovl"
 if [ ! -f "${OVL}" ]; then
     echo "ERROR: overlay ${ONAME} does not exist"
-    exit 1
+    return 1
 fi
 PLIST="${ODIR}/${ONAME}.pkgs"
 if [ ! -f "${PLIST}" ]; then
     echo "ERROR: package list for ${ONAME} missing"
-    exit 1
+    return 1
 fi
 
 #
@@ -63,7 +65,7 @@ fi
 #
 if [ ! -f ${ODIR}/installed/${ONAME} ]; then
     echo "Overlay ${ONAME} is not installed"
-    exit 0
+    return 0
 fi
 
 STATUS=0
@@ -89,6 +91,7 @@ done
 #
 # first report on any uninstalled packages
 #
+npkg=""
 for pkg in $(<${PLIST})
 do
   if [ ! -f ${DESTROOT}/var/sadm/pkg/${pkg}/pkginfo ]; then
@@ -102,10 +105,8 @@ done
 #
 # then check the installed versions match the catalog
 #
-${ZAPLIBDIR}/get-version ${CTXARGS} $npkg | while read AFVERSION
+for pkg in $npkg
 do
-    AVERSION=${AFVERSION% *}
-    pkg=${AVERSION%%.*}
     IVERSION=""
     while read line
     do
@@ -116,14 +117,41 @@ do
 		;;
 	esac
     done<${DESTROOT}/var/sadm/pkg/${pkg}/pkginfo
-    AREPO=${AFVERSION#* }
-    RVERSION=${AVERSION#*.}
+    AREPO=${map_repo[$pkg]}
+    RVERSION=${map_ver[$pkg]}
     if [ "$AREPO" != "opensxce" ]; then
-	if [ "X${pkg}.${IVERSION}" != "X${AVERSION}" ]; then
+	if [ "X${IVERSION}" != "X${RVERSION}" ]; then
 	    echo "WARN: member package ${pkg} needs updating to ${RVERSION}"
 	    STATUS=2
 	fi
     fi
 done
+}
 
+case $# in
+1)
+	ONAME="$1"
+	;;
+*)
+	echo "Usage: $0 [-R alt-root] overlay"
+	exit 1
+	;;
+esac
+
+#
+# -a means all (installed) overlays
+#
+case $ONAME in
+-a)
+	cd ${ODIR}/installed
+	for do_ovl in *
+	do
+	    echo "Checking overlay ${do_ovl}"
+	    do_verify_overlay ${do_ovl}
+	done
+	exit 0
+	;;
+esac
+
+do_verify_overlay $ONAME
 exit $STATUS
