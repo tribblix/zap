@@ -141,6 +141,16 @@ remove-locale name [name...]
   This subcommand allows you to remove locales. Run 'zap help remove-locale'
   for details.
 
+list-locales
+
+  This subcommand allows you to see what locales are available. Run
+  'zap help list-locales' for details.
+
+installed-locales
+
+  This subcommand allows you to see what locales are installed. Run
+  'zap help installed-locales' for details.
+
 staticnet [-y]
 
   This subcommand converts the network configuration from dynamic

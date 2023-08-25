@@ -13,3 +13,15 @@ zap remove-locale name [name...]
 
 The names recognized are the 2 (or occasionally 3) letter code for the
 locale, or its descriptive name or variants thereof.
+
+Generally, if there's a corresponding set of extra locales then those
+will be added or removed by this subcommand too.
+
+To see what locale packages are available:
+
+zap list-locales
+
+You can also see what locale packages are currently installed, and also
+which locales are available as a result:
+
+zap installed-locales

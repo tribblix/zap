@@ -36,13 +36,55 @@ case $1 in
 esac
 
 #
-# use this wrapper for uninstall as well
+# use this wrapper for uninstall and list as well
+# -d - uninstall the given locales
+# -i - list installed locale packages and locales
+# -l - list available locale packages
 #
 case $1 in
     -d)
 	shift
 	ACTION="delpkg"
 	CTXARGS=""
+	;;
+    -i)
+	shift
+	cd ${DESTROOT}/var/sadm/pkg
+	#
+	# detect if there are no additional locales installed so we can
+	# give a more useful message
+	#
+	for pkg in TRIBlocale-*
+	do
+	    if [ ! -d "$pkg" ]; then
+		echo "No locale packages installed"
+		exit 0
+	    fi
+	done
+	echo "Installed locale packages:"
+	/bin/ls -1d TRIBlocale-*
+	if [ -x /usr/bin/locale ]; then
+	    echo "Available locales:"
+	    /usr/bin/locale -a
+	fi
+	exit 0
+	;;
+    -l)
+	shift
+	cd ${DESTROOT}/var/sadm/pkg
+	if [ ! -f ${DESTROOT}/var/sadm/overlays/all-locales.pkgs ]; then
+	    echo "No locale availability present."
+	    exit 1
+	fi
+	for nlocale in $(<${DESTROOT}/var/sadm/overlays/all-locales.pkgs)
+	do
+	    if [ -d "${nlocale}" ]; then
+		echo "$nlocale (Installed)"
+	    else
+		echo "$nlocale"
+	    fi
+	done
+	exit 0
 	;;
 esac
 

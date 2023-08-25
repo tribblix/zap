@@ -27,7 +27,7 @@ case $# in
     *-services)
       HELP_FILE=${HELP_DIR}/help.services.txt
       ;;
-    remove-locale)
+    remove-locale|installed-locales|list-locales)
       HELP_FILE=${HELP_DIR}/help.add-locale.txt
       ;;
     delete-user)

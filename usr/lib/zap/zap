@@ -179,6 +179,14 @@ remove-locale)
 	shift
 	exec ${ZAPLIBDIR}/add-locale ${PKGARGS} -d $*
 	;;
+installed-locales)
+	shift
+	exec ${ZAPLIBDIR}/add-locale ${PKGARGS} -i $*
+	;;
+list-locales)
+	shift
+	exec ${ZAPLIBDIR}/add-locale ${PKGARGS} -l $*
+	;;
 useradd|create-user)
 	shift
 	exec ${ZAPLIBDIR}/create-user "$@"
