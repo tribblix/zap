@@ -45,8 +45,18 @@ case $pkgname in
 	;;
 *)
 	if [ -f ${ALTROOT}/var/sadm/pkg/${pkgname}/pkginfo ]; then
-	   /usr/bin/awk -F= '{if ($1 == "VERSION") print $2}' ${ALTROOT}/var/sadm/pkg/${pkgname}/pkginfo
-	   exit 0
+	    IVERSION=""
+	    while read line
+	    do
+		case $line in
+		    VERSION*)
+			IVERSION=${line#*=}
+			break
+			;;
+		esac
+	    done<${ALTROOT}/var/sadm/pkg/${pkgname}/pkginfo
+	    echo $IVERSION
+	    exit 0
 	else
 	   echo "Error: unable to find package $pkgname"
 	   exit 1
