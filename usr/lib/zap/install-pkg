@@ -3,7 +3,6 @@
 ZAPLIBDIR="/usr/lib/zap"
 ODIR="/var/sadm/overlays"
 INSTODIR="${ODIR}"
-CFGODIR="${ODIR}"
 PKGARGS=""
 DESTROOT=""
 SRCARGS=""
@@ -22,7 +21,6 @@ case $1 in
 	    echo "ERROR: alternate root $DESTROOT doesn't exist"
 	    exit 1
 	fi
-	CFGODIR="${DESTROOT}/${ODIR}"
 	INSTODIR="${DESTROOT}/${ODIR}"
 	OVLARGS="-C ${DESTROOT}"
 	;;

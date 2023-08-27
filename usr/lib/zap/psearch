@@ -9,8 +9,6 @@
 # helper to install
 #
 
-CFGDIR="/etc/zap"
-ZAPLIBDIR="/usr/lib/zap"
 DESTROOT=""
 
 case $1 in

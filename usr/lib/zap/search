@@ -1,6 +1,5 @@
 #!/bin/ksh
 
-CFGDIR="/etc/zap"
 ZAPLIBDIR="/usr/lib/zap"
 DESTROOT=""
 PKGARGS=""

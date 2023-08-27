@@ -23,7 +23,6 @@ SIGN_CFG="${CFGDIR}/sign_cfg"
 case $1 in
 -C)
 	ALTROOT="$2"
-	CTXARGS="-C ${ALTROOT}"
 	shift
 	shift
 	if [ ! -d "$ALTROOT" ]; then

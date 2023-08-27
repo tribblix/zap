@@ -46,7 +46,6 @@ EXITSTATUS=0
 for zfile in $*
 do
 	vpkg=${zfile%.*}
-	pdir=${zfile%/*}
 	pkg=${zfile##*/}
 	pkg=${pkg%%.*}
 	vpkg=${vpkg##*/}
