@@ -26,7 +26,7 @@ do
 #
 case $PKG in
     TRIB*|SUNW*)
-	echo $PKG
+	echo "$PKG"
 	continue
 	;;
 esac
@@ -35,7 +35,7 @@ esac
 # first time through, get and save the list of available repos
 #
 if [ -z "$REPOLIST" ]; then
-    REPOLIST=`${ZAPLIBDIR}/zap-cfg ${CTXARGS} list-pkg-repos`
+    REPOLIST=$(${ZAPLIBDIR}/zap-cfg ${CTXARGS} list-pkg-repos)
 fi
 
 #
@@ -43,8 +43,8 @@ fi
 #
 for repo in $REPOLIST
 do
-    if [ -f ${CFGDIR}/repositories/${repo}.aliases ]; then
-	FPKG=`/usr/bin/awk -F'|' '{if ($1 == npkg) print $2}' npkg=${PKG} ${CFGDIR}/repositories/${repo}.aliases`
+    if [ -f "${CFGDIR}/repositories/${repo}.aliases" ]; then
+	FPKG=$(/usr/bin/awk -F'|' '{if ($1 == npkg) print $2}' npkg="${PKG}" "${CFGDIR}/repositories/${repo}.aliases")
 	if [ -n "$FPKG" ]; then
 	    echo "${FPKG}"
 	    break
@@ -56,7 +56,7 @@ done
 # if we're unable to find an alias, return the original name
 #
 if [ -z "$FPKG" ]; then
-    echo $PKG
+    echo "$PKG"
 fi
 
 done

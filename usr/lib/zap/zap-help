@@ -37,11 +37,11 @@ case $# in
       HELP_FILE=${HELP_DIR}/help.${1}.txt
       ;;
     esac
-  if [ ! -f ${HELP_FILE} ]; then
+  if [ ! -f "${HELP_FILE}" ]; then
     echo "No specific help for ${1}, showing general help"
     HELP_FILE=${HELP_DIR}/help.txt
   fi
   ;;
 esac
 
-exec $ZPAGER $HELP_FILE
+exec $ZPAGER "$HELP_FILE"

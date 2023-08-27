@@ -505,7 +505,7 @@ case $MODE in
 		    ;;
 		*)
 		    CKSCHEME=${CKNAME##*.}
-		    CKVAL=`/usr/bin/cat $CKNAME|awk '{print $1}`
+		    CKVAL=`/usr/bin/cat $CKNAME|awk '{print $1}'`
 		    ;;
 	    esac
 	    DLVAL=`/usr/bin/openssl $CKSCHEME $FDLNAME | /usr/bin/awk '{print $NF}'`

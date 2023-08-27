@@ -210,7 +210,7 @@ m)
 esac
 done
 
-THISZONE=`/sbin/zonename`
+THISZONE=$(/sbin/zonename)
 if [ "X$THISZONE" != "Xglobal" ]; then
     echo "ERROR: zone management is only possible in the global zone"
     exit 1
@@ -446,7 +446,7 @@ bhyve)
 	    echo "ERROR: bhyve firmware not found - is it available?"
 	    usage
 	fi
-	if [ ! -f /usr/share/bhyve/firmware/${BHYVEFW}.fd ]; then
+	if [ ! -f "/usr/share/bhyve/firmware/${BHYVEFW}.fd" ]; then
 	    echo "ERROR: requested bhyve firmware $BHYVEFW not found"
 	    usage
 	fi
@@ -656,7 +656,7 @@ if [[ -n $NZONES ]]; then
     while [ $NTHIS -le $NZONES ]
     do
 	NZNAME="${ZNAME}${NTHIS}"
-	/usr/sbin/zoneadm -z $NZNAME list > /dev/null 2>&1
+	/usr/sbin/zoneadm -z "$NZNAME" list > /dev/null 2>&1
 	ZEXISTS=$?
 	if [ $ZEXISTS -eq 0 ]; then
 	    echo "ERROR: zone $NZNAME already exists"
@@ -665,7 +665,7 @@ if [[ -n $NZONES ]]; then
 	NTHIS=$(($NTHIS+1))
     done
 else
-    /usr/sbin/zoneadm -z $ZNAME list > /dev/null 2>&1
+    /usr/sbin/zoneadm -z "$ZNAME" list > /dev/null 2>&1
     ZEXISTS=$?
     if [ $ZEXISTS -eq 0 ]; then
 	echo "ERROR: zone $ZNAME already exists"
@@ -729,8 +729,8 @@ if [[ -n $RIP4 ]]; then
 			    echo "  third octet $OCT3 out of range, must be zero for /8"
 			    exit 2
 			fi
-			if [ -f ${ZSDIR}/rconfig.${OCT1} ]; then
-			    ZOWNER=`/usr/bin/grep zone: ${ZSDIR}/rconfig.${OCT1} | /usr/bin/awk '{print $NF}'`
+			if [ -f "${ZSDIR}/rconfig.${OCT1}" ]; then
+			    ZOWNER=$(/usr/bin/grep zone: ${ZSDIR}/rconfig.${OCT1} | /usr/bin/awk '{print $NF}')
 			    echo "ERROR: network $RIP is already in use by zone $ZOWNER"
 			    exit 2
 			fi
@@ -742,31 +742,31 @@ if [[ -n $RIP4 ]]; then
 			    echo "  third octet $OCT3 out of range, must be zero for /16"
 			    exit 2
 			fi
-			if [ -f ${ZSDIR}/rconfig.${OCT1} ]; then
-			    ZOWNER=`/usr/bin/grep zone: ${ZSDIR}/rconfig.${OCT1} | /usr/bin/awk '{print $NF}'`
+			if [ -f "${ZSDIR}/rconfig.${OCT1}" ]; then
+			    ZOWNER=$(/usr/bin/grep zone: ${ZSDIR}/rconfig.${OCT1} | /usr/bin/awk '{print $NF}')
 			    echo "ERROR: parent network ${OCT1}.0.0.0/8 for $RIP is already in use by zone $ZOWNER"
 			    exit 2
 			fi
-			if [ -f ${ZSDIR}/rconfig.${OCT1}.${OCT2} ]; then
-			    ZOWNER=`/usr/bin/grep zone: ${ZSDIR}/rconfig.${OCT1}.${OCT2} | /usr/bin/awk '{print $NF}'`
+			if [ -f "${ZSDIR}/rconfig.${OCT1}.${OCT2}" ]; then
+			    ZOWNER=$(/usr/bin/grep zone: ${ZSDIR}/rconfig.${OCT1}.${OCT2} | /usr/bin/awk '{print $NF}')
 			    echo "ERROR: network $RIP is already in use by zone $ZOWNER"
 			    exit 2
 			fi
 			NRIP4="$NRIP4 ${OCT1}.${OCT2}.${OCT3}.1/${RPREFIX}"
 			;;
 		    24)
-			if [ -f ${ZSDIR}/rconfig.${OCT1} ]; then
-			    ZOWNER=`/usr/bin/grep zone: ${ZSDIR}/rconfig.${OCT1} | /usr/bin/awk '{print $NF}'`
+			if [ -f "${ZSDIR}/rconfig.${OCT1}" ]; then
+			    ZOWNER=$(/usr/bin/grep zone: ${ZSDIR}/rconfig.${OCT1} | /usr/bin/awk '{print $NF}')
 			    echo "ERROR: parent network ${OCT1}.0.0.0/8 for $RIP is already in use by zone $ZOWNER"
 			    exit 2
 			fi
-			if [ -f ${ZSDIR}/rconfig.${OCT1}.${OCT2} ]; then
-			    ZOWNER=`/usr/bin/grep zone: ${ZSDIR}/rconfig.${OCT1}.${OCT2} | /usr/bin/awk '{print $NF}'`
+			if [ -f "${ZSDIR}/rconfig.${OCT1}.${OCT2}" ]; then
+			    ZOWNER=$(/usr/bin/grep zone: ${ZSDIR}/rconfig.${OCT1}.${OCT2} | /usr/bin/awk '{print $NF}')
 			    echo "ERROR: parent network ${OCT1}.${OCT2}.0.0/16 for $RIP is already in use by zone $ZOWNER"
 			    exit 2
 			fi
-			if [ -f ${ZSDIR}/rconfig.${OCT1}.${OCT2}.${OCT3} ]; then
-			    ZOWNER=`/usr/bin/grep zone: ${ZSDIR}/rconfig.${OCT1}.${OCT2}.${OCT3} | /usr/bin/awk '{print $NF}'`
+			if [ -f "${ZSDIR}/rconfig.${OCT1}.${OCT2}.${OCT3}" ]; then
+			    ZOWNER=$(/usr/bin/grep zone: ${ZSDIR}/rconfig.${OCT1}.${OCT2}.${OCT3} | /usr/bin/awk '{print $NF}')
 			    echo "ERROR: network $RIP is already in use by zone $ZOWNER"
 			    exit 2
 			fi
@@ -837,12 +837,12 @@ fi
 if [[ -n $ZUSERS ]]; then
     for TUSER in $ZUSERS
     do
-	chk=`/usr/bin/grep "^${TUSER}:" /etc/passwd`
+	chk=$(/usr/bin/grep "^${TUSER}:" /etc/passwd)
 	if [ -z "${chk}" ]; then
 	    echo "ERROR: user $TUSER doesn't exist, cannot share"
 	    exit 1
 	fi
-	DIR=`/usr/bin/grep "^${TUSER}:" /etc/passwd | /usr/bin/awk -F: '{print $6}'`
+	DIR=$(/usr/bin/grep "^${TUSER}:" /etc/passwd | /usr/bin/awk -F: '{print $6}')
 	if [ -z "${DIR}" ]; then
 	    echo "ERROR: home for user $TUSER doesn't exist, cannot share"
 	    exit 1
@@ -861,18 +861,18 @@ fi
 #
 for OVL in $ZOVERLAY
 do
-	if [ ! -f /var/sadm/overlays/${OVL}.ovl ]; then
+	if [ ! -f "/var/sadm/overlays/${OVL}.ovl" ]; then
 	    echo "ERROR: unrecognized overlay ${OVL}"
 	    exit 1
 	fi
-	if [ ! -f /var/sadm/overlays/installed/${OVL} ]; then
+	if [ ! -f "/var/sadm/overlays/installed/${OVL}" ]; then
 	    echo "ERROR: overlay ${OVL} is not installed in the global zone"
 	    exit 1
 	fi
 done
 for OVL in $ZADDOVERLAY
 do
-	if [ ! -f /var/sadm/overlays/${OVL}.ovl ]; then
+	if [ ! -f "/var/sadm/overlays/${OVL}.ovl" ]; then
 	    echo "ERROR: unrecognized overlay ${OVL}"
 	    exit 1
 	fi
@@ -884,7 +884,7 @@ done
 for APKG in $ZPACKAGE
 do
     NPKG=$(/usr/lib/zap/resolve-alias $APKG)
-    if [ ! -f /var/sadm/pkg/${NPKG}/pkginfo ]; then
+    if [ ! -f "/var/sadm/pkg/${NPKG}/pkginfo" ]; then
 	echo "ERROR: unrecognized package ${APKG}"
 	exit 1
     fi
@@ -905,15 +905,15 @@ TRIBalien|SUNWlx)
 	    #
 	    # check validity of the name
 	    #
-	    DLFILE=`${ZAPLIBDIR}/retrieve-image -n $ZISOFILE`
+	    DLFILE=$(${ZAPLIBDIR}/retrieve-image -n $ZISOFILE)
 	    if [[ $DLFILE = /* ]]; then
-		if [ -f $DLFILE ]; then
+		if [ -f "$DLFILE" ]; then
 		    echo "Using cached image $DLFILE for $ZISOFILE"
 		    ZISOFILE="$DLFILE"
 		else
 		    echo "Downloading $ZISOFILE"
-		    DLFILE=`${ZAPLIBDIR}/retrieve-image $ZISOFILE`
-		    if [ -f $DLFILE ]; then
+		    DLFILE=$(${ZAPLIBDIR}/retrieve-image $ZISOFILE)
+		    if [ -f "$DLFILE" ]; then
 			echo "Using downloaded image $DLFILE for $ZISOFILE"
 			ZISOFILE="$DLFILE"
 		    fi
@@ -946,14 +946,14 @@ bhyve)
 		#
 		# check validity of the name
 		#
-		DLFILE=`${ZAPLIBDIR}/retrieve-image -n $ZISOFILE`
+		DLFILE=$(${ZAPLIBDIR}/retrieve-image -n $ZISOFILE)
 		if [[ $DLFILE = /* ]]; then
 		    if [ -f $DLFILE ]; then
 			echo "Using cached image $DLFILE for $ZISOFILE"
 			ZISOFILE="$DLFILE"
 		    else
 			echo "Downloading $ZISOFILE"
-			DLFILE=`${ZAPLIBDIR}/retrieve-image $ZISOFILE`
+			DLFILE=$(${ZAPLIBDIR}/retrieve-image $ZISOFILE)
 			if [ -f $DLFILE ]; then
 			    echo "Using downloaded image $DLFILE for $ZISOFILE"
 			    ZISOFILE="$DLFILE"
@@ -989,12 +989,12 @@ esac
 #
 if [[ -n $ZTEMPLATE ]]; then
     ZBRAND=TRIBtemplate-${ZTEMPLATE}
-    if [ ! -f /etc/zones/${ZBRAND}.xml ]; then
+    if [ ! -f "/etc/zones/${ZBRAND}.xml" ]; then
 	echo "ERROR: no such template ${ZTEMPLATE}"
 	exit 1
     fi
-    UDIR=`/usr/bin/grep 'directory=\"/usr\"' /etc/zones/${ZBRAND}.xml | /usr/bin/awk '{print $2}' | /usr/bin/awk -F= '{print $2}' | /usr/bin/sed 's:"::g'`
-    if [ ! -d ${UDIR} ]; then
+    UDIR=$(/usr/bin/grep 'directory=\"/usr\"' /etc/zones/${ZBRAND}.xml | /usr/bin/awk '{print $2}' | /usr/bin/awk -F= '{print $2}' | /usr/bin/sed 's:"::g')
+    if [ ! -d "${UDIR}" ]; then
 	echo "ERROR: unable to find file systems for template ${ZTEMPLATE}"
 	exit 1
     fi
@@ -1002,7 +1002,7 @@ fi
 
 get_mask() {
 CIDR=0
-for octet in `echo $1 | /usr/bin/sed 's:\.: :g'`
+for octet in $(echo $1 | /usr/bin/sed 's:\.: :g')
 do
 case $octet in
 255)
@@ -1033,30 +1033,30 @@ echo $CIDR
 #
 get_net_details() {
     IIP=$1
-    NIP=`get_short_net ${IIP}/24`
-    if [ -f ${ZSDIR}/rconfig.${NIP} ] ; then
-	IFACE=`/usr/bin/grep interface: ${ZSDIR}/rconfig.${NIP} | /usr/bin/awk '{print $NF}'`
+    NIP=$(get_short_net ${IIP}/24)
+    if [ -f "${ZSDIR}/rconfig.${NIP}" ] ; then
+	IFACE=$(/usr/bin/grep interface: ${ZSDIR}/rconfig.${NIP} | /usr/bin/awk '{print $NF}')
 	ICIDR=24
 	echo "$IFACE $ICIDR"
 	return
     fi
-    NIP=`get_short_net ${IIP}/16`
-    if [ -f ${ZSDIR}/rconfig.${NIP} ] ; then
-	IFACE=`/usr/bin/grep interface: ${ZSDIR}/rconfig.${NIP} | /usr/bin/awk '{print $NF}'`
+    NIP=$(get_short_net ${IIP}/16)
+    if [ -f "${ZSDIR}/rconfig.${NIP}" ] ; then
+	IFACE=$(/usr/bin/grep interface: ${ZSDIR}/rconfig.${NIP} | /usr/bin/awk '{print $NF}')
 	ICIDR=16
 	echo "$IFACE $ICIDR"
 	return
     fi
-    NIP=`get_short_net ${IIP}/8`
-    if [ -f ${ZSDIR}/rconfig.${NIP} ] ; then
-	IFACE=`/usr/bin/grep interface: ${ZSDIR}/rconfig.${NIP} | /usr/bin/awk '{print $NF}'`
+    NIP=$(get_short_net ${IIP}/8)
+    if [ -f "${ZSDIR}/rconfig.${NIP}" ] ; then
+	IFACE=$(/usr/bin/grep interface: ${ZSDIR}/rconfig.${NIP} | /usr/bin/awk '{print $NF}')
 	ICIDR=8
 	echo "$IFACE $ICIDR"
 	return
     fi
-    IFACE=`/usr/sbin/route -n get $IIP | /usr/bin/grep interface: | /usr/bin/awk '{print $NF}'`
-    IMASK=`/usr/sbin/route -n get $IIP | /usr/bin/grep mask: | /usr/bin/awk '{print $NF}'`
-    ICIDR=`get_mask $IMASK`
+    IFACE=$(/usr/sbin/route -n get $IIP | /usr/bin/grep interface: | /usr/bin/awk '{print $NF}')
+    IMASK=$(/usr/sbin/route -n get $IIP | /usr/bin/grep mask: | /usr/bin/awk '{print $NF}')
+    ICIDR=$(get_mask $IMASK)
     echo "$IFACE $ICIDR"
 }
 
@@ -1065,17 +1065,17 @@ get_net_details() {
 #
 get_parent_zone() {
     IIP=$1
-    NIP=`get_short_net ${IIP}/24`
+    NIP=$(get_short_net ${IIP}/24)
     if [ -f ${ZSDIR}/rconfig.${NIP} ] ; then
 	/usr/bin/grep zone: ${ZSDIR}/rconfig.${NIP} | /usr/bin/awk '{print $NF}'
 	return
     fi
-    NIP=`get_short_net ${IIP}/16`
+    NIP=$(get_short_net ${IIP}/16)
     if [ -f ${ZSDIR}/rconfig.${NIP} ] ; then
 	/usr/bin/grep zone: ${ZSDIR}/rconfig.${NIP} | /usr/bin/awk '{print $NF}'
 	return
     fi
-    NIP=`get_short_net ${IIP}/8`
+    NIP=$(get_short_net ${IIP}/8)
     if [ -f ${ZSDIR}/rconfig.${NIP} ] ; then
         /usr/bin/grep zone: ${ZSDIR}/rconfig.${NIP} | /usr/bin/awk '{print $NF}'
 	return
@@ -1087,17 +1087,17 @@ get_parent_zone() {
 #
 get_gateway() {
     IIP=$1
-    NIP=`get_short_net ${IIP}/24`
+    NIP=$(get_short_net ${IIP}/24)
     if [ -f ${ZSDIR}/rconfig.${NIP} ] ; then
 	/usr/bin/grep gateway: ${ZSDIR}/rconfig.${NIP} | /usr/bin/awk '{print $NF}'
 	return
     fi
-    NIP=`get_short_net ${IIP}/16`
+    NIP=$(get_short_net ${IIP}/16)
     if [ -f ${ZSDIR}/rconfig.${NIP} ] ; then
 	/usr/bin/grep gateway: ${ZSDIR}/rconfig.${NIP} | /usr/bin/awk '{print $NF}'
 	return
     fi
-    NIP=`get_short_net ${IIP}/8`
+    NIP=$(get_short_net ${IIP}/8)
     if [ -f ${ZSDIR}/rconfig.${NIP} ] ; then
         /usr/bin/grep gateway: ${ZSDIR}/rconfig.${NIP} | /usr/bin/awk '{print $NF}'
 	return
@@ -1151,7 +1151,7 @@ get_link_local() {
 #
 get_mac_link_local() {
     VNIC=$1
-    /usr/sbin/dladm show-vnic -p -o MACADDRESS $VNIC | /usr/bin/sed 's=:= =g' | read o1 o2 o3 o4 o5 o6
+    /usr/sbin/dladm show-vnic -p -o MACADDRESS "$VNIC" | /usr/bin/sed 's=:= =g' | read o1 o2 o3 o4 o5 o6
     integer -i2 vi=16#$o1
     integer -i2 nvi
     nvi=$(($vi ^ 2#00000010))
@@ -1170,17 +1170,17 @@ get_mac_link_local() {
 }
 
 create_configuration() {
-if [ ! -d $ZSDIR ]; then
-    /usr/bin/mkdir -p $ZSDIR
+if [ ! -d "$ZSDIR" ]; then
+    /usr/bin/mkdir -p "$ZSDIR"
 fi
-touch ${ZSDIR}/zconfig.${ZNAME}
-if [ ! -f ${ZSDIR}/destroy.${ZNAME} ]; then
-    echo "#!/bin/sh" > ${ZSDIR}/destroy.${ZNAME}
-    /usr/bin/chmod a+x ${ZSDIR}/destroy.${ZNAME}
+touch "${ZSDIR}/zconfig.${ZNAME}"
+if [ ! -f "${ZSDIR}/destroy.${ZNAME}" ]; then
+    echo "#!/bin/sh" > "${ZSDIR}/destroy.${ZNAME}"
+    /usr/bin/chmod a+x "${ZSDIR}/destroy.${ZNAME}"
 fi
-echo "/bin/rm -f ${ZSDIR}/zconfig.${ZNAME}" >> ${ZSDIR}/destroy.${ZNAME}
-echo "brand: $ZBRAND" >> ${ZSDIR}/zconfig.${ZNAME}
-echo "zone: $ZNAME" >> ${ZSDIR}/zconfig.${ZNAME}
+echo "/bin/rm -f ${ZSDIR}/zconfig.${ZNAME}" >> "${ZSDIR}/destroy.${ZNAME}"
+echo "brand: $ZBRAND" >> "${ZSDIR}/zconfig.${ZNAME}"
+echo "zone: $ZNAME" >> "${ZSDIR}/zconfig.${ZNAME}"
 if [[ $ZBRAND = bhyve ]]; then
     echo create -b
     echo set brand=bhyve
@@ -1205,7 +1205,7 @@ do
 	if [[ -n $DOIP6 ]]; then
 	    echo add net
 	    echo set physical=$ZIFACE
-	    echo set address=`get_link_local $IP`
+	    echo set address=$(get_link_local $IP)
 	    echo end
 	fi
 done
@@ -1224,23 +1224,23 @@ ZENUM=0
 for IP in $XIP4
 do
 	get_net_details $IP | read ZIFACE ZCIDR
-	/usr/sbin/dladm show-vnic znic$ZENUM > /dev/null 2>&1
+	/usr/sbin/dladm show-vnic "znic$ZENUM" > /dev/null 2>&1
 	ZESTATUS=$?
 	while [ $ZESTATUS -eq 0 ]
 	do
 	    ZENUM=$(($ZENUM+1))
-	    /usr/sbin/dladm show-vnic znic$ZENUM > /dev/null 2>&1
+	    /usr/sbin/dladm show-vnic "znic$ZENUM" > /dev/null 2>&1
 	    ZESTATUS=$?
 	done
-	/usr/sbin/dladm create-vnic -l $ZIFACE znic$ZENUM
+	/usr/sbin/dladm create-vnic -l "$ZIFACE" "znic$ZENUM"
 	# if flow-properties are specified, create a flow here
 	if [[ -n $FLOWPROPS ]]; then
-	    /usr/sbin/flowadm add-flow -l znic$ZENUM -a local_ip=$IP -p $FLOWPROPS znic${ZENUM}flow
+	    /usr/sbin/flowadm add-flow -l "znic$ZENUM" -a local_ip=$IP -p $FLOWPROPS "znic${ZENUM}flow"
 	    # don't be cute, remove all flows associated with this vnic
-	    echo "/usr/sbin/flowadm remove-flow -l znic$ZENUM" >> ${ZSDIR}/destroy.${ZNAME}
+	    echo "/usr/sbin/flowadm remove-flow -l znic$ZENUM" >> "${ZSDIR}/destroy.${ZNAME}"
 	fi
 	# the vnic can only be deleted after the flow has been removed
-	echo "/usr/sbin/dladm delete-vnic znic$ZENUM" >> ${ZSDIR}/destroy.${ZNAME}
+	echo "/usr/sbin/dladm delete-vnic znic$ZENUM" >> "${ZSDIR}/destroy.${ZNAME}"
 	ifipmap[znic$ZENUM]=$IP/$ZCIDR
 	xifipmap[znic$ZENUM]=$IP/$ZCIDR
 	echo add net
@@ -1248,7 +1248,7 @@ do
 	if [[ -z $DOIP6 ]]; then
 	    echo set allowed-address=$IP/$ZCIDR
 	    # defrouter populates the gateway4 value in cloud-init
-	    ZGW=`get_gateway $XIP4`
+	    ZGW=$(get_gateway $XIP4)
 	    if [[ -n $ZGW ]]; then
 		echo set defrouter=$ZGW
 	    fi
@@ -1261,12 +1261,12 @@ do
 	#if [[ -n $DOIP6 ]]; then
 	#    echo add net
 	#    echo set physical=znic$ZENUM
-	#    echo set allowed-address=`get_mac_link_local znic$ZENUM`
+	#    echo set allowed-address=$(get_mac_link_local znic$ZENUM)
 	#    echo end
 	#fi
-	ZROUTER=`get_parent_zone $IP`
+	ZROUTER=$(get_parent_zone $IP)
 	if [[ -n $ZROUTER ]]; then
-	    echo "parent_zone: $ZROUTER" >> ${ZSDIR}/zconfig.${ZNAME}
+	    echo "parent_zone: $ZROUTER" >> "${ZSDIR}/zconfig.${ZNAME}"
 	fi
 done
 #
@@ -1282,39 +1282,39 @@ ZRNUM=0
 ZENUM=$(($ZENUM+1))
 for IP in $RIP4
 do
-	/usr/sbin/dladm show-etherstub zrstub$ZRNUM > /dev/null 2>&1
+	/usr/sbin/dladm show-etherstub "zrstub$ZRNUM" > /dev/null 2>&1
 	ZRSTATUS=$?
 	while [ $ZRSTATUS -eq 0 ]
 	do
 	    ZRNUM=$(($ZRNUM+1))
-	    /usr/sbin/dladm show-etherstub zrstub$ZRNUM > /dev/null 2>&1
+	    /usr/sbin/dladm show-etherstub "zrstub$ZRNUM" > /dev/null 2>&1
 	    ZRSTATUS=$?
 	done
 	ZIFACE=zrstub$ZRNUM
-	/usr/sbin/dladm create-etherstub $ZIFACE
-	/usr/sbin/dladm show-vnic znic$ZENUM > /dev/null 2>&1
+	/usr/sbin/dladm create-etherstub "$ZIFACE"
+	/usr/sbin/dladm show-vnic "znic$ZENUM" > /dev/null 2>&1
 	ZESTATUS=$?
 	while [ $ZESTATUS -eq 0 ]
 	do
 	    ZENUM=$(($ZENUM+1))
-	    /usr/sbin/dladm show-vnic znic$ZENUM > /dev/null 2>&1
+	    /usr/sbin/dladm show-vnic "znic$ZENUM" > /dev/null 2>&1
 	    ZESTATUS=$?
 	done
-	/usr/sbin/dladm create-vnic -l $ZIFACE znic$ZENUM
-	echo "/usr/sbin/dladm delete-vnic znic$ZENUM" >> ${ZSDIR}/destroy.${ZNAME}
+	/usr/sbin/dladm create-vnic -l "$ZIFACE" "znic$ZENUM"
+	echo "/usr/sbin/dladm delete-vnic znic$ZENUM" >> "${ZSDIR}/destroy.${ZNAME}"
 	# delete the etherstub after the vnic configured on it
-	echo "/usr/sbin/dladm delete-etherstub $ZIFACE" >> ${ZSDIR}/destroy.${ZNAME}
+	echo "/usr/sbin/dladm delete-etherstub $ZIFACE" >> "${ZSDIR}/destroy.${ZNAME}"
 	ifipmap[znic$ZENUM]=$IP
 	echo add net
 	echo set physical=znic$ZENUM
 	echo end
 	# save the configuration here
-	ZNETNAME=`get_short_net $IP`
-	touch ${ZSDIR}/rconfig.${ZNETNAME}
-	echo "interface: $ZIFACE" >> ${ZSDIR}/rconfig.${ZNETNAME}
-	echo "gateway: ${IP%/*}" >> ${ZSDIR}/rconfig.${ZNETNAME}
-	echo "zone: ${ZNAME}" >> ${ZSDIR}/rconfig.${ZNETNAME}
-	echo "rm ${ZSDIR}/rconfig.${ZNETNAME}" >> ${ZSDIR}/destroy.${ZNAME}
+	ZNETNAME=$(get_short_net $IP)
+	touch "${ZSDIR}/rconfig.${ZNETNAME}"
+	echo "interface: $ZIFACE" >> "${ZSDIR}/rconfig.${ZNETNAME}"
+	echo "gateway: ${IP%/*}" >> "${ZSDIR}/rconfig.${ZNETNAME}"
+	echo "zone: ${ZNAME}" >> "${ZSDIR}/rconfig.${ZNETNAME}"
+	echo "rm ${ZSDIR}/rconfig.${ZNETNAME}" >> "${ZSDIR}/destroy.${ZNAME}"
 done
 #
 # for Tribblix-style zones, mount the zap package cache read-only in the
@@ -1339,7 +1339,7 @@ do
 done
 for DIR in $ZDIRS
 do
-	/usr/bin/mkdir -p ${ZFSBASE}/${ZNAME}${DIR}
+	/usr/bin/mkdir -p "${ZFSBASE}/${ZNAME}${DIR}"
 	echo add fs
 	echo set dir=${DIR}
 	echo set special=${ZFSBASE}/${ZNAME}${DIR}
@@ -1368,7 +1368,7 @@ done
 for TUSER in $ZUSERS
 do
 	echo add fs
-	DIR=`/usr/bin/grep "^${TUSER}:" /etc/passwd | /usr/bin/awk -F: '{print $6}'`
+	DIR=$(/usr/bin/grep "^${TUSER}:" /etc/passwd | /usr/bin/awk -F: '{print $6}')
 	echo set dir=${DIR}
 	echo set special=${DIR}
 	echo set type=lofs
@@ -1520,7 +1520,7 @@ if [[ $ZBRAND = bhyve ]]; then
 	echo end
 	# try and get resolvers from resolv.conf
 	if [ -f /etc/resolv.conf ]; then
-	    RESOLVERS=`grep nameserver /etc/resolv.conf | awk '{printf $2","}' | sed 's:,$::'`
+	    RESOLVERS=$(grep nameserver /etc/resolv.conf | awk '{printf $2","}' | sed 's:,$::')
 	    if [[ -n $RESOLVERS ]]; then
 		echo add attr
 		echo set name=resolvers
@@ -1555,9 +1555,9 @@ create_sysidcfg() {
     echo "  hostname=${ZNAME}"
     if [[ -n $XIP4 ]]; then
 	echo "ip_address=${XIP4}"
-	IMASK=`/usr/sbin/route -n get $XIP4 | /usr/bin/grep mask: | /usr/bin/awk '{print $NF}'`
+	IMASK=$(/usr/sbin/route -n get $XIP4 | /usr/bin/grep mask: | /usr/bin/awk '{print $NF}')
 	echo "netmask=$IMASK"
-	ZGW=`get_gateway $XIP4`
+	ZGW=$(get_gateway $XIP4)
 	echo "default_route=$ZGW"
 	if [[ -n $DOIP6 ]]; then
 	    echo protocol_ipv6=yes
@@ -1665,8 +1665,8 @@ if [[ -n $NZONES ]]; then
 	#
 	# construct command for this host, with unique zone name and addresses
 	#
-	echo Creating zone ${NZNAME}
-	zap create-zone -t $ZBRAND -z ${NZNAME} $NADDR ${NDATASETS} $NCMDLINE
+	echo "Creating zone ${NZNAME}"
+	zap create-zone -t "$ZBRAND" -z "${NZNAME}" $NADDR ${NDATASETS} $NCMDLINE
     done
     exit 0
 fi
@@ -1676,20 +1676,20 @@ fi
 #
 if [[ -n ${ZDIRS} ]]; then
    ZPARENT=${ZFSBASE%/*}
-   ZDPARENT=`/usr/sbin/zfs list -H ${ZPARENT} | /usr/bin/awk '{print $1}'`
-   ZREALNAME=`echo $ZFSBASE | /usr/bin/sed s:${ZPARENT}:${ZDPARENT}:`
-   if [[ ! -d ${ZFSBASE} ]]; then
-      /usr/sbin/zfs create ${ZREALNAME}
+   ZDPARENT=$(/usr/sbin/zfs list -H ${ZPARENT} | /usr/bin/awk '{print $1}')
+   ZREALNAME=$(echo $ZFSBASE | /usr/bin/sed s:${ZPARENT}:${ZDPARENT}:)
+   if [[ ! -d "${ZFSBASE}" ]]; then
+      /usr/sbin/zfs create "${ZREALNAME}"
    fi
-   if [[ ! -d ${ZFSBASE}/${ZNAME} ]]; then
-      /usr/sbin/zfs create ${ZREALNAME}/${ZNAME}
+   if [[ ! -d "${ZFSBASE}/${ZNAME}" ]]; then
+      /usr/sbin/zfs create "${ZREALNAME}/${ZNAME}"
    fi
 fi
-if [[ ! -d ${ZROOTBASE} ]]; then
+if [[ ! -d "${ZROOTBASE}" ]]; then
    ZPARENT=${ZROOTBASE%/*}
-   ZDPARENT=`/usr/sbin/zfs list -H ${ZPARENT} | /usr/bin/awk '{print $1}'`
-   ZREALNAME=`echo $ZROOTBASE | /usr/bin/sed s:${ZPARENT}:${ZDPARENT}:`
-   /usr/sbin/zfs create ${ZREALNAME}
+   ZDPARENT=$(/usr/sbin/zfs list -H ${ZPARENT} | /usr/bin/awk '{print $1}')
+   ZREALNAME=$(echo $ZROOTBASE | /usr/bin/sed s:${ZPARENT}:${ZDPARENT}:)
+   /usr/sbin/zfs create "${ZREALNAME}"
 fi
 #
 # this one is split, we create any missing intermediate datasets
@@ -1698,8 +1698,8 @@ fi
 for DSET in $ZDATASETS
 do
     ZPARENT=${DSET%/*}
-    /usr/sbin/zfs create -p ${ZPARENT}
-    /usr/sbin/zfs create -o mountpoint=none ${DSET}
+    /usr/sbin/zfs create -p "${ZPARENT}"
+    /usr/sbin/zfs create -o mountpoint=none "${DSET}"
 done
 #
 # volumes for bhyve - create and set
@@ -1725,11 +1725,11 @@ if [[ $ZBRAND = bhyve ]]; then
 		done
 		/usr/sbin/zfs create -V $BHYVEVOLSIZE ${BHYVEPOOL}/${BVOLNAME}
 		BHYVEVOLS="${BHYVEVOLS} ${BHYVEPOOL}/${BVOLNAME}"
-		if [ ! -f ${ZSDIR}/destroy.${ZNAME} ]; then
-		    echo "#!/bin/sh" > ${ZSDIR}/destroy.${ZNAME}
-		    /usr/bin/chmod a+x ${ZSDIR}/destroy.${ZNAME}
+		if [ ! -f "${ZSDIR}/destroy.${ZNAME}" ]; then
+		    echo "#!/bin/sh" > "${ZSDIR}/destroy.${ZNAME}"
+		    /usr/bin/chmod a+x "${ZSDIR}/destroy.${ZNAME}"
 		fi
-		echo "/usr/sbin/zfs destroy ${BHYVEPOOL}/${BVOLNAME}" >> ${ZSDIR}/destroy.${ZNAME}
+		echo "/usr/sbin/zfs destroy ${BHYVEPOOL}/${BVOLNAME}" >> "${ZSDIR}/destroy.${ZNAME}"
 	    done
 	else
 	    echo "ERROR: bhyve volume logic error"
@@ -1738,12 +1738,12 @@ if [[ $ZBRAND = bhyve ]]; then
     fi
 fi
 
-ZCFGFILE=/tmp/zap.zcfg.`date '+%F-%T'`.$$
-create_configuration > ${ZCFGFILE}
+ZCFGFILE=/tmp/zap.zcfg.$(date '+%F-%T').$$
+create_configuration > "${ZCFGFILE}"
 
-/usr/sbin/zonecfg -z ${ZNAME} -f ${ZCFGFILE}
+/usr/sbin/zonecfg -z "${ZNAME}" -f "${ZCFGFILE}"
 
-/usr/sbin/zoneadm -z ${ZNAME} install `create_install_opts`
+/usr/sbin/zoneadm -z "${ZNAME}" install $(create_install_opts)
 
 #
 # copy the shared user accounts specified into the zone
@@ -1751,20 +1751,20 @@ create_configuration > ${ZCFGFILE}
 #
 for TUSER in $ZUSERS
 do
-    /usr/bin/grep "^${TUSER}:" /etc/passwd >> ${ZROOTBASE}/${ZNAME}/root/etc/passwd
-    /usr/bin/grep "^${TUSER}:" /etc/shadow >> ${ZROOTBASE}/${ZNAME}/root/etc/shadow
+    /usr/bin/grep "^${TUSER}:" /etc/passwd >> "${ZROOTBASE}/${ZNAME}/root/etc/passwd"
+    /usr/bin/grep "^${TUSER}:" /etc/shadow >> "${ZROOTBASE}/${ZNAME}/root/etc/shadow"
     #
     # try to make sure the shared user's group exists in the zone too
     #
-    TGID=`/usr/bin/grep "^${TUSER}:" /etc/passwd | /usr/bin/awk -F: '{print $4}'`
+    TGID=$(/usr/bin/grep "^${TUSER}:" /etc/passwd | /usr/bin/awk -F: '{print $4}')
     if [[ -n $TGID ]]; then
-	if ! /usr/xpg4/bin/grep -q ":${TGID}:" ${ZROOTBASE}/${ZNAME}/root/etc/group
+	if ! /usr/xpg4/bin/grep -q ":${TGID}:" "${ZROOTBASE}/${ZNAME}/root/etc/group"
 	then
-	    /usr/bin/grep ":${TGID}:" /etc/group >> ${ZROOTBASE}/${ZNAME}/root/etc/group
+	    /usr/bin/grep ":${TGID}:" /etc/group >> "${ZROOTBASE}/${ZNAME}/root/etc/group"
 	fi
     fi
     if [[ $ZBRAND != SUNWlx ]]; then
-	echo "${TUSER}::::roles=root" >> ${ZROOTBASE}/${ZNAME}/root/etc/user_attr
+	echo "${TUSER}::::roles=root" >> "${ZROOTBASE}/${ZNAME}/root/etc/user_attr"
     fi
 done
 
@@ -1776,14 +1776,14 @@ done
 if [[ $ZBRAND != SUNWlx ]]; then
     for index in "${!ifipmap[@]}"
     do
-	echo "${ifipmap[$index]}" > ${ZROOTBASE}/${ZNAME}/root/etc/hostname.$index
+	echo "${ifipmap[$index]}" > "${ZROOTBASE}/${ZNAME}/root/etc/hostname.$index"
 	if [[ -n $DOIP6 ]]; then
-	    touch ${ZROOTBASE}/${ZNAME}/root/etc/hostname6.$index
+	    touch "${ZROOTBASE}/${ZNAME}/root/etc/hostname6.$index"
 	fi
     done
     if [[ -n $XIP4 ]]; then
-	ZGW=`get_gateway $XIP4`
-	echo $ZGW > ${ZROOTBASE}/${ZNAME}/root/etc/defaultrouter
+	ZGW=$(get_gateway $XIP4)
+	echo $ZGW > "${ZROOTBASE}/${ZNAME}/root/etc/defaultrouter"
     fi
 fi
 
@@ -1793,20 +1793,20 @@ fi
 #  enable ip forwarding on all interfaces
 #
 if [[ -n $RIP4 ]]; then
-    touch ${ZROOTBASE}/${ZNAME}/root/etc/rc2.d/S83router
-    echo "#!/bin/sh" > ${ZROOTBASE}/${ZNAME}/root/etc/rc2.d/S83router
+    touch "${ZROOTBASE}/${ZNAME}/root/etc/rc2.d/S83router"
+    echo "#!/bin/sh" > "${ZROOTBASE}/${ZNAME}/root/etc/rc2.d/S83router"
     for index in "${!ifipmap[@]}"
     do
-	echo "/usr/sbin/ipadm set-ifprop -t -p forwarding=on -m ipv4 $index" >> ${ZROOTBASE}/${ZNAME}/root/etc/rc2.d/S83router
+	echo "/usr/sbin/ipadm set-ifprop -t -p forwarding=on -m ipv4 $index" >> "${ZROOTBASE}/${ZNAME}/root/etc/rc2.d/S83router"
     done
-    echo /usr/sbin/svcadm enable network/ipfilter >> ${ZROOTBASE}/${ZNAME}/root/etc/rc2.d/S83router
-    chmod a+x ${ZROOTBASE}/${ZNAME}/root/etc/rc2.d/S83router
-    IFACE=`echo "${!xifipmap[@]}"|awk '{print $1}'`
-    touch ${ZROOTBASE}/${ZNAME}/root/etc/ipf/ipnat.conf
+    echo /usr/sbin/svcadm enable network/ipfilter >> "${ZROOTBASE}/${ZNAME}/root/etc/rc2.d/S83router"
+    chmod a+x "${ZROOTBASE}/${ZNAME}/root/etc/rc2.d/S83router"
+    IFACE=$(echo "${!xifipmap[@]}"|awk '{print $1}')
+    touch "${ZROOTBASE}/${ZNAME}/root/etc/ipf/ipnat.conf"
     for subnet in $ORIP4
     do
-	echo "map $IFACE $subnet -> 0/32 portmap tcp/udp auto" >> ${ZROOTBASE}/${ZNAME}/root/etc/ipf/ipnat.conf
-	echo "map $IFACE $subnet -> 0/32" >> ${ZROOTBASE}/${ZNAME}/root/etc/ipf/ipnat.conf
+	echo "map $IFACE $subnet -> 0/32 portmap tcp/udp auto" >> "${ZROOTBASE}/${ZNAME}/root/etc/ipf/ipnat.conf"
+	echo "map $IFACE $subnet -> 0/32" >> "${ZROOTBASE}/${ZNAME}/root/etc/ipf/ipnat.conf"
     done
 fi
 
@@ -1815,17 +1815,17 @@ fi
 # inittab but doesn't check what it actually runs
 #
 if [[ -n ${ZBLANK} ]]; then
-    if [ -f ${ZROOTBASE}/${ZNAME}/root/etc/inittab ]; then
-        /usr/bin/sed -i 's:/lib/svc/bin/svc.startd:/usr/bin/sleep Inf:' ${ZROOTBASE}/${ZNAME}/root/etc/inittab
+    if [ -f "${ZROOTBASE}/${ZNAME}/root/etc/inittab" ]; then
+        /usr/bin/sed -i 's:/lib/svc/bin/svc.startd:/usr/bin/sleep Inf:' "${ZROOTBASE}/${ZNAME}/root/etc/inittab"
     fi
 fi
 
 #
 # do some minimalist configuration of the zone
 #
-/usr/bin/cp /etc/resolv.conf ${ZROOTBASE}/${ZNAME}/root/etc
+/usr/bin/cp /etc/resolv.conf "${ZROOTBASE}/${ZNAME}/root/etc"
 if [[ $ZBRAND != SUNWlx && $ZBRAND != bhyve ]]; then
-    /usr/bin/cp /etc/default/init ${ZROOTBASE}/${ZNAME}/root/etc/default/init
+    /usr/bin/cp /etc/default/init "${ZROOTBASE}/${ZNAME}/root/etc/default/init"
 fi
 
 #
@@ -1835,31 +1835,31 @@ fi
 # attempts to run quota at login (which will likely not work)
 #
 if [[ $ZBRAND = SUNWsolaris10 ]]; then
-    SYSIDCFGFILE=/tmp/zap.sysidcfg.${ZNAME}.`date '+%F-%T'`.$$
-    create_sysidcfg > ${SYSIDCFGFILE}
-    /usr/bin/cp ${SYSIDCFGFILE} ${ZROOTBASE}/${ZNAME}/root/etc/sysidcfg
-    /usr/bin/cp ${ZROOTBASE}/${ZNAME}/root/etc/nsswitch.dns ${ZROOTBASE}/${ZNAME}/root/etc/nsswitch.files
-    /usr/bin/cp ${ZROOTBASE}/${ZNAME}/root/etc/nsswitch.dns ${ZROOTBASE}/${ZNAME}/root/etc/nsswitch.conf
-    /usr/bin/cp /etc/.login ${ZROOTBASE}/${ZNAME}/root/etc/.login
-    /usr/bin/cp /etc/profile ${ZROOTBASE}/${ZNAME}/root/etc/profile
+    SYSIDCFGFILE=/tmp/zap.sysidcfg.${ZNAME}.$(date '+%F-%T').$$
+    create_sysidcfg > "${SYSIDCFGFILE}"
+    /usr/bin/cp "${SYSIDCFGFILE}" "${ZROOTBASE}/${ZNAME}/root/etc/sysidcfg"
+    /usr/bin/cp "${ZROOTBASE}/${ZNAME}/root/etc/nsswitch.dns" "${ZROOTBASE}/${ZNAME}/root/etc/nsswitch.files"
+    /usr/bin/cp "${ZROOTBASE}/${ZNAME}/root/etc/nsswitch.dns" "${ZROOTBASE}/${ZNAME}/root/etc/nsswitch.conf"
+    /usr/bin/cp /etc/.login "${ZROOTBASE}/${ZNAME}/root/etc/.login"
+    /usr/bin/cp /etc/profile "${ZROOTBASE}/${ZNAME}/root/etc/profile"
 fi
 
 #
 # copy an ssh key to wherever the zone might expect it
 #
-if [[ -n $SSHKEYFILE ]]; then
+if [[ -n "$SSHKEYFILE" ]]; then
     if [[ $ZBRAND = bhyve ]]; then
 	# the /sshkey.pub name here must match the zone attribute
-	/usr/bin/cp $SSHKEYFILE ${ZROOTBASE}/${ZNAME}/root/sshkey.pub
+	/usr/bin/cp "$SSHKEYFILE" "${ZROOTBASE}/${ZNAME}/root/sshkey.pub"
     fi
     if [[ $ZBRAND = TRIBwhole || $ZBRAND = TRIBsparse || $ZBRAND = TRIBalien ]]; then
 	# assume all illumos-type zones have the same directory structure
-	UHOME=`/usr/bin/awk -F: '{if ($1 == "root") print $6}' ${ZROOTBASE}/${ZNAME}/root/etc/passwd`
+	UHOME=$(/usr/bin/awk -F: '{if ($1 == "root") print $6}' ${ZROOTBASE}/${ZNAME}/root/etc/passwd)
 	if [ -n "$UHOME" ]; then
-	    /usr/bin/mkdir -p -m 700 ${ZROOTBASE}/${ZNAME}/root/${UHOME}/.ssh
-	    /usr/bin/cp $SSHKEYFILE ${ZROOTBASE}/${ZNAME}/root/${UHOME}/.ssh/authorized_keys
-	    /usr/bin/chmod 600 ${ZROOTBASE}/${ZNAME}/root/${UHOME}/.ssh/authorized_keys
-	    /usr/bin/sed -i 's:^PermitRootLogin.*:PermitRootLogin without-password:' ${ZROOTBASE}/${ZNAME}/root/etc/ssh/sshd_config
+	    /usr/bin/mkdir -p -m 700 "${ZROOTBASE}/${ZNAME}/root/${UHOME}/.ssh"
+	    /usr/bin/cp "$SSHKEYFILE" "${ZROOTBASE}/${ZNAME}/root/${UHOME}/.ssh/authorized_keys"
+	    /usr/bin/chmod 600 "${ZROOTBASE}/${ZNAME}/root/${UHOME}/.ssh/authorized_keys"
+	    /usr/bin/sed -i 's:^PermitRootLogin.*:PermitRootLogin without-password:' "${ZROOTBASE}/${ZNAME}/root/etc/ssh/sshd_config"
 	fi
     fi
 fi
@@ -1869,12 +1869,12 @@ fi
 #
 for KARG in $KARGS
 do
-    ${ZAPLIBDIR}/zone-konfigurator -z ${ZNAME} $KARG
+    ${ZAPLIBDIR}/zone-konfigurator -z "${ZNAME}" $KARG
 done
 
-/usr/sbin/zoneadm -z ${ZNAME} boot
-/usr/bin/rm $ZCFGFILE
+/usr/sbin/zoneadm -z "${ZNAME}" boot
+/usr/bin/rm "$ZCFGFILE"
 
 if [[ -n ${SYSIDCFGFILE} ]]; then
-    /usr/bin/rm -f $SYSIDCFGFILE
+    /usr/bin/rm -f "$SYSIDCFGFILE"
 fi

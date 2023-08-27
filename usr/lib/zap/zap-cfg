@@ -51,7 +51,7 @@ list-pkg-repos)
 	    while [[ ${#repos[@]} -gt 0 ]]
 	    do
 		k=(${!repos[@]})
-		for j in ${!repos[@]}
+		for j in "${!repos[@]}"
 		do
 		    if [ ${repos[$j]} -lt ${repos[$k]} ]; then
 			k=$j
@@ -76,7 +76,7 @@ list-overlay-repos)
 	    while [[ ${#repos[@]} -gt 0 ]]
 	    do
 		k=(${!repos[@]})
-		for j in ${!repos[@]}
+		for j in "${!repos[@]}"
 		do
 		    if [ ${repos[$j]} -lt ${repos[$k]} ]; then
 			k=$j

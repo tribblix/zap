@@ -9,7 +9,7 @@
 ZAPLIBDIR="/usr/lib/zap"
 
 if [ -x "${ZAPLIBDIR}/pkgversion" ]; then
-    USER_AGENT="copy-repo"/`${ZAPLIBDIR}/pkgversion TRIBzap`
+    USER_AGENT="copy-repo"/$(${ZAPLIBDIR}/pkgversion TRIBzap)
 else
     USER_AGENT="copy-repo/standalone"
 fi
@@ -49,8 +49,8 @@ esac
 #
 # check arguments
 #
-if [ -f /etc/zap/repositories/${REPO}.repo ]; then
-   REPO=`grep '^URL=' /etc/zap/repositories/${REPO}.repo | awk -F= '{print $2}'`
+if [ -f "/etc/zap/repositories/${REPO}.repo" ]; then
+   REPO=$(grep '^URL=' "/etc/zap/repositories/${REPO}.repo" | awk -F= '{print $2}')
 fi
 case $DESTDIR in
 /*)
@@ -85,7 +85,7 @@ fi
 #
 # make the directory if necessary
 #
-mkdir -p $DESTDIR
+mkdir -p "$DESTDIR"
 if [ ! -d "${DESTDIR}" ]; then
    echo "ERROR: unable to create destination directory"
    exit 1
@@ -99,12 +99,12 @@ ${CURL} ${CARGS} ${DESTDIR}/aliases ${REPO}/aliases
 ${CURL} ${CARGS} ${DESTDIR}/index.html ${REPO}/index.html
 ${CURL} ${CARGS} ${DESTDIR}/filelist.bz2 ${REPO}/filelist.bz2
 
-if [ ! -f ${DESTDIR}/catalog ]; then
+if [ ! -f "${DESTDIR}/catalog" ]; then
    echo "ERROR: no catalog retrieved"
    exit 1
 fi
 
-if [ ! -s ${DESTDIR}/catalog ]; then
+if [ ! -s "${DESTDIR}/catalog" ]; then
    echo "ERROR: catalog is empty"
    exit 1
 fi
@@ -120,23 +120,23 @@ do
 	echo "Getting ${pkg}, $fsize bytes"
 	${CURL} ${CARGS} ${DESTDIR}/${pkg}.${ver}.zap ${REPO}/${pkg}.${ver}.zap
 	if [ -f "${DESTDIR}/${pkg}.${ver}.zap" ]; then
-	    rsize=`/usr/bin/stat -c '%s' ${DESTDIR}/${pkg}.${ver}.zap`
+	    rsize=$(/usr/bin/stat -c '%s' "${DESTDIR}/${pkg}.${ver}.zap")
 	    if [ $rsize -eq $fsize ]; then
 		echo "Successful download of ${pkg}.${ver}.zap"
 	    else
 		echo "ERROR: size mismatch for ${pkg}.${ver}.zap, retrying"
-		/usr/bin/rm -f ${DESTDIR}/${pkg}.${ver}.zap
-		${WGET} ${WARGS} ${DESTDIR}/${pkg}.${ver}.zap ${REPO}/${pkg}.${ver}.zap
+		/usr/bin/rm -f "${DESTDIR}/${pkg}.${ver}.zap"
+		${WGET} ${WARGS} "${DESTDIR}/${pkg}.${ver}.zap" "${REPO}/${pkg}.${ver}.zap"
 	    fi
 	else
-	    ${WGET} ${WARGS} ${DESTDIR}/${pkg}.${ver}.zap ${REPO}/${pkg}.${ver}.zap
+	    ${WGET} ${WARGS} "${DESTDIR}/${pkg}.${ver}.zap" "${REPO}/${pkg}.${ver}.zap"
 	fi
     fi
-    PKGMD5=`/usr/bin/openssl md5 ${DESTDIR}/${pkg}.${ver}.zap | /usr/bin/awk '{print $NF}'`
+    PKGMD5=$(/usr/bin/openssl md5 "${DESTDIR}/${pkg}.${ver}.zap" | /usr/bin/awk '{print $NF}')
     if [ "$PKGMD5" = "$fsum" ]; then
 	echo "Checksum verified for ${pkg}"
     else
 	echo "ERROR: Checksum failure for ${pkg}"
-	/usr/bin/rm -f ${DESTDIR}/${pkg}.${ver}.zap
+	/usr/bin/rm -f "${DESTDIR}/${pkg}.${ver}.zap"
     fi
 done

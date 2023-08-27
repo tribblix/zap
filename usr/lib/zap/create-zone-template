@@ -49,7 +49,7 @@ d)
 esac
 done
 
-THISZONE=`/sbin/zonename`
+THISZONE=$(/sbin/zonename)
 if [ "X$THISZONE" != "Xglobal" ]; then
     echo "ERROR: zone management is only possible in the global zone"
     exit 1
@@ -97,14 +97,14 @@ case $ZBRAND in
 	    #
 	    # check validity of the name
 	    #
-	    DLFILE=`${ZAPLIBDIR}/retrieve-image -n $ZISOFILE`
+	    DLFILE=$(${ZAPLIBDIR}/retrieve-image -n $ZISOFILE)
 	    if [[ $DLFILE = /* ]]; then
 		if [ -f $DLFILE ]; then
 		    echo "Using cached image $DLFILE for $ZISOFILE"
 		    ZISOFILE="$DLFILE"
 		else
 		    echo "Downloading $ZISOFILE"
-		    DLFILE=`${ZAPLIBDIR}/retrieve-image $ZISOFILE`
+		    DLFILE=$(${ZAPLIBDIR}/retrieve-image $ZISOFILE)
 		    if [ -f $DLFILE ]; then
 			echo "Using downloaded image $DLFILE for $ZISOFILE"
 			ZISOFILE="$DLFILE"
@@ -170,26 +170,26 @@ fi
 #
 if [[ -n ${ZDIRS} ]]; then
    ZPARENT=${ZFSBASE%/*}
-   ZDPARENT=`/usr/sbin/zfs list -H ${ZPARENT} | /usr/bin/awk '{print $1}'`
-   ZREALNAME=`echo $ZFSBASE | /usr/bin/sed s:${ZPARENT}:${ZDPARENT}:`
-   if [[ ! -d ${ZFSBASE} ]]; then
-      /usr/sbin/zfs create ${ZREALNAME}
+   ZDPARENT=$(/usr/sbin/zfs list -H ${ZPARENT} | /usr/bin/awk '{print $1}')
+   ZREALNAME=$(echo $ZFSBASE | /usr/bin/sed s:${ZPARENT}:${ZDPARENT}:)
+   if [ ! -d "${ZFSBASE}" ]; then
+      /usr/sbin/zfs create "${ZREALNAME}"
    fi
-   if [[ ! -d ${ZFSBASE}/${ZNAME} ]]; then
-      /usr/sbin/zfs create ${ZREALNAME}/${ZNAME}
+   if [ ! -d "${ZFSBASE}/${ZNAME}" ]; then
+      /usr/sbin/zfs create "${ZREALNAME}/${ZNAME}"
    fi
 fi
-if [[ ! -d ${ZROOTBASE} ]]; then
+if [ ! -d "${ZROOTBASE}" ]; then
    ZPARENT=${ZROOTBASE%/*}
-   ZDPARENT=`/usr/sbin/zfs list -H ${ZPARENT} | /usr/bin/awk '{print $1}'`
-   ZREALNAME=`echo $ZROOTBASE | /usr/bin/sed s:${ZPARENT}:${ZDPARENT}:`
-   /usr/sbin/zfs create ${ZREALNAME}
+   ZDPARENT=$(/usr/sbin/zfs list -H ${ZPARENT} | /usr/bin/awk '{print $1}')
+   ZREALNAME=$(echo $ZROOTBASE | /usr/bin/sed s:${ZPARENT}:${ZDPARENT}:)
+   /usr/sbin/zfs create "${ZREALNAME}"
 fi
-if [[ ! -d ${ZROOTBASE}/${TNAME} ]]; then
+if [ ! -d "${ZROOTBASE}/${TNAME}" ]; then
    ZPARENT=${ZROOTBASE%/*}
-   ZDPARENT=`/usr/sbin/zfs list -H ${ZPARENT} | /usr/bin/awk '{print $1}'`
-   ZREALNAME=`echo $ZROOTBASE | /usr/bin/sed s:${ZPARENT}:${ZDPARENT}:`
-   /usr/sbin/zfs create ${ZREALNAME}/${TNAME}
+   ZDPARENT=$(/usr/sbin/zfs list -H ${ZPARENT} | /usr/bin/awk '{print $1}')
+   ZREALNAME=$(echo $ZROOTBASE | /usr/bin/sed s:${ZPARENT}:${ZDPARENT}:)
+   /usr/sbin/zfs create "${ZREALNAME}/${TNAME}"
 fi
 
 #
@@ -197,10 +197,10 @@ fi
 # we want to specify just the zone root, but have to supply a zone name
 # as well
 #
-/usr/lib/brand/${ZBRAND}-root/pkgcreatezone -T -R ${ZROOTBASE}/${TNAME} -z template-${TNAME} `create_install_opts`
+/usr/lib/brand/${ZBRAND}-root/pkgcreatezone -T -R "${ZROOTBASE}/${TNAME}" -z "template-${TNAME}" $(create_install_opts)
 
 #
 # Now create a zone xml file that matches the template locations
 # we just populated
 #
-/usr/bin/cat /etc/zones/TRIBsparse.xml | /usr/bin/sed -e s:special=\"/usr:special=\"${ZROOTBASE}/${TNAME}/usr: -e s:special=\"/sbin:special=\"${ZROOTBASE}/${TNAME}/sbin: -e s:special=\"/platform:special=\"${ZROOTBASE}/${TNAME}/platform: -e s:special=\"/zonelib/lib:special=\"${ZROOTBASE}/${TNAME}/lib: > ${TBRANDFILE}
+/usr/bin/cat /etc/zones/TRIBsparse.xml | /usr/bin/sed -e s:special=\"/usr:special=\"${ZROOTBASE}/${TNAME}/usr: -e s:special=\"/sbin:special=\"${ZROOTBASE}/${TNAME}/sbin: -e s:special=\"/platform:special=\"${ZROOTBASE}/${TNAME}/platform: -e s:special=\"/zonelib/lib:special=\"${ZROOTBASE}/${TNAME}/lib: > "${TBRANDFILE}"

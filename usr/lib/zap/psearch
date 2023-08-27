@@ -45,7 +45,7 @@ typeset -A pmap
 for FPKG in $(awk -F'|' -v pkg=$PKG '{if ($1 ~ pkg) print $1}' ${DESTROOT}/etc/zap/repositories/*.catalog)
 do
     if [[ -z ${pmap[$FPKG]} ]]; then
-	if [ -d ${DESTROOT}/var/sadm/pkg/${FPKG} ]; then
+	if [ -d "${DESTROOT}/var/sadm/pkg/${FPKG}" ]; then
 	   PSTATUS="already installed"
 	else
 	   PSTATUS="not installed"

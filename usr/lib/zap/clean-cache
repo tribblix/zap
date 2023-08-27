@@ -24,9 +24,9 @@ case $1 in
 	;;
 esac
 
-CACHE_DIR=`${ZAPLIBDIR}/zap-cfg ${CTXARGS} cache-dir`
+CACHE_DIR=$(${ZAPLIBDIR}/zap-cfg ${CTXARGS} cache-dir)
 
-if [ ! -d ${CACHE_DIR} ]; then
+if [ ! -d "${CACHE_DIR}" ]; then
     echo "ERROR: cache directory ${CACHE_DIR} doesn't exist"
     exit 1
 fi
@@ -35,8 +35,8 @@ cd ${CACHE_DIR}
 
 case $1 in
     -a)
-	/usr/bin/rm -f *.zap
-	/usr/bin/rm -f *.zap.sig
+	/usr/bin/rm -f ./*.zap
+	/usr/bin/rm -f ./*.zap.sig
 	;;
 
     -u)
@@ -47,7 +47,7 @@ do
     ${ZAPLIBDIR}/get-version ${CTXARGS} $pkg | read fpkg frepo
     if [ -z "$frepo" ]; then
 	echo "Removing unknown: $apkg"
-	/usr/bin/rm -f $apkg ${apkg}.sig
+	/usr/bin/rm -f "$apkg" "${apkg}.sig"
     fi
 done
 ;;
@@ -56,9 +56,9 @@ done
 for apkg in *.zap
 do
     pkg=${apkg%%.*}
-    if [ -d ${IPKGDIR}/${pkg} ]; then
+    if [ -d "${IPKGDIR}/${pkg}" ]; then
 	echo "Removing installed: $apkg"
-	/usr/bin/rm -f $apkg ${apkg}.sig
+	/usr/bin/rm -f "$apkg" "${apkg}.sig"
     fi
 done
 ;;
@@ -72,7 +72,7 @@ do
 	cpkg="${fpkg}.zap"
 	if [ "X${cpkg}" != "X${apkg}" ]; then
 	    echo "Removing old: $apkg (current is $fpkg)"
-	    /usr/bin/rm -f $apkg ${apkg}.sig
+	    /usr/bin/rm -f "$apkg" "${apkg}.sig"
 	fi
     fi
 done

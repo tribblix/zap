@@ -126,9 +126,9 @@ fi
 # we need to search in repo priority order
 #
 FLIST=""
-for repo in `${ZAPLIBDIR}/zap-cfg ${CTXARGS} list-pkg-repos`
+for repo in $(${ZAPLIBDIR}/zap-cfg ${CTXARGS} list-pkg-repos)
 do
-    if [ -f ${CFGDIR}/repositories/${repo}.filelist.bz2 ]; then
+    if [ -f "${CFGDIR}/repositories/${repo}.filelist.bz2" ]; then
 	FLIST="${FLIST} ${CFGDIR}/repositories/${repo}.filelist.bz2"
     fi
 done

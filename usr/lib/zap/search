@@ -36,7 +36,7 @@ typeset -A pmap
 #
 # simplistic search, start with exact matches on overlays
 #
-if [ -f ${DESTROOT}/var/sadm/overlays/${PKG}.ovl ]; then
+if [ -f "${DESTROOT}/var/sadm/overlays/${PKG}.ovl" ]; then
     echo "Found a matching overlay"
     ${ZAPLIBDIR}/describe-overlay ${PKGARGS} ${PKG}
 fi
@@ -44,9 +44,9 @@ fi
 #
 # try and resolve the term to a package alias
 #
-npkg=`${ZAPLIBDIR}/resolve-alias $PKG`
+npkg=$(${ZAPLIBDIR}/resolve-alias $PKG)
 if [ "X${PKG}" != "X${npkg}" ]; then
-    echo $PKG is an alias for $npkg
+    echo "$PKG is an alias for $npkg"
 fi
 
 #
@@ -59,17 +59,17 @@ do
     OVL=${OVL%.pkgs}
     FPKG=${match##*:}
     if [[ -z ${pmap[$FPKG]} ]]; then
-	if [ -f ${DESTROOT}/var/sadm/overlays/installed/$OVL ]; then
+	if [ -f "${DESTROOT}/var/sadm/overlays/installed/${OVL}" ]; then
 	   OSTATUS="installed"
 	else
 	   OSTATUS="uninstalled"
 	fi
-	if [ -d ${DESTROOT}/var/sadm/pkg/${FPKG} ]; then
+	if [ -d "${DESTROOT}/var/sadm/pkg/${FPKG}" ]; then
 	   PSTATUS="Installed"
 	else
 	   PSTATUS="Uninstalled"
 	fi
-	echo ${PSTATUS} package $FPKG in ${OSTATUS} overlay $OVL
+	echo "${PSTATUS} package $FPKG in ${OSTATUS} overlay $OVL"
 	pmap[$FPKG]="$PSTATUS"
     fi
 done
@@ -80,12 +80,12 @@ done
 for FPKG in $(awk -F'|' -v pkg=$PKG '{if ($1 ~ pkg) print $1}' ${DESTROOT}/etc/zap/repositories/*.catalog)
 do
     if [[ -z ${pmap[$FPKG]} ]]; then
-	if [ -d ${DESTROOT}/var/sadm/pkg/${FPKG} ]; then
+	if [ -d "${DESTROOT}/var/sadm/pkg/${FPKG}" ]; then
 	   PSTATUS="Installed"
 	else
 	   PSTATUS="Uninstalled"
 	fi
-	echo ${PSTATUS} package $FPKG
+	echo "${PSTATUS} package $FPKG"
 	pmap[$FPKG]="$PSTATUS"
     fi
 done

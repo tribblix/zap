@@ -92,7 +92,7 @@ fi
 #
 # is username already present?
 #
-PWENTRY=`/usr/bin/awk -v X=$USER_NAME -F: '{if ($1 == X) print $0}' $PASSWD_FILE`
+PWENTRY=$(/usr/bin/awk -v X=$USER_NAME -F: '{if ($1 == X) print $0}' $PASSWD_FILE)
 if [ -n "$PWENTRY" ]; then
     echo "ERROR: user name $USER_NAME is already in use"
     exit 1
@@ -101,9 +101,9 @@ fi
 # if group supplied, does it exist?
 #
 if [ -n "$USER_GROUP" ]; then
-    GRPENTRY=`/usr/bin/awk -v X=$USER_GROUP -F: '{if ($1 == X) print $0}' $GROUP_FILE`
+    GRPENTRY=$(/usr/bin/awk -v X=$USER_GROUP -F: '{if ($1 == X) print $0}' $GROUP_FILE)
     if [ -z "$GRPENTRY" ]; then
-	GRPENTRY=`/usr/bin/awk -v X=$USER_GROUP -F: '{if ($3 == X) print $0}' $GROUP_FILE`
+	GRPENTRY=$(/usr/bin/awk -v X=$USER_GROUP -F: '{if ($3 == X) print $0}' $GROUP_FILE)
 	if [ -z "$GRPENTRY" ]; then
 	    echo "ERROR: group $USER_GROUP does not exist"
 	    exit 1
@@ -115,7 +115,7 @@ fi
 # name as the new user, so that must not exist already
 #
 if [ -z "$USER_GROUP" ]; then
-    GRPENTRY=`/usr/bin/awk -v X=$USER_NAME -F: '{if ($1 == X) print $0}' $GROUP_FILE`
+    GRPENTRY=$(/usr/bin/awk -v X=$USER_NAME -F: '{if ($1 == X) print $0}' $GROUP_FILE)
     if [ -n "$GRPENTRY" ]; then
 	echo "ERROR: group $USER_NAME already exists"
 	exit 1
@@ -172,7 +172,7 @@ fi
 # check profile for -P is valid
 #
 if [ -n "${PROFILE}" ]; then
-    PROFENTRY=`/usr/bin/awk -v X="${PROFILE}" -F: '{if ($1 == X) print $0}' $PROFILE_FILE`
+    PROFENTRY=$(/usr/bin/awk -v X="${PROFILE}" -F: '{if ($1 == X) print $0}' $PROFILE_FILE)
     if [ -z "$PROFENTRY" ]; then
 	echo "ERROR: profile ${PROFILE} not recognised"
 	exit 1
@@ -184,7 +184,7 @@ fi
 # is use as a gid either
 #
 if [ -n "${USER_UID}" ]; then
-    PWENTRY=`/usr/bin/awk -v X=$USER_UID -F: '{if ($3 == X) print $0}' $PASSWD_FILE`
+    PWENTRY=$(/usr/bin/awk -v X=$USER_UID -F: '{if ($3 == X) print $0}' $PASSWD_FILE)
     if [ -n "$PWENTRY" ]; then
 	echo "ERROR: userid $USER_UID is already in use"
 	exit 1
@@ -199,7 +199,7 @@ if [ -n "${USER_UID}" ]; then
 	exit 1
     fi
     if [ -z "$USER_GROUP" ]; then
-	GRPENTRY=`/usr/bin/awk -v X=$USER_UID -F: '{if ($3 == X) print $0}' $GROUP_FILE`
+	GRPENTRY=$(/usr/bin/awk -v X=$USER_UID -F: '{if ($3 == X) print $0}' $GROUP_FILE)
 	if [ -n "$GRPENTRY" ]; then
 	    echo "ERROR: groupid $USER_UID already exists"
 	    exit 1
@@ -219,12 +219,12 @@ do
 	echo "ERROR: unable to find a valid uid"
 	exit 1
     fi
-    PWENTRY=`/usr/bin/awk -v X=$NUSER_UID -F: '{if ($3 == X) print $0}' $PASSWD_FILE`
+    PWENTRY=$(/usr/bin/awk -v X=$NUSER_UID -F: '{if ($3 == X) print $0}' $PASSWD_FILE)
     if [ -z "$PWENTRY" ]; then
 	USER_UID=${NUSER_UID}
     fi
     if [ -z "$USER_GROUP" ]; then
-	GRPENTRY=`/usr/bin/awk -v X=$USER_UID -F: '{if ($3 == X) print $0}' $GROUP_FILE`
+	GRPENTRY=$(/usr/bin/awk -v X=$USER_UID -F: '{if ($3 == X) print $0}' $GROUP_FILE)
 	if [ -n "$GRPENTRY" ]; then
 	    USER_UID=""
 	fi
