@@ -102,7 +102,7 @@ fi
 #
 ipass=0
 ntostudy=0
-ntoinstall=$(echo $npkglist | tr ' ' '\n' | sort | uniq |wc)
+ntoinstall=$(echo $npkglist | tr ' ' '\n' | sort -u |wc)
 while [[ $ntostudy != $ntoinstall ]]
 do
     echo "Resolving dependencies, pass ${ipass}"
@@ -118,7 +118,7 @@ do
 	nnpkglist="${nnpkglist} ${fpkg}"
     done
     ntostudy=$ntoinstall
-    npkglist=$(echo $nnpkglist | tr ' ' '\n' | sort | uniq)
+    npkglist=$(echo $nnpkglist | tr ' ' '\n' | sort -u)
     ntoinstall=$(echo $npkglist|wc -l)
     ipass=$((ipass+1))
 done

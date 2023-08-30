@@ -84,7 +84,7 @@ ${CURL} --silent \
 #
 # uniquify the list, although only the null layer will be duplicated
 #
-cat ${MFILE} | $JQ -r '.fsLayers[].blobSum' |sort | uniq > $blobsums
+cat ${MFILE} | $JQ -r '.fsLayers[].blobSum' |sort -u > $blobsums
 NLAYERS=$(wc -l $blobsums|awk '{print $1}')
 ILAYER=0
 echo "Downloading"
