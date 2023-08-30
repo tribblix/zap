@@ -98,11 +98,11 @@ fi
 
 #
 # now walk dependencies
-# just keep doing this until the list stops changing
+# just keep doing this until the list stops growing
 #
 ipass=0
 ntostudy=0
-ntoinstall=$(echo $npkglist | tr ' ' '\n' | sort -u |wc)
+ntoinstall=1
 while [[ $ntostudy != $ntoinstall ]]
 do
     echo "Resolving dependencies, pass ${ipass}"
@@ -119,8 +119,10 @@ do
     done
     ntostudy=$ntoinstall
     npkglist=$(echo $nnpkglist | tr ' ' '\n' | sort -u)
-    ntoinstall=$(echo $npkglist|wc -l)
+    ntoinstall=$(echo $npkglist|wc -w)
     ipass=$((ipass+1))
 done
+ntoinstall=$(( ntoinstall ))
+echo "\nInstalling ${ntoinstall} packages:\n${npkglist}\n"
 
 ${ZAPLIBDIR}/install-pkg ${CTXARGS} ${INSTARGS} ${npkglist}
