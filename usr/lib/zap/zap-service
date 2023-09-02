@@ -14,63 +14,61 @@
 # The two action forms error out if given an invalid overlay
 #
 
-ODIR="/var/sadm/overlays"
-
 list_services() {
-    IOVL=${ODIR}/installed/$1
-    if [ ! -f $IOVL ]; then
+    IOVL=/var/sadm/overlays/installed/$1
+    if [ ! -f "$IOVL" ]; then
 	exit 0
     fi
-    FOVL=${ODIR}/$1.ovl
-    if [ ! -f $FOVL ]; then
+    FOVL=/var/sadm/overlays/$1.ovl
+    if [ ! -f "$FOVL" ]; then
 	exit 0
     fi
-    grep '^SERVICE=' $FOVL | /usr/bin/sed s:SERVICE=::
+    awk -F= '{if ($1 == "SERVICE") print $2}' "$FOVL"
 }
 
 rev_list_services() {
-    IOVL=${ODIR}/installed/$1
-    if [ ! -f $IOVL ]; then
+    IOVL=/var/sadm/overlays/installed/$1
+    if [ ! -f "$IOVL" ]; then
 	exit 0
     fi
-    FOVL=${ODIR}/$1.ovl
-    if [ ! -f $FOVL ]; then
+    FOVL=/var/sadm/overlays/$1.ovl
+    if [ ! -f "$FOVL" ]; then
 	exit 0
     fi
-    grep '^SERVICE=' $FOVL | /usr/bin/sed s:SERVICE=:: | rev -l
+    awk -F= '{if ($1 == "SERVICE") print $2}' "$FOVL" | rev -l
 }
 
 show_services() {
-    SVC_LIST=`list_services $1`
+    SVC_LIST=$(list_services "$1")
     if [ -n "$SVC_LIST" ]; then
-	/usr/bin/svcs -p $SVC_LIST
+       /usr/bin/svcs -p $SVC_LIST
     fi
 }
 
 verify() {
-    if [ ! -f /var/sadm/overlays/${1}.ovl ]; then
+    if [ ! -f "/var/sadm/overlays/${1}.ovl" ]; then
 	echo "ERROR: $1 is not a valid overlay"
 	exit 1
     fi
-    if [ ! -f /var/sadm/overlays/installed/$1 ]; then
+    if [ ! -f "/var/sadm/overlays/installed/$1" ]; then
 	echo "ERROR: overlay $1 is not installed"
 	exit 1
     fi
 }
 
 enable_services() {
-    verify $1
-    for SVC in `list_services $1`
+    verify "$1"
+    for SVC in $(list_services "$1")
     do
-	/usr/sbin/svcadm enable -rs $SVC
+	/usr/sbin/svcadm enable -rs "$SVC"
     done
 }
 
 disable_services() {
-    verify $1
-    for SVC in `rev_list_services $1`
+    verify "$1"
+    for SVC in $(rev_list_services "$1")
     do
-	/usr/sbin/svcadm disable -s $SVC
+	/usr/sbin/svcadm disable -s "$SVC"
     done
 }
 
@@ -78,16 +76,16 @@ case $# in
     2)
 	case $1 in
 	    -list)
-		list_services $2
+		list_services "$2"
 		;;
 	    -show)
-		show_services $2
+		show_services "$2"
 		;;
 	    -enable)
-		enable_services $2
+		enable_services "$2"
 		;;
 	    -disable)
-		disable_services $2
+		disable_services "$2"
 		;;
 	esac
 	;;
