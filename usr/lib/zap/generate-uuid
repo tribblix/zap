@@ -5,27 +5,17 @@
 # xxxxxxxx-xxxx-5xxx-Yxxx-xxxxxxxxxxxx
 # and Y is one of 8,9,A,B
 #
-HEAD=/usr/bin/head
-SSL=/usr/bin/openssl 
-#
-# Don't use /dev/random as it will block if entropy is low
-# for example, under Xen
-#
-RAND=/dev/urandom
 
 #
 # first generate a random hash
 #
-HASH=`$HEAD -c 32 $RAND | $SSL dgst -sha1 | /usr/bin/awk '{print $NF}'`
+# Don't use /dev/random as it will block if entropy is low
+# for example, under Xen
+#
+HASH=$(/usr/bin/head -c 32 /dev/urandom | /usr/bin/openssl dgst -sha1 | /usr/bin/awk '{print $NF}')
+
 #
 # cut it into pieces
-#
-H1=`echo $HASH|cut -c1-8`
-H2=`echo $HASH|cut -c9-12`
-H3=`echo $HASH|cut -c14-16`
-H4=`echo $HASH|cut -c18-20`
-H5=`echo $HASH|cut -c21-32`
-#
 # emit in the correct format
 #
-echo ${H1}-${H2}-5${H3}-9${H4}-${H5}
+echo "${HASH:0:8}-${HASH:8:4}-5${HASH:13:3}-9${HASH:17:3}-${HASH:20:12}"
