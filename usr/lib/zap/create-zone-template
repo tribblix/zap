@@ -9,6 +9,8 @@
 #  -I image file to install for alien template
 #  -o overlay for partial root [can be multiple, passed to install]
 #  -O add overlay [can be multiple, passed to install]
+#  -p package for partial root [can be multiple, passed to install]
+#  -P add package [can be multiple, passed to install]
 #
 
 ZAPLIBDIR="/usr/lib/zap"
@@ -17,14 +19,16 @@ ZBRAND=whole
 ZISOFILE=""
 ZOVERLAY=""
 ZADDOVERLAY=""
+ZPACKAGE=""
+ZADDPACKAGE=""
 
 usage() {
   echo "Usage: $0 [-t whole|alien] -T template_name"
-  echo "  [-I image_file] [-o overlay] [-O overlay]"
+  echo "  [-I image_file] [-o overlay] [-O overlay] [-p package] [-P package]"
   exit 1
 }
 
-while getopts "T:t:I:o:O:" opt; do
+while getopts "T:t:I:o:O:p:P:" opt; do
 case $opt in
 T)
 	TNAME="$OPTARG"
@@ -40,6 +44,12 @@ o)
 	;;
 O)
 	ZADDOVERLAY="${ZADDOVERLAY} $OPTARG"
+	;;
+p)
+	ZPACKAGE="${ZPACKAGE} $OPTARG"
+	;;
+P)
+	ZADDPACKAGE="${ZADDPACKAGE} $OPTARG"
 	;;
 esac
 done
@@ -80,13 +90,13 @@ case $ZBRAND in
 	    echo "ERROR: an image is required for alien templates"
 	    exit 1
 	fi
-	if [[ -n $ZOVERLAY ]]; then
+	if [[ -n $ZOVERLAY || -n $ZADDOVERLAY ]]; then
 	    echo "ERROR: cannot specify overlays for alien templates"
 	    exit 1
 	fi
-	if [[ -n $ZADDOVERLAY ]]; then
-	    echo "ERROR: cannot specify overlays for alien templates"
-	    exit 1
+	if [[ -n $ZPACKAGE || -n $ZADDPACKAGE ]]; then
+	   echo "ERROR: cannot specify packages for alien templates"
+	   usage
 	fi
 	if [[ $ZISOFILE != /* ]]; then
 	    #
@@ -145,6 +155,18 @@ do
 	    exit 1
 	fi
 done
+#
+# check any packages are valid
+# -p - error if this package isn't installed
+#
+for APKG in $ZPACKAGE
+do
+    NPKG=$(/usr/lib/zap/resolve-alias $APKG)
+    if [ ! -f "/var/sadm/pkg/${NPKG}/pkginfo" ]; then
+	echo "ERROR: unrecognized package ${APKG}"
+	exit 1
+    fi
+done
 
 create_install_opts() {
 for OVL in $ZOVERLAY
@@ -154,6 +176,14 @@ done
 for OVL in $ZADDOVERLAY
 do
     printf " -O $OVL"
+done
+for APKG in $ZPACKAGE
+do
+	printf " -p $APKG"
+done
+for APKG in $ZADDPACKAGE
+do
+	printf " -P $APKG"
 done
 if [[ -n $ZISOFILE ]]; then
     printf " -i $ZISOFILE"

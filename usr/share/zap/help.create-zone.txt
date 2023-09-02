@@ -74,13 +74,13 @@ global zone, the -O flag adds extra packages, and does not require the
 overlays or packages to be present in the global zone.
 
 The -p flag specifies a package to be copied to the zone. This flag
-can be used multiple times to require multiple packages. The use of
+can be used multiple times to copy multiple packages. The use of
 this flag requires that the zone type be specified as whole and for
 the -o flag to be used, and allows you to copy individual packages
 into the new zone.
 
-The -O flag specifies a package to be added to the zone. This flag can
-be used multiple times to add multiple package. The use of this flag
+The -P flag specifies a package to be added to the zone. This flag can
+be used multiple times to add multiple packages. The use of this flag
 requires that the zone type be specified as whole. Unlike the -p flag
 which copies a package from the global zone, the -P flag adds extra
 packages, and does not require the package to be present in the global
