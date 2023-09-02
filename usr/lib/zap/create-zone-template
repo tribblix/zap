@@ -7,7 +7,6 @@
 #  -T name of template
 #  -t brand - whole, alien [default whole]
 #  -I image file to install for alien template
-#  -d directory to create [can be multiple]
 #  -o overlay for partial root [can be multiple, passed to install]
 #  -O add overlay [can be multiple, passed to install]
 #
@@ -18,15 +17,14 @@ ZBRAND=whole
 ZISOFILE=""
 ZOVERLAY=""
 ZADDOVERLAY=""
-ZDIRS=""
 
 usage() {
   echo "Usage: $0 [-t whole|alien] -T template_name"
-  echo "  [-d extra_dir] [-I image_file] [-o overlay] [-O overlay]"
+  echo "  [-I image_file] [-o overlay] [-O overlay]"
   exit 1
 }
 
-while getopts "T:t:I:o:O:d:" opt; do
+while getopts "T:t:I:o:O:" opt; do
 case $opt in
 T)
 	TNAME="$OPTARG"
@@ -42,9 +40,6 @@ o)
 	;;
 O)
 	ZADDOVERLAY="${ZADDOVERLAY} $OPTARG"
-	;;
-d)
-	ZDIRS="${ZDIRS} $OPTARG"
 	;;
 esac
 done
@@ -134,18 +129,18 @@ esac
 #
 for OVL in $ZOVERLAY
 do
-	if [ ! -f /var/sadm/overlays/${OVL}.ovl ]; then
+	if [ ! -f "/var/sadm/overlays/${OVL}.ovl" ]; then
 	    echo "ERROR: unrecognized overlay ${OVL}"
 	    exit 1
 	fi
-	if [ ! -f /var/sadm/overlays/installed/${OVL} ]; then
+	if [ ! -f "/var/sadm/overlays/installed/${OVL}" ]; then
 	    echo "ERROR: overlay ${OVL} is not installed in the global zone"
 	    exit 1
 	fi
 done
 for OVL in $ZADDOVERLAY
 do
-	if [ ! -f /var/sadm/overlays/${OVL}.ovl ]; then
+	if [ ! -f "/var/sadm/overlays/${OVL}.ovl" ]; then
 	    echo "ERROR: unrecognized overlay ${OVL}"
 	    exit 1
 	fi
@@ -168,17 +163,6 @@ fi
 #
 # create any missing zfs datasets
 #
-if [[ -n ${ZDIRS} ]]; then
-   ZPARENT=${ZFSBASE%/*}
-   ZDPARENT=$(/usr/sbin/zfs list -H ${ZPARENT} | /usr/bin/awk '{print $1}')
-   ZREALNAME=$(echo $ZFSBASE | /usr/bin/sed s:${ZPARENT}:${ZDPARENT}:)
-   if [ ! -d "${ZFSBASE}" ]; then
-      /usr/sbin/zfs create "${ZREALNAME}"
-   fi
-   if [ ! -d "${ZFSBASE}/${ZNAME}" ]; then
-      /usr/sbin/zfs create "${ZREALNAME}/${ZNAME}"
-   fi
-fi
 if [ ! -d "${ZROOTBASE}" ]; then
    ZPARENT=${ZROOTBASE%/*}
    ZDPARENT=$(/usr/sbin/zfs list -H ${ZPARENT} | /usr/bin/awk '{print $1}')
@@ -203,4 +187,4 @@ fi
 # Now create a zone xml file that matches the template locations
 # we just populated
 #
-/usr/bin/cat /etc/zones/TRIBsparse.xml | /usr/bin/sed -e s:special=\"/usr:special=\"${ZROOTBASE}/${TNAME}/usr: -e s:special=\"/sbin:special=\"${ZROOTBASE}/${TNAME}/sbin: -e s:special=\"/platform:special=\"${ZROOTBASE}/${TNAME}/platform: -e s:special=\"/zonelib/lib:special=\"${ZROOTBASE}/${TNAME}/lib: > "${TBRANDFILE}"
+/usr/bin/sed -e s:special=\"/usr:special=\"${ZROOTBASE}/${TNAME}/usr: -e s:special=\"/sbin:special=\"${ZROOTBASE}/${TNAME}/sbin: -e s:special=\"/platform:special=\"${ZROOTBASE}/${TNAME}/platform: -e s:special=\"/zonelib/lib:special=\"${ZROOTBASE}/${TNAME}/lib: /etc/zones/TRIBsparse.xml > "${TBRANDFILE}"
