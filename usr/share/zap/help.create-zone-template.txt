@@ -7,7 +7,7 @@ specification which can then be used to create sparse root zones.
 The syntax of the subcommand is:
 
 create-zone-template [-t whole|alien] -T template_name
-  [-d extra_dir] [-o overlay] [-O overlay] [-I image_file]
+  [-o overlay] [-O overlay] [-I image_file]
 
 Supplying the template_name is mandatory; other arguments are optional.
 
@@ -20,10 +20,6 @@ created.
 The -T flag specifies the name of a template. Once constructed, this
 template can be used as the argument to the -T flag of 'zap
 create-zone' to construct real zones using this template.
-
-The -d flag specifies a directory to be created and mounted inside the
-zone. This flag can be used multiple times to create multiple
-directories in the zone.
 
 The -o flag specifies an overlay to be installed in the template file
 system. This flag can be used multiple times to require multiple
