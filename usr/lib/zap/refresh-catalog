@@ -24,7 +24,7 @@ case $1 in
 	;;
 esac
 
-USER_AGENT="zap"/`${ZAPLIBDIR}/pkgversion TRIBzap`
+USER_AGENT="zap"/$(${ZAPLIBDIR}/pkgversion TRIBzap)
 WCLIENT=/usr/bin/curl
 WARGS="-A ${USER_AGENT} -f -s --compressed -o"
 if [ ! -x $WCLIENT ]; then
@@ -34,7 +34,7 @@ fi
 
 refresh_repo() {
     frepo="$1"
-    REPO=`${ZAPLIBDIR}/zap-cfg ${CTXARGS} repo-url $frepo`
+    REPO=$(${ZAPLIBDIR}/zap-cfg ${CTXARGS} repo-url $frepo)
     ${WCLIENT} ${WARGS} ${CFGDIR}/repositories/${frepo}.catalog.tmp ${REPO}/catalog
     if [ -s ${CFGDIR}/repositories/${frepo}.catalog.tmp ]; then
 	mv ${CFGDIR}/repositories/${frepo}.catalog ${CFGDIR}/repositories/${frepo}.catalog.bak
@@ -47,17 +47,7 @@ refresh_repo() {
     fi
 }
 
-case $# in
-0)
-	for repo in `/usr/bin/awk '{print $2}' ${CFGDIR}/repo.list`
-	do
-	    refresh_repo $repo
-	done
-	;;
-*)
-	for repo in $*
-	do
-	    refresh_repo $repo
-	done
-	;;
-esac
+for repo in $(/usr/bin/awk '{print $2}' ${CFGDIR}/repo.list)
+do
+    refresh_repo $repo
+done

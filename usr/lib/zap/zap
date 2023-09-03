@@ -105,7 +105,7 @@ check-package|pkgchk)
 	;;
 refresh|refresh-overlays)
 	shift
-	exec ${ZAPLIBDIR}/refresh-overlays ${CTXARGS} $*
+	exec ${ZAPLIBDIR}/refresh-overlays ${CTXARGS}
 	;;
 describe-package)
 	shift
@@ -117,11 +117,11 @@ describe-overlay)
 	;;
 refresh-catalog)
 	shift
-	exec ${ZAPLIBDIR}/refresh-catalog ${CTXARGS} $*
+	exec ${ZAPLIBDIR}/refresh-catalog ${CTXARGS}
 	;;
 refresh-filelist)
 	shift
-	exec ${ZAPLIBDIR}/refresh-filelist ${CTXARGS} $*
+	exec ${ZAPLIBDIR}/refresh-filelist ${CTXARGS}
 	;;
 clean-cache)
 	shift

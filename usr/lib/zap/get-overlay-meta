@@ -31,13 +31,16 @@ esac
 # given an overlay, return its name, version, and repo
 # as given in the catalog
 #
-for repo in `${ZAPLIBDIR}/zap-cfg ${CTXARGS} list-overlay-repos`
+for repo in $(${ZAPLIBDIR}/zap-cfg ${CTXARGS} list-overlay-repos)
 do
-    if [ -f ${CFGDIR}/repositories/${repo}.overlays ]; then
-	FOVL=`/usr/bin/awk -F'|' '{if ($1 == novl) print $1,$2}' novl=${OVL} ${CFGDIR}/repositories/${repo}.overlays`
-	if [ -n "$FOVL" ]; then
-	    echo "${FOVL} ${repo}"
-	    exit 0
-	fi
+    if [ -f "${CFGDIR}/repositories/${repo}.overlays" ]; then
+	IFS='|'
+	while read -r novl nver line
+	do
+	    if [ "$novl" = "$OVL" ]; then
+		echo "${novl} ${nver} ${repo}"
+		exit 0
+	    fi
+	done < ${CFGDIR}/repositories/${repo}.overlays
     fi
 done

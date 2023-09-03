@@ -26,7 +26,7 @@ case $1 in
 	;;
 esac
 
-USER_AGENT="zap"/`${ZAPLIBDIR}/pkgversion TRIBzap`
+USER_AGENT="zap"/$(${ZAPLIBDIR}/pkgversion TRIBzap)
 WCLIENT=/usr/bin/curl
 WARGS="-A ${USER_AGENT} -f -s -o"
 if [ ! -x $WCLIENT ]; then
@@ -34,9 +34,9 @@ if [ ! -x $WCLIENT ]; then
     WARGS="-U ${USER_AGENT} -q -O"
 fi
 
-refresh_repo() {
+refresh_overlay_repo() {
     frepo="$1"
-    REPO=`${ZAPLIBDIR}/zap-cfg ${CTXARGS} overlay-url $frepo`
+    REPO=$(${ZAPLIBDIR}/zap-cfg ${CTXARGS} overlay-url $frepo)
     ${WCLIENT} ${WARGS} ${CFGDIR}/repositories/${frepo}.overlays.tmp ${REPO}/catalog
     if [ -s ${CFGDIR}/repositories/${frepo}.overlays.tmp ]; then
 	mv ${CFGDIR}/repositories/${frepo}.overlays ${CFGDIR}/repositories/${frepo}.overlays.bak
@@ -53,11 +53,17 @@ refresh_repo() {
 		# overlay, set version 0 to force a download and don't try to
 		# grep it otherwise we get a confusing error
 		#
+		iver="0"
 		if [ -f ${ODIR}/${novl}.ovl ]; then
-		    iver=`/usr/bin/grep '^VERSION=' ${ODIR}/${novl}.ovl`
-		    iver=${iver#VERSION=}
-		else
-		    iver="0"
+		    while read line
+		    do
+			case $line in
+			    VERSION*)
+				iver=${line#*=}
+				break
+				;;
+			esac
+		    done<${ODIR}/${novl}.ovl
 		fi
 		if [ "X${nver}" != "X${iver}" ]; then
 		    ${WCLIENT} ${WARGS} ${ODIR}/${novl}.ovl.tmp ${REPO}/${novl}.ovl
@@ -78,20 +84,10 @@ refresh_repo() {
     fi
 }
 
-case $# in
-0)
-	for repo in `${ZAPLIBDIR}/zap-cfg ${CTXARGS} list-overlay-repos`
-	do
-	    refresh_repo $repo
-	done
-	;;
-*)
-	for repo in $*
-	do
-	    refresh_repo $repo
-	done
-	;;
-esac
+for repo in $(${ZAPLIBDIR}/zap-cfg ${CTXARGS} list-overlay-repos)
+do
+    refresh_overlay_repo $repo
+done
 
 #
 # refresh the catalog as well
