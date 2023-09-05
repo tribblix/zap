@@ -660,3 +660,5 @@ TRIBcommonmark-python-311
 TRIBpublicsuffix2-python-311
 TRIBargparse-python-311
 TRIBargh-python-311
+TRIBblix-haproxy
+TRIBblix-promhaproxy
