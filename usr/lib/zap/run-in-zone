@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/ksh
 #
 # run a zap command in a zone
 #
@@ -11,13 +11,6 @@
 # which maps to
 #   zlogin zonename zap subcommand args
 #
-
-ZONEADM=/usr/sbin/zoneadm
-ZLOGIN=/usr/sbin/zlogin
-ZAP=/usr/bin/zap
-AUTHS=/usr/bin/auths
-PFEXEC=/usr/bin/pfexec
-ZONENAME=/usr/bin/zonename
 
 #
 # argument processing
@@ -48,12 +41,12 @@ esac
 # * is it a tribblix zone (whole-root or sparse-root)
 # * do we have the right privilege to manage it
 #
-MYZONE=`$ZONENAME`
+MYZONE=$(/usr/bin/zonename)
 if [ "$MYZONE" != "global" ]; then
    echo "ERROR: must be in the global zone"
    exit 1
 fi
-$ZONEADM -z $ZNAME list -p 2>/dev/null | /usr/bin/awk -F: '{print $3, $6}' | read zstate ztype
+/usr/sbin/zoneadm -z "$ZNAME" list -p 2>/dev/null | /usr/bin/awk -F: '{print $3, $6}' | read -r zstate ztype
 if [ -z "$zstate" ]; then
    echo "ERROR: zone $ZNAME not found"
    exit 1
@@ -67,15 +60,14 @@ fi
 # "solaris.*" [root]
 # "solaris.zone.manage/zonename" [delegated to user]
 #
-AUTH1=`$AUTHS|/usr/bin/tr ',' '\n'|/usr/bin/grep "solaris.\*"`
-AUTH2=`$AUTHS|/usr/bin/tr ',' '\n'|/usr/bin/grep "solaris.zone.manage/$ZNAME"`
-if [ -z "$AUTH1" -a -z "$AUTH2" ]; then
+AUTH1=$(/usr/bin/auths|/usr/bin/tr ',' '\n'|/usr/bin/grep -e "solaris.\*" -e "solaris.zone.manage/$ZNAME")
+if [ -z "$AUTH1" ]; then
    echo "ERROR: insufficient privileges to manage zone $ZNAME"
    exit 1
 fi
 case $ztype in
 whole-root|sparse-root)
-	$PFEXEC $ZLOGIN $ZNAME $ZAP $SUBCOMMAND $*
+	/usr/bin/pfexec /usr/sbin/zlogin "$ZNAME" /usr/bin/zap "$SUBCOMMAND" "$@"
 	;;
 *)
 	echo "ERROR: unable to manage zones of type $ztype"
