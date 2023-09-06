@@ -37,16 +37,16 @@ if [ ! -f "/usr/share/lib/zoneinfo/${NEWTZ}" ]; then
     echo "ERROR: invalid timezone $NEWTZ"
     exit 1
 fi
-if [ ! -f ${DESTROOT}/etc/default/init ]; then
+if [ ! -f "${DESTROOT}/etc/default/init" ]; then
     echo "ERROR: missing init, is that a valid alternate root?"
     exit 1
 fi
 
 #
 # update /etc/default/init
-# if changing the current environment, trigger tzreload
+# if changing the current environment (DESTROOT not set), trigger tzreload
 #
-sed -i "s:^TZ=\(.*\):TZ=${NEWTZ}:" ${DESTROOT}/etc/default/init
+sed -i "s:^TZ=\(.*\):TZ=${NEWTZ}:" "${DESTROOT}/etc/default/init"
 if [ -z "${DESTROOT}" ]; then
     /usr/sbin/tzreload
 fi

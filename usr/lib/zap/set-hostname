@@ -23,9 +23,9 @@ case $1 in
 -d)
 	DNAME=$2
 	if [ -n "$DNAME" ]; then
-	   echo $DNAME > ${DESTROOT}/etc/defaultdomain
+	   echo "$DNAME" > "${DESTROOT}/etc/defaultdomain"
 	   if [ -z "$DESTROOT" ]; then
-	      /usr/bin/domainname $DNAME
+	      /usr/bin/domainname "$DNAME"
 	   fi
 	fi
 	exit 0
@@ -53,14 +53,14 @@ if [ -n "$NODENAME" ]; then
     # find the old name, which will be present in nodename if we've
     # set it, or the default name of tribblix
     #
-    if [ -f ${DESTROOT}/etc/nodename ]; then
-	OLDNAME=`cat ${DESTROOT}/etc/nodename`
+    if [ -f "${DESTROOT}/etc/nodename" ]; then
+	OLDNAME=$(<"${DESTROOT}/etc/nodename")
     else
 	OLDNAME="tribblix"
     fi
-    echo $NODENAME > ${DESTROOT}/etc/nodename
+    echo "$NODENAME" > "${DESTROOT}/etc/nodename"
     if [ -z "$DESTROOT" ]; then
-	/usr/bin/hostname $NODENAME
+	/usr/bin/hostname "$NODENAME"
 	/usr/sbin/svcadm restart svc:/network/dns/multicast:default > /dev/null 2>&1
     fi
     #
@@ -68,7 +68,7 @@ if [ -n "$NODENAME" ]; then
     # this will work if nothing else modifies it
     #
     if [ -n "$OLDNAME" ]; then
-	sed -i "s: $OLDNAME : $NODENAME :" ${DESTROOT}/etc/inet/hosts
-	sed -i "s: ${OLDNAME}.local : ${NODENAME}.local :" ${DESTROOT}/etc/inet/hosts
+	sed -i "s: $OLDNAME : $NODENAME :" "${DESTROOT}/etc/inet/hosts"
+	sed -i "s: ${OLDNAME}.local : ${NODENAME}.local :" "${DESTROOT}/etc/inet/hosts"
     fi
 fi
