@@ -12,21 +12,25 @@ case $1 in
 	    echo "ERROR: alternate root $DESTROOT doesn't exist"
 	    exit 1
 	fi
+	if [ ! -d "$DESTROOT/${ODIR}" ]; then
+	    echo "ERROR: alternate overlay directory $DESTROOT/$ODIR doesn't exist"
+	    exit 1
+	fi
 	;;
 esac
 
 #
-if [ ! -d ${DESTROOT}/${ODIR} ]; then
+if [ ! -d "${DESTROOT}/${ODIR}" ]; then
     exit 0
 fi
-cd ${DESTROOT}/${ODIR}
-for OVL in $*
+cd "${DESTROOT}/${ODIR}" || exit 1
+for OVL in "$@"
 do
     FOVL=${OVL}.ovl
-    if [ -f ${DESTROOT}/${ODIR}/${FOVL} ]; then
+    if [ -f "${DESTROOT}/${ODIR}/${FOVL}" ]; then
 	echo "OVERLAY: $OVL"
-	cat ${DESTROOT}/${ODIR}/${FOVL}
-	if [ -f ${DESTROOT}/${ODIR}/installed/$OVL ]; then
+	cat "${DESTROOT}/${ODIR}/${FOVL}"
+	if [ -f "${DESTROOT}/${ODIR}/installed/$OVL" ]; then
 	    STATUS="Installed"
 	else
 	    STATUS="Not installed"

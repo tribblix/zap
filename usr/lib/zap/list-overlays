@@ -12,6 +12,10 @@ case $1 in
 	    echo "ERROR: alternate root $DESTROOT doesn't exist"
 	    exit 1
 	fi
+	if [ ! -d "$DESTROOT/${ODIR}" ]; then
+	    echo "ERROR: alternate overlay directory $DESTROOT/$ODIR doesn't exist"
+	    exit 1
+	fi
 	;;
 esac
 
@@ -48,7 +52,7 @@ fi
 #
 typeset -A omap
 if [[ -n "$VERBOSE" ]]; then
-    grep '^NAME=' ${DESTROOT}/${ODIR}/*.ovl | while read line
+    grep '^NAME=' ${DESTROOT}/${ODIR}/*.ovl | while read -r line
     do
 	namestr=${line##*:}
 	namestr=${namestr##*=}
@@ -68,10 +72,10 @@ print_verbose() {
 #
 # default: list all overlays
 #
-if [ ! -d ${DESTROOT}/${ODIR} ]; then
+if [ ! -d "${DESTROOT}/${ODIR}" ]; then
     exit 0
 fi
-cd ${DESTROOT}/${ODIR}
+cd "${DESTROOT}/${ODIR}" || exit 1
 
 #
 # loop through all overlays
@@ -80,7 +84,7 @@ if [[ -n "$INST" ]]; then
     for FOVL in *.ovl
     do
 	OVL=${FOVL%.ovl}
-	if [ -f ${DESTROOT}/${ODIR}/installed/$OVL ]; then
+	if [ -f "${DESTROOT}/${ODIR}/installed/$OVL" ]; then
 	    print_verbose "$OVL"
 	fi
     done
@@ -88,7 +92,7 @@ elif [[ -n "$UNINST" ]]; then
     for FOVL in *.ovl
     do
 	OVL=${FOVL%.ovl}
-	if [ ! -f ${DESTROOT}/${ODIR}/installed/$OVL ]; then
+	if [ ! -f "${DESTROOT}/${ODIR}/installed/$OVL" ]; then
 	    print_verbose "$OVL"
 	fi
     done
@@ -96,7 +100,7 @@ else
     for FOVL in *.ovl
     do
 	OVL=${FOVL%.ovl}
-	if [ -f ${DESTROOT}/${ODIR}/installed/$OVL ]; then
+	if [ -f "${DESTROOT}/${ODIR}/installed/$OVL" ]; then
 	    STATUS="Installed"
 	else
 	    STATUS="Not installed"
