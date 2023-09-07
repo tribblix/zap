@@ -17,6 +17,9 @@ T)
 n)
 	DEBUG="echo"
 	;;
+*)
+	exit 1
+	;;
 esac
 done
 
@@ -35,9 +38,9 @@ if [ ! -f "$TBRANDFILE" ]; then
     exit 1
 fi
 
-UDIR=`/usr/bin/grep 'directory=\"/usr\"' ${TBRANDFILE} | /usr/bin/awk '{print $2}' | /usr/bin/awk -F= '{print $2}' | sed 's:"::g'`
+UDIR=$(/usr/bin/grep 'directory=\"/usr\"' "${TBRANDFILE}" | /usr/bin/awk '{print $2}' | /usr/bin/awk -F= '{print $2}' | sed 's:"::g')
 UROOT=${UDIR%/usr}
-ZLIST=`/usr/bin/grep 'special=\"'${UDIR}'\"' /etc/zones/*.xml | /usr/bin/grep -v '^'$TBRANDFILE| /usr/bin/awk -F: '{print $1}'`
+ZLIST=$(/usr/bin/grep 'special=\"'${UDIR}'\"' /etc/zones/*.xml | /usr/bin/grep -v '^'$TBRANDFILE| /usr/bin/awk -F: '{print $1}')
 
 if [[ -n $ZLIST ]]; then
   echo "ERROR: template ${TNAME} is used by the following zones:"
@@ -53,7 +56,7 @@ fi
 #
 # This is the backing zfs dataset
 #
-ZDPARENT=`/usr/sbin/zfs list -H ${UROOT} | /usr/bin/awk '{print $1}'`
+ZDPARENT=$(/usr/sbin/zfs list -H "${UROOT}" | /usr/bin/awk '{print $1}')
 
 #
 # Sanity check: the zfs dataset should end in the template name
@@ -67,5 +70,5 @@ fi
 #
 # remove the template file and destroy the backing dataset
 #
-$DEBUG /usr/bin/rm -f ${TBRANDFILE}
-$DEBUG /usr/sbin/zfs destroy -r $ZDPARENT
+$DEBUG /usr/bin/rm -f "${TBRANDFILE}"
+$DEBUG /usr/sbin/zfs destroy -r "${ZDPARENT}"
