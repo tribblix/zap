@@ -2,18 +2,21 @@
 #
 # set hostname (or domainname)
 #
+ZAPLIBDIR="/usr/lib/zap"
+CTXARGS=""
 
 DESTROOT=""
 case $1 in
 -C|-R)
-	DESTROOT="$2"
-	shift
-	shift
-	if [ ! -d "$DESTROOT" ]; then
-	    echo "ERROR: alternate root $DESTROOT doesn't exist"
-	    exit 1
-	fi
-	;;
+    DESTROOT="$2"
+    CTXARGS="-C ${DESTROOT}"
+    shift
+    shift
+    if [ ! -d "$DESTROOT" ]; then
+	echo "ERROR: alternate root $DESTROOT doesn't exist"
+	exit 1
+    fi
+    ;;
 esac
 
 #
@@ -21,26 +24,48 @@ esac
 #
 case $1 in
 -d)
-	DNAME=$2
-	if [ -n "$DNAME" ]; then
-	   echo "$DNAME" > "${DESTROOT}/etc/defaultdomain"
-	   if [ -z "$DESTROOT" ]; then
-	      /usr/bin/domainname "$DNAME"
-	   fi
+    DNAME=$2
+    if [ -n "$DNAME" ]; then
+	echo "$DNAME" > "${DESTROOT}/etc/defaultdomain"
+	if [ -z "$DESTROOT" ]; then
+	    /usr/bin/domainname "$DNAME"
 	fi
-	exit 0
-	;;
+    fi
+    exit 0
+    ;;
+esac
+
+#
+# if -m, ensure that the mdns package is installed and the dns/multicast
+# service is enabled
+#
+case $1 in
+-m)
+    shift
+    if [ $# -eq 0 ]; then
+	echo "Need to supply the hostname with -m"
+	exit 1
+    fi
+    if [ ! -f "${DESTROOT}/var/sadm/pkg/TRIBsvc-net-dns-mdns/pkginfo" ]; then
+	${ZAPLIBDIR}/install-pkg ${CTXARGS} TRIBsvc-net-dns-mdns
+	sync
+	sleep 2
+    fi
+    if [ -z "$DESTROOT" ]; then
+	/usr/sbin/svcadm enable -s svc:/network/dns/multicast:default > /dev/null 2>&1
+    fi
+    ;;
 esac
 
 case $# in
 1)
-	NODENAME="$1"
-	;;
+    NODENAME="$1"
+    ;;
 *)
-	echo "Usage: set-hostname hostname"
-	echo "       set-hostname -d domainname"
-	exit 1
-	;;
+    echo "Usage: set-hostname [-m] hostname"
+    echo "       set-hostname -d domainname"
+    exit 1
+    ;;
 esac
 
 #

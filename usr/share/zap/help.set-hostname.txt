@@ -1,0 +1,16 @@
+Setting the hostname
+====================
+
+The default hostname is "tribblix", but you can set it to a name of
+your choosing. To do so:
+
+    zap set-hostname new-name
+
+If you want your system to be accessible on the local network via
+multicast dns, so that other systems can connect to it using the name
+"new-name.local", then add the -m flag:
+
+    zap set-hostname -m new-name
+
+In this case, you still need to supply a hostname, to avoid accidental
+duplication of names on the local network.
