@@ -9,6 +9,19 @@ ZAPLIBDIR="/usr/lib/zap"
 CTXARGS=""
 DESTROOT=""
 
+#
+# we need tsort to install in dependency order
+# coreutils is in the base overlay, so it should be installed
+# fall back on the one in TRIBdev-object-file just in case
+#
+TSORT="/usr/gnu/bin/tsort"
+if [ ! -x "${TSORT}" ]; then
+    TSORT="/usr/bin/tsort"
+fi
+if [ ! -x "${TSORT}" ]; then
+    echo "ERROR: tsort missing, install TRIBfile-gnu-coreutils"
+fi
+
 case $1 in
 -C)
 	DESTROOT="$2"
@@ -123,6 +136,24 @@ do
     ipass=$((ipass+1))
 done
 ntoinstall=$(( ntoinstall ))
+
+#
+# now we've constructed the list of packages, we need to sort them
+# in dependency order, so for each dependency we emit the dependency
+# followed by the package depending on it, which is the order they
+# need to be installed in, and then use tsort to construct the final
+# list
+#
+gensort() {
+for newpkg in $npkglist
+do
+    for dpkg in ${depmap[$newpkg]}
+    do
+	echo ${dpkg} ${newpkg}
+    done
+done | $TSORT
+}
+
 echo "\nInstalling ${ntoinstall} packages:\n${npkglist}\n"
 
-${ZAPLIBDIR}/install-pkg ${CTXARGS} ${INSTARGS} ${npkglist}
+${ZAPLIBDIR}/install-pkg ${CTXARGS} ${INSTARGS} $(gensort)
