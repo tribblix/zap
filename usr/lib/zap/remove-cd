@@ -22,10 +22,13 @@ r)
 z)
 	ZNAME="$OPTARG"
 	;;
+*)
+	usage
+	;;
 esac
 done
 
-THISZONE=`/sbin/zonename`
+THISZONE=$(/sbin/zonename)
 if [ "X$THISZONE" != "Xglobal" ]; then
     echo "ERROR: zone management is only possible in the global zone"
     exit 1
@@ -39,7 +42,7 @@ fi
 #
 # check that the zone already exists
 #
-/usr/sbin/zoneadm -z $ZNAME list > /dev/null 2>&1
+/usr/sbin/zoneadm -z "$ZNAME" list > /dev/null 2>&1
 ZEXISTS=$?
 if [ $ZEXISTS -ne 0 ]; then
     echo "ERROR: zone $ZNAME does not exist"
@@ -49,7 +52,7 @@ fi
 #
 # get brand from configured zone
 #
-ZBRAND=`/usr/sbin/zoneadm -z $ZNAME list -p | awk -F: '{print $6}'`
+ZBRAND=$(/usr/sbin/zoneadm -z "$ZNAME" list -p | awk -F: '{print $6}')
 
 if [ "X$ZBRAND" != "Xbhyve" ]; then
     echo "Removing a CD is only valid for a bhyve zone"
@@ -61,19 +64,19 @@ CDFILE=""
 #
 # work out the name of the cdrom or ISO file from the cdrom attribute
 #
-CDFILE=$($ZONECFG -z $ZNAME info attr name=cdrom | /usr/bin/grep value: | awk '{print $NF}')
+CDFILE=$($ZONECFG -z "$ZNAME" info attr name=cdrom | /usr/bin/grep value: | awk '{print $NF}')
 
 if [ -z "${CDFILE}" ]; then
     echo "The $ZNAME zone does not appear to have a cdrom attached"
     exit 2
 fi
 
-$ZONECFG -z $ZNAME remove attr name=cdrom
-$ZONECFG -z $ZNAME remove fs dir=$CDFILE special=$CDFILE
+$ZONECFG -z "$ZNAME" remove attr name=cdrom
+$ZONECFG -z "$ZNAME" remove fs dir="$CDFILE" special="$CDFILE"
 
 if [ -n "${REBOOT}" ]; then
     echo "Rebooting $ZNAME"
-    $ZONEADM -z $ZNAME reboot
+    $ZONEADM -z "$ZNAME" reboot
 else
     echo "Reboot the zone when ready, with:"
     echo "  $ZONEADM -z $ZNAME reboot"
