@@ -13,7 +13,7 @@ create-zone -z zone_name [-t whole|sparse|alien|bhyve|lx|s10|router]
     [-d extra_dir] [-o overlay] [-O overlay] [-p package] [-P package]
     [-S|-s shared_dir] [-D dataset] [-v volume | -V volsize]
     [-B] [-n number] [-F flow_props] [-m ram_size] [-f firmware]
-    [-c] [-k sshkey_file]
+    [-c cpu_spec] [-C] [-k sshkey_file]
 
 Supplying the zone_name is mandatory; all other arguments are
 optional. Not all arguments are relevant to all zone types, and not
@@ -126,12 +126,19 @@ conveniently do with the following command:
   zap remove-cd -z zone_name -r
 
 For bhyve zones, the -m flag specifies the memory to be allocated to
-the virtual machine, default 1G. The -f flag specifies the firmware
-image to be used. The -v flag specifies an existing volume to be used
-as the bhyve virtual machine's hard disk. The -V flag specifies the
-size of a ZFS volume which will be created to be used as the bhyve
-virtual machine's hard disk. Multiple instances of -V will create
-multiple disk devices for the bhyve guest.
+the virtual machine, default 1G. The -c flag specifies the number of
+virtual cpus the bhyve virtual machine will have, the default is 1
+cpu. The -f flag specifies the firmware image to be used. The -v flag
+specifies an existing volume to be used as the bhyve virtual machine's
+hard disk. The -V flag specifies the size of a ZFS volume which will
+be created to be used as the bhyve virtual machine's hard disk.
+Multiple instances of -V will create multiple disk devices for the
+bhyve guest.
+
+For zone types other than bhyve, the -m flag specifies the physical
+capped-memory that the zone can use. The -c flag specifies the amount
+of cpu time that the zone can use, in terms of a number of cpus
+(possibly fractional).
 
 For alien and lx zones, the -I flag can specify either the absolute
 path to an image file or a logical image to be downloaded. For an
@@ -143,7 +150,7 @@ image names are
   proxmox:alpine
   ubuntu
 
-The -c flag will build a cloud-init configuration for the zone. This
+The -C flag will build a cloud-init configuration for the zone. This
 is currently only supported for bhyve zones.
 
 The -k flag specifies a file containing an ssh public key that can be
