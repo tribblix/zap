@@ -673,3 +673,6 @@ TRIBv-openssl3
 TRIBgtksourceviewmm3
 TRIBblix-plproxy13
 TRIBblix-plproxy15
+TRIBscout2-python-311
+TRIBopinel-python-311
+TRIBnetaddr-python-311
