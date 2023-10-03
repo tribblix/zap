@@ -42,7 +42,7 @@ typeset -A pmap
 #
 # just search the catalogs
 #
-for FPKG in $(awk -F'|' -v pkg=$PKG '{if ($1 ~ pkg) print $1}' ${DESTROOT}/etc/zap/repositories/*.catalog)
+for FPKG in $(awk -F'|' -v pkg="$PKG" '{if ($1 ~ pkg) print $1}' "${DESTROOT}"/etc/zap/repositories/*.catalog)
 do
     if [[ -z ${pmap[$FPKG]} ]]; then
 	if [ -d "${DESTROOT}/var/sadm/pkg/${FPKG}" ]; then

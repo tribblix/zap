@@ -18,7 +18,7 @@ case $1 in
 	;;
 esac
 
-for PKG in $*
+for PKG in "$@"
 do
     
 #
