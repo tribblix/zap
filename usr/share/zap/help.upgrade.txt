@@ -32,16 +32,7 @@ upgrade version
   environment matching the initial release of the new version and to
   not reboot into it.
 
-upgrade [-n] [-B] version
+upgrade -B version
 
-  You have control over the upgrade process. The valid flags are:
-
--n
-
-Show the commands that would be executed to perform the upgrade, but do
-not execute them.
-
--B
-
-Automatically reboot into the new boot environment once the upgrade is
-complete.
+  If the -B flag is supplied, automatically reboot into the new boot
+  environment once the upgrade is complete.
