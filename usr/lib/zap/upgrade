@@ -155,6 +155,20 @@ fi
 NPKG=${NEWURL##*/}
 CACHE_DIR=`${ZAPLIBDIR}/zap-cfg cache-dir`
 ${WCLIENT} ${WARGS} ${CACHE_DIR}/${NPKG} $NEWURL
+#
+# if the download failed then we cannot progress any further
+# depending on the download client we may get no file at all
+# or a zero-length file
+#
+if [ ! -f ${CACHE_DIR}/${NPKG} ]; then
+    echo "ERROR: Unable to download the new release"
+    exit 1
+fi
+if [ ! -s ${CACHE_DIR}/${NPKG} ]; then
+    echo "ERROR: Unable to download the new release"
+    exit 1
+fi
+
 $BEADM create $BENAME
 ALTROOT="/a"
 BENUM=0
