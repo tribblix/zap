@@ -93,7 +93,7 @@ vo|verify-overlay)
 	;;
 lp|list-packages)
 	shift
-	exec /usr/bin/pkginfo ${PKGARGS} `${ZAPLIBDIR}/resolve-alias $*`
+	exec /usr/bin/pkginfo ${PKGARGS} `${ZAPLIBDIR}/resolve-alias $* | sort -u`
 	;;
 vp|verify-packages)
 	shift
@@ -109,7 +109,7 @@ refresh|refresh-overlays|refresh-catalog)
 	;;
 describe-package)
 	shift
-	exec /usr/bin/pkginfo ${PKGARGS} -l `${ZAPLIBDIR}/resolve-alias $*`
+	exec /usr/bin/pkginfo ${PKGARGS} -l `${ZAPLIBDIR}/resolve-alias $* | sort -u`
 	;;
 describe-overlay)
 	shift
