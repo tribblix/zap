@@ -10,11 +10,8 @@
 # as it will detect a file being modified by another package.
 #
 
-ZAPLIBDIR="/usr/lib/zap"
-
-for inpkg in $*
+for pkg in "$@"
 do
-  pkg=$(${ZAPLIBDIR}/resolve-alias "$inpkg")
   if [ -d "/var/sadm/pkg/${pkg}" ]; then
     echo "Checking $pkg"
     if [ -f "/var/sadm/pkg/${pkg}/save/pspool/${pkg}/pkgmap" ]; then

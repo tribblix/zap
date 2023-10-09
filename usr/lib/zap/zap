@@ -101,7 +101,7 @@ vp|verify-packages)
 	;;
 check-package|pkgchk)
 	shift
-	exec ${ZAPLIBDIR}/check-package $*
+	exec ${ZAPLIBDIR}/check-package `${ZAPLIBDIR}/resolve-alias $* | sort -u`
 	;;
 refresh|refresh-overlays|refresh-catalog)
 	shift
