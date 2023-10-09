@@ -103,7 +103,7 @@ check-package|pkgchk)
 	shift
 	exec ${ZAPLIBDIR}/check-package $*
 	;;
-refresh|refresh-overlays)
+refresh|refresh-overlays|refresh-catalog)
 	shift
 	exec ${ZAPLIBDIR}/refresh-overlays ${CTXARGS}
 	;;
@@ -114,10 +114,6 @@ describe-package)
 describe-overlay)
 	shift
 	exec ${ZAPLIBDIR}/describe-overlay $*
-	;;
-refresh-catalog)
-	shift
-	exec ${ZAPLIBDIR}/refresh-catalog ${CTXARGS}
 	;;
 refresh-filelist)
 	shift
