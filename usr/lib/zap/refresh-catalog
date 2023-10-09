@@ -1,6 +1,6 @@
 #!/bin/ksh
 #
-# refreshes the specified repo(s), or all
+# refreshes the catalogs for all repos
 #
 
 ZAPLIBDIR="/usr/lib/zap"

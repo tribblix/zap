@@ -1,6 +1,6 @@
 #!/bin/ksh
 #
-# refreshes the file lists from the specified repo(s), or all
+# refreshes the file lists for all repos
 #
 
 ZAPLIBDIR="/usr/lib/zap"

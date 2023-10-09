@@ -1,6 +1,6 @@
 #!/bin/ksh
 #
-# refreshes the specified overlay repo(s), and their overlays, or all
+# refreshes all overlay repo(s), and their overlays
 #
 
 ZAPLIBDIR="/usr/lib/zap"
