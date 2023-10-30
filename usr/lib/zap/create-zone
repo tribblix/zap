@@ -1260,7 +1260,7 @@ do
 	# we can't use allowed-address for a router zone, as the anti-spoofing
 	# protection it brings prohibits IP forwarding and NAT
 	#
-	if [[ -z $DOIP6 ]] && [[ -z $RIP4 ]]; then
+	if [[ -z $DOIP6 && -z $RIP4 ]]; then
 	    echo set allowed-address=$IP/$ZCIDR
 	    # defrouter populates the gateway4 value in cloud-init
 	    ZGW=$(get_gateway $XIP4)
