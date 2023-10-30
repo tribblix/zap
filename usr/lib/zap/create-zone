@@ -283,7 +283,9 @@ router)
 	   usage
 	fi
 	# but we can, and do
-	ZADDPACKAGE="TRIBdnsmasq TRIBblix-haproxy2"
+	# ipfilter is needed for nat, and is also needed in the global
+	# zone (and is explicitly installed later if not already present)
+	ZADDPACKAGE="TRIBnet-ipfilter TRIBdnsmasq TRIBblix-haproxy2"
 	;;
 esac
 
@@ -1815,10 +1817,18 @@ fi
 
 #
 # for router/proxy zones:
-#  configure nat for all subnets
-#  enable ip forwarding on all interfaces
+#  ensure ipfilter is installed in the global zone, so that the devices that
+#  the zone ipfilter needs are created; note that we don't need ipfilter to
+#  actually run in the global zone
+#  configure nat for all subnets behind the router zone
+#  enable ip forwarding on all interfaces in the zone
 #
 if [[ -n $RIP4 ]]; then
+    if [ ! -f /var/sadm/pkg/TRIBnet-ipfilter/pkginfo ]; then
+	echo "Installing ipfilter in the global zone"
+	/usr/bin/zap install TRIBnet-ipfilter
+	sleep 1
+    fi
     touch "${ZROOTBASE}/${ZNAME}/root/etc/rc2.d/S83router"
     echo "#!/bin/sh" > "${ZROOTBASE}/${ZNAME}/root/etc/rc2.d/S83router"
     for index in "${!ifipmap[@]}"
