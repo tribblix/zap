@@ -1250,7 +1250,12 @@ do
 	xifipmap[znic$ZENUM]=$IP/$ZCIDR
 	echo add net
 	echo set physical=znic$ZENUM
-	if [[ -z $DOIP6 ]]; then
+	#
+	# we can't use allowed-address with IPv6, see below
+	# we can't use allowed-address for a router zone, as the anti-spoofing
+	# protection it brings prohibits IP forwarding and NAT
+	#
+	if [[ -z $DOIP6 ]] && [[ -z $RIP4 ]]; then
 	    echo set allowed-address=$IP/$ZCIDR
 	    # defrouter populates the gateway4 value in cloud-init
 	    ZGW=$(get_gateway $XIP4)
