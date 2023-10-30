@@ -1196,12 +1196,16 @@ echo set autoboot=true
 echo set zonepath=${ZROOTBASE}/${ZNAME}
 if [[ -n $XIP4 ]]; then
     echo set ip-type=exclusive
+    echo "ip-type: exclusive" >> "${ZSDIR}/zconfig.${ZNAME}"
+else
+    echo "ip-type: shared" >> "${ZSDIR}/zconfig.${ZNAME}"
 fi
 #
 # shared ip addresses
 #
 for IP in $ZIP4
 do
+	echo "address: $IP" >> "${ZSDIR}/zconfig.${ZNAME}"
 	get_net_details $IP | read ZIFACE ZCIDR
 	echo add net
 	echo set physical=$ZIFACE
@@ -1228,6 +1232,7 @@ done
 ZENUM=0
 for IP in $XIP4
 do
+	echo "address: $IP" >> "${ZSDIR}/zconfig.${ZNAME}"
 	get_net_details $IP | read ZIFACE ZCIDR
 	/usr/sbin/dladm show-vnic "znic$ZENUM" > /dev/null 2>&1
 	ZESTATUS=$?
