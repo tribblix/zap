@@ -1857,6 +1857,22 @@ if [[ -n $RIP4 ]]; then
 fi
 
 #
+# for managed router zones only, set up dnsmasq as well
+#
+if [[ -n $ISROUTER ]]; then
+    # dnsmasq.d is where specific host configuration will be placed
+    echo "conf-dir=/etc/dnsmasq.d" > ${ZROOTBASE}/${ZNAME}/root/etc/dnsmasq.conf
+    # a dhcp-range entry is required to enable the dhcp server
+    # all configuration is static, we fix the IP addresses 
+    for subnet in $ORIP4
+    do
+	echo "dhcp-range=${subnet%/*},static" >> ${ZROOTBASE}/${ZNAME}/root/etc/dnsmasq.conf
+    done
+    # Ensure it gets enabled on boot
+    echo /usr/sbin/svcadm enable network/dnsmasq >> "${ZROOTBASE}/${ZNAME}/root/etc/rc2.d/S83router"
+fi
+
+#
 # blank the zone if requested; init requires the smf entry to be present in
 # inittab but doesn't check what it actually runs
 #
