@@ -85,43 +85,52 @@ do
     fi
 done
 
-for inpkg in $*
+${ZAPLIBDIR}/get-version ${CTXARGS} `${ZAPLIBDIR}/resolve-alias ${CTXARGS} $*` | while read AFVERSION
 do
-    pkg=`${ZAPLIBDIR}/resolve-alias ${CTXARGS} $inpkg`
-    if [ ! -f ${DESTROOT}/var/sadm/pkg/${pkg}/pkginfo ]; then
-	${ZAPLIBDIR}/install-pkg ${CTXARGS} ${PKGARGS} ${SRCARGS} $pkg
-    fi
-    IVERSION=`/usr/bin/awk -F= '{if ($1 == "VERSION") print $2}' ${DESTROOT}/var/sadm/pkg/${pkg}/pkginfo`
-    AFVERSION=`${ZAPLIBDIR}/get-version ${CTXARGS} $pkg`
     AVERSION=${AFVERSION% *}
     AREPO=${AFVERSION#* }
     RVERSION=${AVERSION#*.}
-    if [ "$AREPO" != "opensxce" ]; then
-	if [ "X${pkg}.${IVERSION}" != "X${AVERSION}" ]; then
-	    echo "Package $pkg is at version $IVERSION and needs updating to $RVERSION"
-	    ISINST="false"
-	    for SRCDIR in $SRCLIST
-	    do
-		if [ -f ${SRCDIR}/${AVERSION}.zap ]; then
-		    ISINST="true"
+    pkg=${AVERSION%%.*}
+    if [ ! -f ${DESTROOT}/var/sadm/pkg/${pkg}/pkginfo ]; then
+	${ZAPLIBDIR}/install-pkg ${CTXARGS} ${PKGARGS} ${SRCARGS} $pkg
+    else
+	IVERSION=""
+	while read line
+	do
+	    case $line in
+		VERSION*)
+		    IVERSION=${line#*=}
 		    break
+		    ;;
+	    esac
+	done<${DESTROOT}/var/sadm/pkg/${pkg}/pkginfo
+	if [ "$AREPO" != "opensxce" ]; then
+	    if [ "X${pkg}.${IVERSION}" != "X${AVERSION}" ]; then
+		echo "Package $pkg is at version $IVERSION and needs updating to $RVERSION"
+		ISINST="false"
+		for SRCDIR in $SRCLIST
+		do
+		    if [ -f ${SRCDIR}/${AVERSION}.zap ]; then
+			ISINST="true"
+			break
+		    fi
+		done
+		# download if we don't have it yet
+		if [ "$ISINST" = "false" ]; then
+		    ${ZAPLIBDIR}/retrieve-pkg ${CTXARGS} ${pkg}
 		fi
-	    done
-	    # download if we don't have it yet
-	    if [ "$ISINST" = "false" ]; then
-		${ZAPLIBDIR}/retrieve-pkg ${CTXARGS} ${pkg}
-	    fi
-	    for SRCDIR in $SRCLIST
-	    do
-		if [ -f ${SRCDIR}/${AVERSION}.zap ]; then
-		    ${ZAPLIBDIR}/delpkg -u ${PKGARGS} $pkg
-		    ${ZAPLIBDIR}/instzap -u ${PKGARGS} ${SRCDIR}/${AVERSION}.zap ${pkg}
-		    break
+		for SRCDIR in $SRCLIST
+		do
+		    if [ -f ${SRCDIR}/${AVERSION}.zap ]; then
+			${ZAPLIBDIR}/delpkg -u ${PKGARGS} $pkg
+			${ZAPLIBDIR}/instzap -u ${PKGARGS} ${SRCDIR}/${AVERSION}.zap ${pkg}
+			break
+		    fi
+		done
+		NVERSION=`/usr/bin/awk -F= '{if ($1 == "VERSION") print $2}' ${DESTROOT}/var/sadm/pkg/${pkg}/pkginfo`
+		if [ "X${NVERSION}" = "X${RVERSION}" ]; then
+		    echo "Update of $pkg successful."
 		fi
-	    done
-	    NVERSION=`/usr/bin/awk -F= '{if ($1 == "VERSION") print $2}' ${DESTROOT}/var/sadm/pkg/${pkg}/pkginfo`
-	    if [ "X${NVERSION}" = "X${RVERSION}" ]; then
-		echo "Update of $pkg successful."
 	    fi
 	fi
     fi
