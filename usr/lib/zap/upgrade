@@ -268,13 +268,6 @@ if [ -d ${ALTROOT}/var/sadm/pkg ]; then
     cd /
 fi
 #
-# this is a manual hack for m19 and the new loader
-# we need to be absolutely sure that the loader and
-# agpgart packages get installed
-#
-/usr/bin/zap -C ${ALTROOT} install TRIBsys-boot-loader
-/usr/bin/zap -C ${ALTROOT} install TRIBdrv-graphics-agpgart
-#
 # shut down pkgserv otherwise the BE cannot be unmounted
 #
 /usr/bin/pkgadm sync -R ${ALTROOT} -q
