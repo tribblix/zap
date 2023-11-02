@@ -90,9 +90,8 @@ done
 #
 # first look for and download any packages we need
 #
-for inpkg in $*
+for pkg in `${ZAPLIBDIR}/resolve-alias ${CTXARGS} $*`
 do
-  pkg=`${ZAPLIBDIR}/resolve-alias ${CTXARGS} $inpkg`
   if [ -f ${DESTROOT}/var/sadm/pkg/${pkg}/pkginfo ]; then
     echo "Package $pkg already installed"
   else
