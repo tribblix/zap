@@ -318,6 +318,37 @@ s10|solaris10|SUNWsolaris10)
 esac
 
 #
+# not all brands are supported on all variants or architectures
+# check here so the user knows it will never work here, rather thah
+# the 'not installed' error we would give later
+#
+MYARCH=$(uname -p)
+if [[ $MYARCH = sparc ]]; then
+    case $ZBRAND in
+	bhyve)
+	    echo "ERROR: bhyve zones are not supported on sparc"
+	    usage
+	    ;;
+	SUNWlx)
+	    echo "ERROR: lx zones are not supported on sparc"
+	    usage
+	    ;;
+    esac
+fi
+MYVAR=$(uname -v)
+if [[ $ZBRAND = SUNWlx ]]; then
+    case $MYVAR in
+	omnitribblix*)
+	    :
+	    ;;
+	*)
+	    echo "ERROR: lx zones are only supported on omnitribblix"
+	    usage
+	    ;;
+    esac
+fi
+
+#
 # verify arguments against brands
 #
 case $ZBRAND in
