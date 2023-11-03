@@ -24,9 +24,8 @@ case $1 in
     ;;
 esac
 
-for inpkg in $*
+for pkg in `${ZAPLIBDIR}/resolve-alias $*`
 do
-	pkg=`${ZAPLIBDIR}/resolve-alias $inpkg`
 	if [ -f ${DESTROOT}/var/sadm/pkg/${pkg}/pkginfo ]; then
                 echo "Removing ${UTEXT}$pkg"
                 /usr/sbin/pkgrm -n -a ${ZAPLIBDIR}/pkg.force ${BFLAGS} $pkg
