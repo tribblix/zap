@@ -71,10 +71,8 @@ typeset -A depmap
 # anything left has to be a package
 #
 pkglist=""
-for inpkg in $*
+for pkg in `${ZAPLIBDIR}/resolve-alias ${CTXARGS} $*`
 do
-  # TODO check installed first to avoid unnecessary resolve-alias call
-  pkg=`${ZAPLIBDIR}/resolve-alias ${CTXARGS} $inpkg`
   if [ -f ${DESTROOT}/var/sadm/pkg/${pkg}/pkginfo ]; then
     echo "Package $pkg already installed"
   else
