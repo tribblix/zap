@@ -34,16 +34,51 @@ if [ ! -x $WCLIENT ]; then
     WARGS="-U ${USER_AGENT} -q -O"
 fi
 
+#
+# this is all a bit complicated, as it handles the case of multiple overlay
+# repos which doesn't yet exist
+#
+
+#
+# download the new overlay catalogs first, and
+# read the catalogs into two arrays
+#
+typeset -A map_ver
+typeset -A map_repo
+for repo in $(${ZAPLIBDIR}/zap-cfg ${CTXARGS} list-overlay-repos)
+do
+    REPO=$(${ZAPLIBDIR}/zap-cfg ${CTXARGS} overlay-url $repo)
+    ${WCLIENT} ${WARGS} ${CFGDIR}/repositories/${repo}.overlays.tmp ${REPO}/catalog
+    if [ -s ${CFGDIR}/repositories/${repo}.overlays.tmp ]; then
+	mv ${CFGDIR}/repositories/${repo}.overlays ${CFGDIR}/repositories/${repo}.overlays.bak
+	mv ${CFGDIR}/repositories/${repo}.overlays.tmp ${CFGDIR}/repositories/${repo}.overlays
+    fi
+    if [ -f "${CFGDIR}/repositories/${repo}.overlays" ]; then
+	IFS='|'
+	while read -r novl nver line
+	do
+	    if [ -z "${map_ver[$novl]}" ]; then
+		# remember this if we've not seen it before
+		map_ver[$novl]=$nver
+		map_repo[$novl]=$repo
+	    fi
+	done < ${CFGDIR}/repositories/${repo}.overlays
+    fi
+done
+unset IFS
+
+#
+# this walks through all the overlays for the given repo and
+# verifies that they're up to date
+#
 refresh_overlay_repo() {
     frepo="$1"
     REPO=$(${ZAPLIBDIR}/zap-cfg ${CTXARGS} overlay-url $frepo)
-    ${WCLIENT} ${WARGS} ${CFGDIR}/repositories/${frepo}.overlays.tmp ${REPO}/catalog
-    if [ -s ${CFGDIR}/repositories/${frepo}.overlays.tmp ]; then
-	mv ${CFGDIR}/repositories/${frepo}.overlays ${CFGDIR}/repositories/${frepo}.overlays.bak
-	mv ${CFGDIR}/repositories/${frepo}.overlays.tmp ${CFGDIR}/repositories/${frepo}.overlays
+    if [ -s ${CFGDIR}/repositories/${frepo}.overlays ]; then
 	/usr/bin/awk -F'|' '{print $1}' ${CFGDIR}/repositories/${frepo}.overlays | while read novl
 	do
-	    ${ZAPLIBDIR}/get-overlay-meta ${CTXARGS} $novl | read tovl nver trepo
+	    nver=${map_ver[$novl]}
+	    trepo=${map_repo[$novl]}
 	    #
 	    # check that this repo is the authoritative source for this overlay
 	    #
