@@ -31,7 +31,7 @@ if [ ! -d "${CACHE_DIR}" ]; then
     exit 1
 fi
 
-cd ${CACHE_DIR}
+cd "${CACHE_DIR}" || exit
 
 case $1 in
     -a)
