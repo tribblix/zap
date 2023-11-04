@@ -66,10 +66,15 @@ esac
 # if installed, just exit
 # if someone has messed with packages behind our back, they suffer
 #
-if [ -f ${INSTODIR}/installed/${ONAME} ]; then
+if [ -f "${INSTODIR}/installed/${ONAME}" ]; then
     exit 0
 fi
 
+OVL="${CFGODIR}/${ONAME}.ovl"
+if [ ! -f "${OVL}" ]; then
+    echo "ERROR: invalid overlay ${ONAME}"
+    exit 1
+fi
 PLIST="${CFGODIR}/${ONAME}.pkgs"
 if [ ! -f "${PLIST}" ]; then
     echo "ERROR: package list for overlay ${ONAME} missing"
@@ -79,13 +84,15 @@ fi
 #
 # install dependent overlays, if any
 #
-OVL="${CFGODIR}/${ONAME}.ovl"
-for novl in `/usr/bin/grep '^REQUIRES=' ${OVL} | /usr/bin/sed s:REQUIRES=::`
+for nnovl in $(/usr/bin/grep '^REQUIRES=' "${OVL}")
 do
-    ${ZAPLIBDIR}/install-overlay ${CTXARGS} ${PKGARGS} ${SRCARGS} ${novl}
+    novl=${nnovl/REQUIRES=/}
+    if [ ! -f "${INSTODIR}/installed/${novl}" ]; then
+	${ZAPLIBDIR}/install-overlay ${CTXARGS} ${PKGARGS} ${SRCARGS} "${novl}"
+    fi
 done
 
-${ZAPLIBDIR}/install-pkg ${CTXARGS} ${PKGARGS} ${SRCARGS} `cat ${PLIST}`
+${ZAPLIBDIR}/install-pkg ${CTXARGS} ${PKGARGS} ${SRCARGS} $(<${PLIST})
 OVSUCCESS=$?
 
 #
@@ -93,8 +100,8 @@ OVSUCCESS=$?
 #
 if [ $OVSUCCESS -eq 0 ]; then
     echo "Overlay ${ONAME} installation succeeded"
-    mkdir -p ${INSTODIR}/installed
-    touch ${INSTODIR}/installed/${ONAME}
+    mkdir -p "${INSTODIR}/installed"
+    touch "${INSTODIR}/installed/${ONAME}"
 else
     echo "Errors in installation of overlay ${ONAME}"
 fi
