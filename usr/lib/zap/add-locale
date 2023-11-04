@@ -15,8 +15,8 @@ case $1 in
 	CTXARGS="-C ${DESTROOT}"
 	shift
 	shift
-	if [ ! -d "$DESTROOT" ]; then
-	    echo "ERROR: alternate root $DESTROOT doesn't exist"
+	if [ ! -d "$DESTROOT/var/sadm/pkg" ]; then
+	    echo "ERROR: alternate root $DESTROOT is invalid"
 	    exit 1
 	fi
 	;;
@@ -28,8 +28,8 @@ case $1 in
 	PKGARGS="-R ${DESTROOT}"
 	shift
 	shift
-	if [ ! -d "$DESTROOT" ]; then
-	    echo "ERROR: alternate root $DESTROOT doesn't exist"
+	if [ ! -d "$DESTROOT/var/sadm/pkg" ]; then
+	    echo "ERROR: alternate root $DESTROOT is invalid"
 	    exit 1
 	fi
 	;;
@@ -49,7 +49,7 @@ case $1 in
 	;;
     -i)
 	shift
-	cd ${DESTROOT}/var/sadm/pkg
+	cd "${DESTROOT}/var/sadm/pkg" || exit
 	#
 	# detect if there are no additional locales installed so we can
 	# give a more useful message
@@ -63,20 +63,27 @@ case $1 in
 	done
 	echo "Installed locale packages:"
 	/bin/ls -1d TRIBlocale-*
-	if [ -x /usr/bin/locale ]; then
-	    echo "Available locales:"
-	    /usr/bin/locale -a
+	#
+	# the locale command isn't aware of alternate roots and would
+	# print information for the current system, which is misleading
+	#
+	if [ -z "${DESTROOT}" ]; then
+	    if [ -x /usr/bin/locale ]; then
+		echo "Available locales:"
+		/usr/bin/locale -a
+	    fi
 	fi
 	exit 0
 	;;
     -l)
 	shift
-	cd ${DESTROOT}/var/sadm/pkg
-	if [ ! -f ${DESTROOT}/var/sadm/overlays/all-locales.pkgs ]; then
+	cd "${DESTROOT}/var/sadm/pkg" || exit
+	if [ ! -f "${DESTROOT}/var/sadm/overlays/all-locales.pkgs" ]; then
 	    echo "No locale availability present."
 	    exit 1
 	fi
-	for nlocale in $(<${DESTROOT}/var/sadm/overlays/all-locales.pkgs)
+	echo "Available locale packages:"
+	for nlocale in $(<"${DESTROOT}/var/sadm/overlays/all-locales.pkgs")
 	do
 	    if [ -d "${nlocale}" ]; then
 		echo "$nlocale (Installed)"
@@ -93,7 +100,7 @@ LPKGLIST=""
 #
 # now there's a big switch that maps names to packages
 #
-for arg in $*
+for arg in "$@"
 do
     case $arg in
 	af|afrikaans)
