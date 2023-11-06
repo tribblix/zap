@@ -2,6 +2,7 @@
 #
 # simple wrapper to install locales
 # just maps keywords to package names
+# also adds hunspell dictionaries if we have them
 #
 
 ZAPLIBDIR="/usr/lib/zap"
@@ -96,6 +97,7 @@ case $1 in
 esac
 
 LPKGLIST=""
+SPELLPKG=""
 
 #
 # now there's a big switch that maps names to packages
@@ -136,6 +138,7 @@ do
 	    ;;
 	canad*)
 	    LPKGLIST="${LPKGLIST} en en-extra fr fr-extra"
+	    SPELLPKG="${SPELLPKG} en fr"
 	    ;;
 	catalan*)
 	    LPKGLIST="${LPKGLIST} ca ca-extra"
@@ -148,12 +151,14 @@ do
 	    ;;
 	de|deu*|german*)
 	    LPKGLIST="${LPKGLIST} de de-extra"
+	    SPELLPKG="${SPELLPKG} de"
 	    ;;
 	el|gree*)
 	    LPKGLIST="${LPKGLIST} el el-extra"
 	    ;;
 	en|engl*|brit*)
 	    LPKGLIST="${LPKGLIST} en en-extra"
+	    SPELLPKG="${SPELLPKG} en"
 	    ;;
 	es|esp*|spanish|spain)
 	    LPKGLIST="${LPKGLIST} es es-extra"
@@ -169,6 +174,7 @@ do
 	    ;;
 	fr|french|france)
 	    LPKGLIST="${LPKGLIST} fr fr-extra"
+	    SPELLPKG="${SPELLPKG} fr"
 	    ;;
 	ga|irish|ireland|gaelic)
 	    LPKGLIST="${LPKGLIST} ga"
@@ -202,6 +208,7 @@ do
 	    ;;
 	it|ital*)
 	    LPKGLIST="${LPKGLIST} it it-extra"
+	    SPELLPKG="${SPELLPKG} it"
 	    ;;
 	ja|jap*)
 	    LPKGLIST="${LPKGLIST} ja"
@@ -360,6 +367,10 @@ PKGLIST=""
 for lcl in $LPKGLIST
 do
     PKGLIST="${PKGLIST} TRIBlocale-${lcl}"
+done
+for lcl in $SPELLPKG
+do
+    PKGLIST="${PKGLIST} TRIBspelldict-${lcl}"
 done
 
 exec ${ZAPLIBDIR}/${ACTION} ${CTXARGS} ${PKGARGS} $PKGLIST
