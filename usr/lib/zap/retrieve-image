@@ -448,6 +448,10 @@ case $SCHEME in
 	esac
 	URL="${DLPREFIX}${DLFILE}"
 	;;
+    netboot|netboot.zyz)
+	URL="https://boot.netboot.xyz/ipxe/netboot.xyz.iso"
+	DLNAME="netboot.xyz.iso"
+	;;
     *)
 	echo "ERROR: Unrecognized scheme"
 	exit 2
