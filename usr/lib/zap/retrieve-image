@@ -86,6 +86,14 @@ case $SCHEME in
 		RELDIR="bloody"
 		;;
 
+	    stable)
+		RELDIR="r151048"
+		RELVER="r151048"
+		;;
+	    lts)
+		RELDIR="r151046"
+		RELVER="r151046"
+		;;
 	    *)
 		RELDIR=${RELVER:0:7}
 		;;
