@@ -71,9 +71,9 @@ typeset -A depmap
 # anything left has to be a package
 #
 pkglist=""
-for pkg in `${ZAPLIBDIR}/resolve-alias ${CTXARGS} $*`
+for pkg in $(${ZAPLIBDIR}/resolve-alias ${CTXARGS} "$@")
 do
-  if [ -f ${DESTROOT}/var/sadm/pkg/${pkg}/pkginfo ]; then
+  if [ -f "${DESTROOT}/var/sadm/pkg/${pkg}/pkginfo" ]; then
     echo "Package $pkg already installed"
   else
     pkglist="${pkglist} $pkg"
@@ -94,7 +94,7 @@ echo "Recursive install of: ${pkglist}"
 npkglist=""
 for inpkg in $pkglist
 do
-    fpkg=`${ZAPLIBDIR}/get-version ${CTXARGS} $inpkg`
+    fpkg=$(${ZAPLIBDIR}/get-version ${CTXARGS} "$inpkg")
     if [ "X$fpkg" != "X$inpkg" ]; then
 	npkglist="${npkglist} $inpkg"
     else
@@ -121,7 +121,7 @@ do
     for inpkg in $npkglist
     do
 	if [ -z "${depmap[$inpkg]}" ]; then
-	    fpkg=`${ZAPLIBDIR}/get-dependencies ${CTXARGS} $inpkg`
+	    fpkg=$(${ZAPLIBDIR}/get-dependencies ${CTXARGS} "$inpkg")
 	    depmap[$inpkg]=$fpkg
 	else
 	    fpkg=${depmap[$inpkg]}

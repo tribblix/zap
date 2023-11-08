@@ -33,17 +33,13 @@ esac
 #
 # given a package, return the uninstalled dependencies present in the catalog
 #
-repo=`${ZAPLIBDIR}/get-version ${CTXARGS} ${PKG}`
+repo=$(${ZAPLIBDIR}/get-version ${CTXARGS} "${PKG}")
 repo=${repo#* }
-if [ -f ${CFGDIR}/repositories/${repo}.catalog ]; then
-    FPKG=`/usr/bin/awk -F'|' '{if ($1 == npkg) print $3}' npkg=${PKG} ${CFGDIR}/repositories/${repo}.catalog`
-    if [ -n "$FPKG" ]; then
-	for npkg in $FPKG
-	do
-	    if [ ! -f ${DESTROOT}/var/sadm/pkg/${npkg}/pkginfo ]; then
-		echo "${npkg}"
-	    fi
-	done
-	exit 0
-    fi
+if [ -f "${CFGDIR}/repositories/${repo}.catalog" ]; then
+    for npkg in $(/usr/bin/awk -F'|' '{if ($1 == npkg) print $3}' npkg="${PKG}" "${CFGDIR}/repositories/${repo}.catalog")
+    do
+	if [ ! -f "${DESTROOT}/var/sadm/pkg/${npkg}/pkginfo" ]; then
+	    echo "${npkg}"
+	fi
+    done
 fi
