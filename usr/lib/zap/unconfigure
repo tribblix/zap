@@ -44,6 +44,9 @@ j)
 z)
     DOZONES="y"
     ;;
+*)
+    usage
+    ;;
 esac
 done
 
@@ -51,7 +54,7 @@ if [ -n "${DOBE}" ]; then
     echo "Deleting old boot environments"
     for BNAME in $(/usr/sbin/beadm list -H | awk -F';' '{if ($3 != "NR" ) print $1}')
     do
-	/usr/sbin/beadm destroy ${BNAME}
+	/usr/sbin/beadm destroy "${BNAME}"
     done
 fi
 if [ -n "${DOJACK}" ]; then
@@ -62,7 +65,7 @@ if [ -n "${DOZONES}" ]; then
     echo "Deleting non-global zones"
     for ZNAME in $(/usr/sbin/zoneadm list -inc)
     do
-	zap destroy-zone -z ${ZNAME}
+	zap destroy-zone -z "${ZNAME}"
     done
 fi
 
