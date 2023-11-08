@@ -25,6 +25,9 @@ case $opt in
 r)
     USERDEL_FLAG="-r"
     ;;
+*)
+    usage
+    ;;
 esac
 done
 shift $((OPTIND - 1))
@@ -53,7 +56,7 @@ fi
 #
 # does user exist?
 #
-USER_UID=`/usr/bin/awk -v X=$USER_NAME -F: '{if ($1 == X) print $3}' $PASSWD_FILE`
+USER_UID=$(/usr/bin/awk -v X="$USER_NAME" -F: '{if ($1 == X) print $3}' $PASSWD_FILE)
 if [ -z "$USER_UID" ]; then
     echo "ERROR: user $USER_NAME does not exist"
     exit 1
@@ -69,7 +72,7 @@ fi
 # check the home directory
 #
 if [ -n "$USERDEL_FLAG" ]; then
-    USER_HOME=`/usr/bin/awk -v X=$USER_NAME -F: '{if ($1 == X) print $6}' $PASSWD_FILE`
+    USER_HOME=$(/usr/bin/awk -v X="$USER_NAME" -F: '{if ($1 == X) print $6}' $PASSWD_FILE)
     if [ -z "$USER_HOME" ]; then
 	echo "ERROR: no user home directory, cannot delete, exiting"
 	exit 1
@@ -93,9 +96,9 @@ fi
 # this is designed for use in the case where we create a matching
 # group for the user, so we try and detect other use cases
 #
-USER_GID=`/usr/bin/awk -v X=$USER_NAME -F: '{if ($1 == X) print $4}' $PASSWD_FILE`
+USER_GID=$(/usr/bin/awk -v X="$USER_NAME" -F: '{if ($1 == X) print $4}' $PASSWD_FILE)
 if [ "X$USER_UID" = "X$USER_GID" ]; then
-    GROUP_NAME=`/usr/bin/awk -v X=$USER_GID -F: '{if ($3 == X) print $1}' $GROUP_FILE`
+    GROUP_NAME=$(/usr/bin/awk -v X="$USER_GID" -F: '{if ($3 == X) print $1}' $GROUP_FILE)
     if [ "X$USER_NAME" = "X$GROUP_NAME" ]; then
 	DELETE_GROUP="$GROUP_NAME"
     fi
@@ -104,11 +107,11 @@ if [ "X$USER_UID" = "X$USER_GID" ]; then
     # - if the group file shows secondary membership
     # - if other users have this as a primary group
     #
-    GROUP_MEMBERS=`/usr/bin/awk -v X=$USER_GID -F: '{if ($3 == X) print $4}' $GROUP_FILE`
+    GROUP_MEMBERS=$(/usr/bin/awk -v X="$USER_GID" -F: '{if ($3 == X) print $4}' $GROUP_FILE)
     if [ -n "$GROUP_MEMBERS" ]; then
 	DELETE_GROUP=""
     fi
-    GROUP_USERS=`/usr/bin/awk -v X=$USER_GID -F: '{if ($4 == X) print $1}' $PASSWD_FILE`
+    GROUP_USERS=$(/usr/bin/awk -v X="$USER_GID" -F: '{if ($4 == X) print $1}' $PASSWD_FILE)
     if [ "${GROUP_USERS}" != "${USER_NAME}" ]; then
 	DELETE_GROUP=""
     fi
@@ -117,7 +120,7 @@ fi
 #
 # do it
 #
-/usr/sbin/userdel $USERDEL_FLAG $USER_NAME
+/usr/sbin/userdel $USERDEL_FLAG "$USER_NAME"
 if [ -n "$DELETE_GROUP" ]; then
-    /usr/sbin/groupdel $DELETE_GROUP
+    /usr/sbin/groupdel "$DELETE_GROUP"
 fi
