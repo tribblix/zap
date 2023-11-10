@@ -1345,13 +1345,19 @@ done
 #
 # For router/proxy zones we create an etherstub for the internal virtual
 # network, and create a vnic over that etherstub. The router/proxy zone
-# will have the matching .1 address on that network.
+# will have the matching .1 address on that network. We also create an
+# extra vnic that can be used to connect shared-ip zones to the internal
+# network, as they need some form of link to run over
+#
+# the naming convention is that vnics attached to zones are called znic,
+# while the shared vnics are called snic
 #
 # Note that the destroy script must have been initialized above as we
 # require a router/proxy zone to have an exclusive-ip address, and we
 # carry on enumerating ZENUM where we left off
 #
 ZRNUM=0
+ZSNUM=0
 ZENUM=$(($ZENUM+1))
 for IP in $RIP4
 do
@@ -1365,6 +1371,10 @@ do
 	done
 	ZIFACE=zrstub$ZRNUM
 	/usr/sbin/dladm create-etherstub "$ZIFACE"
+	#
+	# create the vnic attached to the router/proxy zone that's
+	# connected to the routed subnet
+	#
 	/usr/sbin/dladm show-vnic "znic$ZENUM" > /dev/null 2>&1
 	ZESTATUS=$?
 	while [ $ZESTATUS -eq 0 ]
@@ -1375,7 +1385,29 @@ do
 	done
 	/usr/sbin/dladm create-vnic -l "$ZIFACE" "znic$ZENUM"
 	echo "/usr/sbin/dladm delete-vnic znic$ZENUM" >> "${ZSDIR}/destroy.${ZNAME}"
-	# delete the etherstub after the vnic configured on it
+	#
+	# create the second vnic connected to the routed subnet
+	# that can be used for shared-ip zones
+	#
+	# this vnic must have an IP interface enabled (ie plumbed) in
+	# the global zone but doesn't need an address configured, and
+	# it won't be associated with any zones at this point
+	#
+	/usr/sbin/dladm show-vnic "snic$ZSNUM" > /dev/null 2>&1
+	ZSSTATUS=$?
+	while [ $ZSSTATUS -eq 0 ]
+	do
+	    ZSNUM=$(($ZSNUM+1))
+	    /usr/sbin/dladm show-vnic "snic$ZSNUM" > /dev/null 2>&1
+	    ZSSTATUS=$?
+	done
+	/usr/sbin/dladm create-vnic -l "$ZIFACE" "snic$ZSNUM"
+	/usr/sbin/ipadm create-if "snic$ZSNUM"
+	echo "/usr/sbin/ipadm delete-if snic$ZSNUM" >> "${ZSDIR}/destroy.${ZNAME}"
+	echo "/usr/sbin/dladm delete-vnic snic$ZSNUM" >> "${ZSDIR}/destroy.${ZNAME}"
+	#
+	# delete the etherstub after the vnics configured on it
+	#
 	echo "/usr/sbin/dladm delete-etherstub $ZIFACE" >> "${ZSDIR}/destroy.${ZNAME}"
 	ifipmap[znic$ZENUM]=$IP
 	echo add net
@@ -1385,6 +1417,7 @@ do
 	ZNETNAME=$(get_short_net $IP)
 	touch "${ZSDIR}/rconfig.${ZNETNAME}"
 	echo "interface: $ZIFACE" >> "${ZSDIR}/rconfig.${ZNETNAME}"
+	echo "shared-interface: snic$ZSNUM" >> "${ZSDIR}/rconfig.${ZNETNAME}"
 	echo "gateway: ${IP%/*}" >> "${ZSDIR}/rconfig.${ZNETNAME}"
 	echo "zone: ${ZNAME}" >> "${ZSDIR}/rconfig.${ZNETNAME}"
 	echo "rm ${ZSDIR}/rconfig.${ZNETNAME}" >> "${ZSDIR}/destroy.${ZNAME}"
@@ -1943,12 +1976,12 @@ fi
 #
 if [[ -n $ISROUTER ]]; then
     # dnsmasq.d is where specific host configuration will be placed
-    echo "conf-dir=/etc/dnsmasq.d" > ${ZROOTBASE}/${ZNAME}/root/etc/dnsmasq.conf
+    echo "conf-dir=/etc/dnsmasq.d" > "${ZROOTBASE}/${ZNAME}/root/etc/dnsmasq.conf"
     # a dhcp-range entry is required to enable the dhcp server
     # all configuration is static, we fix the IP addresses 
     for subnet in $ORIP4
     do
-	echo "dhcp-range=${subnet%/*},static" >> ${ZROOTBASE}/${ZNAME}/root/etc/dnsmasq.conf
+	echo "dhcp-range=${subnet%/*},static" >> "${ZROOTBASE}/${ZNAME}/root/etc/dnsmasq.conf"
     done
     # Ensure it gets enabled on boot
     echo /usr/sbin/svcadm enable network/dnsmasq >> "${ZROOTBASE}/${ZNAME}/root/etc/rc2.d/S83router"
