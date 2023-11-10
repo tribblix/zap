@@ -217,6 +217,9 @@ m)
 esac
 done
 
+#
+# sadly, zones within zones aren't possible
+#
 THISZONE=$(/sbin/zonename)
 if [ "X$THISZONE" != "Xglobal" ]; then
     echo "ERROR: zone management is only possible in the global zone"
@@ -319,8 +322,8 @@ esac
 
 #
 # not all brands are supported on all variants or architectures
-# check here so the user knows it will never work here, rather thah
-# the 'not installed' error we would give later
+# check here so the user knows it will never work here, rather than
+# the generic 'not installed' error we would give later
 #
 MYARCH=$(uname -p)
 if [[ $MYARCH = sparc ]]; then
@@ -1067,6 +1070,13 @@ echo $CIDR
 #
 # return interface and cidr prefix for the given address
 #
+# first check if the given address is on an internal subnet behind a
+# router/proxy zone; if so then return the interface associated with
+# that router/proxy zone, as saved in the rconfig file
+#
+# if it's not on an internal subnet then look to see which interface
+# routes traffic for the given address
+#
 get_net_details() {
     IIP=$1
     NIP=$(get_short_net ${IIP}/24)
@@ -1097,7 +1107,9 @@ get_net_details() {
 }
 
 #
-# return the parent zone if routed
+# if the given address is on an internal subnet behind a router/proxy
+# zone then return the name of that router/proxy zone, as saved in the
+# rconfig file
 #
 get_parent_zone() {
     IIP=$1
@@ -1119,7 +1131,12 @@ get_parent_zone() {
 }
 
 #
-# return the default gateway for the given address
+# return the default gateway for the given address; if the given
+# address is on an internal subnet behind a router/proxy zone then
+# return the address of the router/proxy zone on that subnet, as
+# saved in the rconfig file
+#
+# otherwise, return the system's default gateway
 #
 get_gateway() {
     IIP=$1
@@ -1205,6 +1222,16 @@ get_mac_link_local() {
     printf "fe80::%s%s:%sff:fe%s:%s%s/10" "$no1" "$o2" "$o3" "$o4" "$o5" "$o6"
 }
 
+#
+# here we create the configuration and output it to stdout
+#
+# as we build the configuration we also save details to a zconfig file
+# for all zones, and an rconfig file for each subnet behind a router zone
+#
+# we also create any required infrastructure
+# and create a destroy script that will tear all the infrastructure
+# associated with a zone when it's destroyed
+#
 create_configuration() {
 if [ ! -d "$ZSDIR" ]; then
     /usr/bin/mkdir -p "$ZSDIR"
@@ -1377,6 +1404,10 @@ if [[ $ZBRAND = TRIBsparse || $ZBRAND = TRIBwhole ]]; then
 	echo add options [ro,nodevices]
 	echo end
 fi
+#
+# for any items shared with the zone, add them
+# existence was checked earlier
+#
 for DSET in $ZDATASETS
 do
 	echo add dataset
@@ -1411,6 +1442,14 @@ do
 	echo add options [ro,nodevices]
 	echo end
 done
+#
+# for users, share the home directory, and give the user the
+# rights to manage the zone
+#
+# the user is added to the relevant system files in the zone later,
+# once the zone has been installed and the /etc/{passwd,group,shadow}
+# files exist
+#
 for TUSER in $ZUSERS
 do
 	echo add fs
@@ -1643,6 +1682,9 @@ create_sysidcfg() {
     echo "root_password=jhDYXBAnWJKr2"
 }
 
+#
+# construct the command line arguments for zoneadm install
+#
 create_install_opts() {
 for OVL in $ZOVERLAY
 do
@@ -1773,6 +1815,10 @@ done
 #
 # volumes for bhyve - create and set
 #
+# add to the destroy file so the volumes get destroyed along with the
+# zone, if you want persistent volumes then create them first and use
+# the -v flag rather than -V
+#
 # FIXME allow user to specify pool to use
 #
 if [[ $ZBRAND = bhyve ]]; then
@@ -1813,6 +1859,11 @@ create_configuration > "${ZCFGFILE}"
 /usr/sbin/zonecfg -z "${ZNAME}" -f "${ZCFGFILE}"
 
 /usr/sbin/zoneadm -z "${ZNAME}" install $(create_install_opts)
+
+#
+# once the zone is installed we can do any zone configuration that
+# requires manipulating files present within the zone
+#
 
 #
 # copy the shared user accounts specified into the zone
