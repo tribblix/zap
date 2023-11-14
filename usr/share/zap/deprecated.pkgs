@@ -160,6 +160,7 @@ TRIBgtkimageview
 TRIBgtkglext
 TRIBpangox-compat
 TRIBgtksourceview
+TRIBgtksourceview3
 TRIBjsonschema-python-27
 TRIBfunctools32-python-27
 TRIBjsonrpclib-python-27
@@ -679,3 +680,6 @@ TRIBsuricata
 TRIBguile
 TRIBsys-net-spdadm
 TRIBlibunique
+TRIBlib-desktop-gtkmm
+TRIBliblogging
+TRIBliboil
