@@ -12,7 +12,7 @@
 # Don't use /dev/random as it will block if entropy is low
 # for example, under Xen
 #
-HASH=$(/usr/bin/head -c 32 /dev/urandom | /usr/bin/openssl dgst -sha1 | /usr/bin/awk '{print $NF}')
+HASH=$(/usr/bin/head -c 32 /dev/urandom | /usr/bin/digest -a sha1)
 
 #
 # cut it into pieces

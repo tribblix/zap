@@ -114,7 +114,7 @@ fi
 # first with curl, then wget if there's a problem
 # we always verify the checksums and delete files that fail to match
 #
-cat ${DESTDIR}/catalog | awk -F'|' '{print $1,$2,$4,$5}' | while read pkg ver fsize fsum
+awk -F'|' '{print $1,$2,$4,$5}' ${DESTDIR}/catalog | while read pkg ver fsize fsum
 do
     if [ ! -f "${DESTDIR}/${pkg}.${ver}.zap" ]; then
 	echo "Getting ${pkg}, $fsize bytes"
@@ -132,7 +132,7 @@ do
 	    ${WGET} ${WARGS} "${DESTDIR}/${pkg}.${ver}.zap" "${REPO}/${pkg}.${ver}.zap"
 	fi
     fi
-    PKGMD5=$(/usr/bin/openssl md5 "${DESTDIR}/${pkg}.${ver}.zap" | /usr/bin/awk '{print $NF}')
+    PKGMD5=$(/usr/bin/digest -a md5 "${DESTDIR}/${pkg}.${ver}.zap")
     if [ "$PKGMD5" = "$fsum" ]; then
 	echo "Checksum verified for ${pkg}"
     else
