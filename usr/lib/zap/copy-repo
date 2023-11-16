@@ -94,10 +94,10 @@ fi
 #
 # grab the catalog and other metadata
 #
-${CURL} ${CARGS} ${DESTDIR}/catalog ${REPO}/catalog
-${CURL} ${CARGS} ${DESTDIR}/aliases ${REPO}/aliases
-${CURL} ${CARGS} ${DESTDIR}/index.html ${REPO}/index.html
-${CURL} ${CARGS} ${DESTDIR}/filelist.bz2 ${REPO}/filelist.bz2
+${CURL} ${CARGS} "${DESTDIR}"/catalog "${REPO}"/catalog
+${CURL} ${CARGS} "${DESTDIR}"/aliases "${REPO}"/aliases
+${CURL} ${CARGS} "${DESTDIR}"/index.html "${REPO}"/index.html
+${CURL} ${CARGS} "${DESTDIR}"/filelist.bz2 "${REPO}"/filelist.bz2
 
 if [ ! -f "${DESTDIR}/catalog" ]; then
    echo "ERROR: no catalog retrieved"
@@ -118,7 +118,7 @@ awk -F'|' '{print $1,$2,$4,$5}' ${DESTDIR}/catalog | while read pkg ver fsize fs
 do
     if [ ! -f "${DESTDIR}/${pkg}.${ver}.zap" ]; then
 	echo "Getting ${pkg}, $fsize bytes"
-	${CURL} ${CARGS} ${DESTDIR}/${pkg}.${ver}.zap ${REPO}/${pkg}.${ver}.zap
+	${CURL} ${CARGS} "${DESTDIR}/${pkg}.${ver}.zap" "${REPO}/${pkg}.${ver}.zap"
 	if [ -f "${DESTDIR}/${pkg}.${ver}.zap" ]; then
 	    rsize=$(/usr/bin/stat -c '%s' "${DESTDIR}/${pkg}.${ver}.zap")
 	    if [ $rsize -eq $fsize ]; then
@@ -132,11 +132,22 @@ do
 	    ${WGET} ${WARGS} "${DESTDIR}/${pkg}.${ver}.zap" "${REPO}/${pkg}.${ver}.zap"
 	fi
     fi
+    #
+    # always try pulling the sig files, although we don't actually check
+    # them here
+    #
+    if [ ! -s "${DESTDIR}/${pkg}.${ver}.zap.sig" ]; then
+	echo "Getting ${pkg}.sig"
+	${CURL} ${CARGS} "${DESTDIR}/${pkg}.${ver}.zap.sig" "${REPO}/${pkg}.${ver}.zap.sig"
+	if [ ! -s "${DESTDIR}/${pkg}.${ver}.zap,sig" ]; then
+	    ${WGET} ${WARGS} "${DESTDIR}/${pkg}.${ver}.zap.sig" "${REPO}/${pkg}.${ver}.zap.sig"
+	fi
+    fi
     PKGMD5=$(/usr/bin/digest -a md5 "${DESTDIR}/${pkg}.${ver}.zap")
     if [ "$PKGMD5" = "$fsum" ]; then
 	echo "Checksum verified for ${pkg}"
     else
 	echo "ERROR: Checksum failure for ${pkg}"
-	/usr/bin/rm -f "${DESTDIR}/${pkg}.${ver}.zap"
+	/usr/bin/rm -f "${DESTDIR}/${pkg}.${ver}.zap" "${DESTDIR}/${pkg}.${ver}.zap.sig"
     fi
 done
