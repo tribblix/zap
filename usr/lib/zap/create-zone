@@ -1420,6 +1420,7 @@ do
 	echo "shared-interface: snic$ZSNUM" >> "${ZSDIR}/rconfig.${ZNETNAME}"
 	echo "gateway: ${IP%/*}" >> "${ZSDIR}/rconfig.${ZNETNAME}"
 	echo "zone: ${ZNAME}" >> "${ZSDIR}/rconfig.${ZNETNAME}"
+	echo "public-ip: ${XIP4}" >> "${ZSDIR}/rconfig.${ZNETNAME}"
 	echo "rm ${ZSDIR}/rconfig.${ZNETNAME}" >> "${ZSDIR}/destroy.${ZNAME}"
 done
 #
