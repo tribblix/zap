@@ -8,6 +8,7 @@ python39
 python310
 wapiti
 postgres11
+postgres13
 postgres14
 tomcat8
 openexr
