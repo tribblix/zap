@@ -1293,6 +1293,10 @@ do
 	    echo set address=$(get_link_local $IP)
 	    echo end
 	fi
+	ZROUTER=$(get_parent_zone $IP)
+	if [[ -n $ZROUTER ]]; then
+	    echo "parent_zone: $ZROUTER" >> "${ZSDIR}/zconfig.${ZNAME}"
+	fi
 done
 #
 # exclusive-ip addresses
