@@ -1231,11 +1231,11 @@ get_mac_link_local() {
     if [ "$no1" = "0" ]; then
 	no1=""
     fi
-    if [ "$no3" = "0" ]; then
-	no3=""
+    if [ "$o3" = "0" ]; then
+	o3=""
     fi
-    if [ "$no5" = "0" ]; then
-	no5=""
+    if [ "$o5" = "0" ]; then
+	o5=""
     fi
     printf "fe80::%s%s:%sff:fe%s:%s%s/10" "$no1" "$o2" "$o3" "$o4" "$o5" "$o6"
 }
