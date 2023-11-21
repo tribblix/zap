@@ -2000,6 +2000,9 @@ fi
 if [[ -n $ISROUTER ]]; then
     # dnsmasq.d is where specific host configuration will be placed
     echo "conf-dir=/etc/dnsmasq.d" > "${ZROOTBASE}/${ZNAME}/root/etc/dnsmasq.conf"
+    # server starts as root, then changes uid, so this is the user to change to
+    # running as user dnsmasq with privileges was tested and failed
+    echo "user=dnsmasq" >> "${ZROOTBASE}/${ZNAME}/root/etc/dnsmasq.conf"
     # a dhcp-range entry is required to enable the dhcp server
     # all configuration is static, we fix the IP addresses 
     for subnet in $ORIP4
