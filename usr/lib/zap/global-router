@@ -1,0 +1,139 @@
+#!/bin/ksh
+#
+# This sets up the global zone like a router zone
+#
+# The necessity for this is where you have a system with a single
+# external IP address. A router zone would have its own external
+# address.
+#
+# Usage:
+#  -R Ipv4 network to proxy, in CIDR notation
+#
+
+#
+# this sort of looks like a zone configuration
+#
+ZSDIR="/var/zap/zones"
+ZNAME="global"
+RIP4=""
+NRIP4=""
+ORIP4=""
+ISROUTER="y"
+
+#
+# these associative arrays track the interface to address mapping
+#
+typeset -A ifipmap
+
+usage() {
+    echo "Usage: $0 -R ip_network/prefix"
+    exit 1
+}
+
+while getopts "R:" opt; do
+case $opt in
+R)
+	RIP4="${RIP4} $OPTARG"
+	;;
+*)
+	usage
+	;;
+esac
+done
+
+ configured on it
+	#
+	echo "/usr/sbin/dladm delete-etherstub $ZIFACE" >> "${ZSDIR}/destroy.${ZNAME}"
+	ifipmap[znic$ZENUM]=$IP
+	# save the configuration here
+	ZNETNAME=$(get_short_net $IP)
+	touch "${ZSDIR}/rconfig.${ZNETNAME}"
+	echo "interface: $ZIFACE" >> "${ZSDIR}/rconfig.${ZNETNAME}"
+	echo "shared-interface: snic$ZSNUM" >> "${ZSDIR}/rconfig.${ZNETNAME}"
+	echo "gateway: ${IP%/*}" >> "${ZSDIR}/rconfig.${ZNETNAME}"
+	echo "zone: ${ZNAME}" >> "${ZSDIR}/rconfig.${ZNETNAME}"
+	echo "rm ${ZSDIR}/rconfig.${ZNETNAME}" >> "${ZSDIR}/destroy.${ZNAME}"
+done
+
+#
+# this is the primary external interface that we'll nat everything through
+#
+IFACE=$(/usr/sbin/route -n get default | /usr/bin/grep interface: | /usr/bin/awk '{print $NF}')
+
+#
+# for router/proxy zones:
+#  ensure ipfilter is installed in the global zone
+#  configure nat for all subnets
+#  enable ip forwarding on all interfaces
+#
+if [[ -n $RIP4 ]]; then
+    if [ ! -f /var/sadm/pkg/TRIBnet-ipfilter/pkginfo ]; then
+	echo "Installing ipfilter in the global zone"
+	/usr/bin/zap install TRIBnet-ipfilter
+	sleep 1
+    fi
+    #
+    # the external interface may be configured in many ways, not all of
+    # which are classed as persistent, so always assume it's temporary
+    # (For example, the default nwam creates a temporary object)
+    # which means we need an rc script to restore it at boot
+    # we use the same rc script to force other services up
+    #
+    /usr/sbin/ipadm set-ifprop -t -p forwarding=on -m ipv4 "$IFACE"
+    echo "#!/bin/sh" > "/etc/rc3.d/S99global-router-$IFACE"
+    echo "/usr/sbin/ipadm set-ifprop -t -p forwarding=on -m ipv4 $IFACE" >> "/etc/rc3.d/S99global-router-$IFACE"
+    chmod a+x "/etc/rc3.d/S99global-router-$IFACE"
+    for index in "${!ifipmap[@]}"
+    do
+	echo "Creating $index"
+	/usr/sbin/ipadm create-if "$index"
+	echo "/usr/sbin/ipadm enable-if $index" >> "/etc/rc3.d/S99global-router-$IFACE"
+	echo "Adding address ${ifipmap[$index]}"
+	/usr/sbin/ipadm create-addr -T static -a ${ifipmap[$index]}  ${index}/router
+	echo "Enabling forwarding"
+	/usr/sbin/ipadm set-ifprop -p forwarding=on -m ipv4 "$index"
+    done
+    echo "/usr/bin/rm -f /etc/rc3.d/S99global-router-$IFACE" >> "${ZSDIR}/destroy.${ZNAME}"
+    echo "/usr/sbin/ipadm set-ifprop -t -p forwarding=off -m ipv4 $IFACE" >> "${ZSDIR}/destroy.${ZNAME}"
+    touch /etc/ipf/ipnat.conf
+    for subnet in $ORIP4
+    do
+	echo "map $IFACE $subnet -> 0/32 portmap tcp/udp auto" >> /etc/ipf/ipnat.conf
+	echo "map $IFACE $subnet -> 0/32" >> /etc/ipf/ipnat.conf
+    done
+    #
+    # this way round, so it only gets restarted once whether it's
+    # running or not
+    #
+    /usr/sbin/svcadm restart network/ipfilter
+    /usr/sbin/svcadm enable network/ipfilter
+    echo "/usr/sbin/svcadm enable network/ipfilter" >> "/etc/rc3.d/S99global-router-$IFACE"
+    #
+    # we assume that this is the only reason to do nat
+    #
+    echo "/usr/bin/rm /etc/ipf/ipnat.conf" >> "${ZSDIR}/destroy.${ZNAME}"
+    #
+    # but we can't assume there are no other users of ipfilter, so we
+    # can't shut it down when we get removed
+    #
+    echo "/usr/sbin/svcadm restart network/ipfilter" >> "${ZSDIR}/destroy.${ZNAME}"
+fi
+
+#
+# for managed router zones only, set up dnsmasq as well
+#
+if [[ -n $ISROUTER ]]; then
+    # dnsmasq.d is where specific host configuration will be placed
+    echo "conf-dir=/etc/dnsmasq.d" > "/etc/dnsmasq.conf"
+    # server starts as root, then changes uid, so this is the user to change to
+    # running as user dnsmasq with privileges was tested and failed
+    echo "user=dnsmasq" >> "/etc/dnsmasq.conf"
+    # a dhcp-range entry is required to enable the dhcp server
+    # all configuration is static, we fix the IP addresses 
+    for subnet in $ORIP4
+    do
+	echo "dhcp-range=${subnet%/*},static" >> "/etc/dnsmasq.conf"
+    done
+    echp "Starting dnsmasq"
+    /usr/sbin/svcadm enable network/dnsmasq
+fi
