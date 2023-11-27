@@ -327,15 +327,23 @@ fi
 
 #
 # we can propagate some zones into the upgraded BE
-# specifically alien-root and solaris10 zones are safe
+# alien-root and solaris10 zones are safe
 # whole and sparse-root clearly aren't
-# lx is slightly odd and needs handling separately
+# lx and bhyve ought to work
 #
 for zname in `/usr/sbin/zoneadm list -icp | awk -F: '{if ($6 == "solaris10") print $2}'`
 do
     grep "^${zname}:" /etc/zones/index >> ${ALTROOT}/etc/zones/index
 done
 for zname in `/usr/sbin/zoneadm list -icp | awk -F: '{if ($6 == "alien-root") print $2}'`
+do
+    grep "^${zname}:" /etc/zones/index >> ${ALTROOT}/etc/zones/index
+done
+for zname in `/usr/sbin/zoneadm list -icp | awk -F: '{if ($6 == "bhyve") print $2}'`
+do
+    grep "^${zname}:" /etc/zones/index >> ${ALTROOT}/etc/zones/index
+done
+for zname in `/usr/sbin/zoneadm list -icp | awk -F: '{if ($6 == "lx") print $2}'`
 do
     grep "^${zname}:" /etc/zones/index >> ${ALTROOT}/etc/zones/index
 done
