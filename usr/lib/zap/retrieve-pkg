@@ -1,6 +1,7 @@
 #!/bin/ksh
 
 ZAPLIBDIR="/usr/lib/zap"
+GPGEXE="/usr/bin/gpg"
 
 case $1 in
 -C)
@@ -19,7 +20,7 @@ CACHE_DIR=`${ZAPLIBDIR}/zap-cfg ${CTXARGS} cache-dir`
 USER_AGENT="zap"/`${ZAPLIBDIR}/pkgversion TRIBzap`
 ZAP_PROXY=`${ZAPLIBDIR}/zap-cfg ${CTXARGS} proxy`
 # signed package verification requires gnupg be installed
-if [ ! -x /usr/bin/gpg ]; then
+if [ ! -x ${GPGEXE} ]; then
     SIGN_POLICY="no"
 else
     SIGN_POLICY="if-signed"
@@ -63,7 +64,7 @@ do
 		    if [ "X$SIGNER" != "Xno" ]; then
 			${WCLIENT} ${WARGS} ${zfile}.sig ${REPO}/${fpkgname}.sig
 			if [ -f ${zfile}.sig ]; then
-			    /usr/bin/gpg --no-options --homedir /etc/zap/sign/${SIGNER} --verify ${zfile}.sig ${zfile} 2>/dev/null
+			    ${GPGEXE} --no-options --homedir /etc/zap/sign/${SIGNER} --verify ${zfile}.sig ${zfile} 2>/dev/null
 			    SIGN_OK=$?
 			    if [ $SIGN_OK -eq 0 ]; then
 				echo "Signature verified"
