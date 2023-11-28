@@ -22,7 +22,7 @@ ZAP_PROXY=`${ZAPLIBDIR}/zap-cfg ${CTXARGS} proxy`
 if [ ! -x /usr/bin/gpg ]; then
     SIGN_POLICY="no"
 else
-    SIGN_POLICY=`${ZAPLIBDIR}/zap-cfg ${CTXARGS} sign-policy`
+    SIGN_POLICY="if-signed"
 fi
 
 if [ -n "$ZAP_PROXY" ]; then

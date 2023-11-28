@@ -13,8 +13,6 @@ CACHE_CFG="${CFGDIR}/cache_dir"
 IMAGE_CFG="${CFGDIR}/image_dir"
 DOCKER_CFG="${CFGDIR}/docker_dir"
 PROXY_CFG="${CFGDIR}/proxy_cfg"
-SIGN_POLICY="if-signed"
-SIGN_CFG="${CFGDIR}/sign_cfg"
 
 #
 # global context switch
@@ -140,13 +138,6 @@ docker-dir)
 	    echo $DOCKER_DIR
 	else
 	    echo "/tmp/docker"
-	fi
-	;;
-sign-policy)
-	if [ -f ${SIGN_CFG} ]; then
-	    cat ${SIGN_CFG}
-	else
-	    echo $SIGN_POLICY
 	fi
 	;;
 proxy)
