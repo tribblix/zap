@@ -29,7 +29,11 @@ case $1 in
 	fi
 	CFGDIR="${ALTROOT}/${CFGDIR}"
 	CACHE_DIR="${ALTROOT}/${CACHE_DIR}"
+	IMAGE_DIR="${ALTROOT}/${IMAGE_DIR}"
+	DOCKER_DIR="${ALTROOT}/${DOCKER_DIR}"
 	CACHE_CFG="${CFGDIR}/cache_dir"
+	IMAGE_CFG="${CFGDIR}/image_dir"
+	DOCKER_CFG="${CFGDIR}/docker_dir"
 	PROXY_CFG="${CFGDIR}/proxy_cfg"
 	;;
 esac
@@ -86,11 +90,11 @@ list-overlay-repos)
 	fi
 	;;
 repo-url)
-	RURL=`/usr/bin/grep '^URL=' ${CFGDIR}/repositories/${2}.repo`
+	RURL=$(/usr/bin/grep '^URL=' ${CFGDIR}/repositories/${2}.repo)
 	echo ${RURL/URL=/}
 	;;
 repo-signer)
-	SIGNER=`/usr/bin/grep '^SIGNED=' ${CFGDIR}/repositories/${2}.repo`
+	SIGNER=$(/usr/bin/grep '^SIGNED=' ${CFGDIR}/repositories/${2}.repo)
 	if [[ -n $SIGNER ]]; then
 	    echo ${SIGNER/SIGNED=/}
 	else
@@ -98,51 +102,51 @@ repo-signer)
 	fi
 	;;
 overlay-url)
-	RURL=`/usr/bin/grep '^URL=' ${CFGDIR}/repositories/${2}.ovl`
+	RURL=$(/usr/bin/grep '^URL=' ${CFGDIR}/repositories/${2}.ovl)
 	echo ${RURL/URL=/}
 	;;
 cache-dir)
-	if [ -f ${CACHE_CFG} ]; then
-	    CACHE_DIR=`cat ${CACHE_CFG}`
+	if [ -f "${CACHE_CFG}" ]; then
+	    CACHE_DIR=${ALTROOT}/$(<${CACHE_CFG})
 	fi
 	if [ ! -d "${CACHE_DIR}" ]; then
-	    /usr/bin/mkdir -p ${CACHE_DIR} 2> /dev/null
+	    /usr/bin/mkdir -p "${CACHE_DIR}" 2> /dev/null
 	fi
 	if [ -d "${CACHE_DIR}" ]; then
-	    echo $CACHE_DIR
+	    echo "$CACHE_DIR"
 	else
 	    echo "/tmp"
 	fi
 	;;
 image-dir)
-	if [ -f ${IMAGE_CFG} ]; then
-	    IMAGE_DIR=`cat ${IMAGE_CFG}`
+	if [ -f "${IMAGE_CFG}" ]; then
+	    IMAGE_DIR=${ALTROOT}/$(<${IMAGE_CFG})
 	fi
 	if [ ! -d "${IMAGE_DIR}" ]; then
-	    /usr/bin/mkdir -p ${IMAGE_DIR} 2> /dev/null
+	    /usr/bin/mkdir -p "${IMAGE_DIR}" 2> /dev/null
 	fi
 	if [ -d "${IMAGE_DIR}" ]; then
-	    echo $IMAGE_DIR
+	    echo "$IMAGE_DIR"
 	else
 	    echo "/tmp"
 	fi
 	;;
 docker-dir)
-	if [ -f ${DOCKER_CFG} ]; then
-	    DOCKER_DIR=`cat ${DOCKER_CFG}`
+	if [ -f "${DOCKER_CFG}" ]; then
+	    DOCKER_DIR=${ALTROOT}/$(<${DOCKER_CFG})
 	fi
 	if [ ! -d "${DOCKER_DIR}" ]; then
-	    /usr/bin/mkdir -p ${DOCKER_DIR} 2> /dev/null
+	    /usr/bin/mkdir -p "${DOCKER_DIR}" 2> /dev/null
 	fi
 	if [ -d "${DOCKER_DIR}" ]; then
-	    echo $DOCKER_DIR
+	    echo "$DOCKER_DIR"
 	else
 	    echo "/tmp/docker"
 	fi
 	;;
 proxy)
-	if [ -f ${PROXY_CFG} ]; then
-	    cat ${PROXY_CFG}
+	if [ -f "${PROXY_CFG}" ]; then
+	    cat "${PROXY_CFG}"
 	fi
 	;;
 esac
