@@ -16,9 +16,9 @@ case $1 in
 	;;
 esac
 
-CACHE_DIR=`${ZAPLIBDIR}/zap-cfg ${CTXARGS} cache-dir`
-USER_AGENT="zap"/`${ZAPLIBDIR}/pkgversion TRIBzap`
-ZAP_PROXY=`${ZAPLIBDIR}/zap-cfg ${CTXARGS} proxy`
+CACHE_DIR=$(${ZAPLIBDIR}/zap-cfg ${CTXARGS} cache-dir)
+USER_AGENT="zap"/$(${ZAPLIBDIR}/pkgversion TRIBzap)
+ZAP_PROXY=$(${ZAPLIBDIR}/zap-cfg ${CTXARGS} proxy)
 # signed package verification requires gnupg be installed
 if [ ! -x ${GPGEXE} ]; then
     SIGN_POLICY="no"
@@ -41,30 +41,30 @@ fi
 #
 # the verification here is mostly for debugging at this time
 #
-for pkg in $*
+for pkg in "$@"
 do
-    ${ZAPLIBDIR}/get-pkg-meta ${CTXARGS} $pkg | read fpkg fver fsize fhash frepo
+    ${ZAPLIBDIR}/get-pkg-meta ${CTXARGS} "$pkg" | read fpkg fver fsize fhash frepo
     if [ -n "$frepo" ]; then
 	fpkgname="${fpkg}.${fver}.zap"
 	zfile="${CACHE_DIR}/${fpkgname}"
-	REPO=`${ZAPLIBDIR}/zap-cfg ${CTXARGS} repo-url $frepo`
+	REPO=$(${ZAPLIBDIR}/zap-cfg ${CTXARGS} repo-url "$frepo")
 	echo "Fetching ${REPO}/${fpkgname}"
-	${WCLIENT} ${WARGS} ${zfile} ${REPO}/${fpkgname}
-	PSIZE=`/bin/ls -l ${zfile} | /usr/bin/awk '{print $5}'`
+	${WCLIENT} ${WARGS} "${zfile}" "${REPO}/${fpkgname}"
+	PSIZE=$(/bin/ls -l "${zfile}" | /usr/bin/awk '{print $5}')
 	if [ "X$PSIZE" != "X$fsize" ]; then
 	    echo "Download $zfile has wrong size"
 	else
-	    PKGMD5=`/usr/bin/digest -a md5 ${zfile}`
+	    PKGMD5=$(/usr/bin/digest -a md5 "${zfile}")
 	    if [ "X$PKGMD5" != "X$fhash" ]; then
 		echo "Download $zfile has wrong checksum"
 	    else
 		echo "Download $zfile checksum verified"
 		if [ "X$SIGN_POLICY" != "Xno" ]; then
-		    SIGNER=`${ZAPLIBDIR}/zap-cfg ${CTXARGS} repo-signer $frepo`
+		    SIGNER=$(${ZAPLIBDIR}/zap-cfg ${CTXARGS} repo-signer "$frepo")
 		    if [ "X$SIGNER" != "Xno" ]; then
-			${WCLIENT} ${WARGS} ${zfile}.sig ${REPO}/${fpkgname}.sig
-			if [ -f ${zfile}.sig ]; then
-			    ${GPGEXE} --no-options --homedir /etc/zap/sign/${SIGNER} --verify ${zfile}.sig ${zfile} 2>/dev/null
+			${WCLIENT} ${WARGS} "${zfile}.sig" "${REPO}/${fpkgname}.sig"
+			if [ -f "${zfile}.sig" ]; then
+			    ${GPGEXE} --no-options --homedir "/etc/zap/sign/${SIGNER}" --verify "${zfile}.sig" "${zfile}" 2>/dev/null
 			    SIGN_OK=$?
 			    if [ $SIGN_OK -eq 0 ]; then
 				echo "Signature verified"
