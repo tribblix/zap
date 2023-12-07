@@ -1926,7 +1926,6 @@ done
 # FIXME allow user to specify pool to use
 #
 if [[ $ZBRAND = bhyve ]]; then
-    BHYVEPOOL=rpool
     if [[ -z $BHYVEVOL ]]; then
 	if [[ -n $BHYVEVOLSIZES ]]; then
 	    for BHYVEVOLSIZE in $BHYVEVOLSIZES
