@@ -1923,13 +1923,20 @@ done
 # zone, if you want persistent volumes then create them first and use
 # the -v flag rather than -V
 #
-# FIXME allow user to specify pool to use
+# the specification can be either size alone, or pool:size
+# to use an alternate pool
 #
 if [[ $ZBRAND = bhyve ]]; then
     if [[ -z $BHYVEVOL ]]; then
 	if [[ -n $BHYVEVOLSIZES ]]; then
 	    for BHYVEVOLSIZE in $BHYVEVOLSIZES
 	    do
+		case $BHYVEVOLSIZE in
+		    *:*)
+			BHYVEPOOL=${BHYVEVOLSIZE%:*}
+			BHYVEVOLSIZE=${BHYVEVOLSIZE#*:}
+			;;
+		esac
 		VOLENUM=0
 		BVOLNAME=${ZNAME}_bhvol${VOLENUM}
 		/usr/sbin/zfs get type ${BHYVEPOOL}/${BVOLNAME} > /dev/null 2>&1

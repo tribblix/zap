@@ -133,7 +133,10 @@ specifies an existing volume to be used as the bhyve virtual machine's
 hard disk. The -V flag specifies the size of a ZFS volume which will
 be created to be used as the bhyve virtual machine's hard disk.
 Multiple instances of -V will create multiple disk devices for the
-bhyve guest.
+bhyve guest. By default, volumes specified with -V will be created
+on the zfs pool named rpool; if you wish to create the volumes in a
+different pool then you can prefix the size with the pool name, for
+example '-V storage:32G' will create a 32G volume in the storage pool.
 
 For zone types other than bhyve, the -m flag specifies the physical
 capped-memory that the zone can use. The -c flag specifies the amount
