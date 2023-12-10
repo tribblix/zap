@@ -25,8 +25,8 @@
 
 ZAPLIBDIR="/usr/lib/zap"
 
-if [ -x "${ZAPLIBDIR}/pkgversion" ]; then
-    USER_AGENT="copy-repo"/$(${ZAPLIBDIR}/pkgversion TRIBzap)
+if [ -x "${ZAPLIBDIR}/zap-cfg" ]; then
+    USER_AGENT="copy-repo"/$(${ZAPLIBDIR}/zap-cfg pkgversion)
 else
     USER_AGENT="copy-repo/standalone"
 fi

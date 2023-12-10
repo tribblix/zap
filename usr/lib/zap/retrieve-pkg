@@ -33,7 +33,7 @@ case $1 in
 esac
 
 CACHE_DIR=$(${ZAPLIBDIR}/zap-cfg ${CTXARGS} cache-dir)
-USER_AGENT="zap"/$(${ZAPLIBDIR}/pkgversion TRIBzap)
+USER_AGENT="zap"/$(${ZAPLIBDIR}/zap-cfg pkgversion)
 ZAP_PROXY=$(${ZAPLIBDIR}/zap-cfg ${CTXARGS} proxy)
 # signed package verification requires gnupg be installed
 if [ ! -x ${GPGEXE} ]; then

@@ -41,7 +41,7 @@ case $1 in
 	;;
 esac
 
-USER_AGENT="zap"/$(${ZAPLIBDIR}/pkgversion TRIBzap)
+USER_AGENT="zap"/$(${ZAPLIBDIR}/zap-cfg pkgversion)
 WCLIENT=/usr/bin/curl
 WARGS="-A ${USER_AGENT} -f -s --compressed -o"
 if [ ! -x $WCLIENT ]; then

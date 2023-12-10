@@ -166,4 +166,23 @@ proxy)
 	    cat "${PROXY_CFG}"
 	fi
 	;;
+pkgversion)
+	if [ -f /var/sadm/pkg/TRIBzap/pkginfo ]; then
+	    IVERSION=""
+	    while read line
+	    do
+		case $line in
+		    VERSION*)
+			IVERSION=${line#*=}
+			break
+			;;
+		esac
+	    done</var/sadm/pkg/TRIBzap/pkginfo
+	    echo $IVERSION
+	    exit 0
+	else
+	   echo "standalone"
+	   exit 1
+	fi
+	;;
 esac
