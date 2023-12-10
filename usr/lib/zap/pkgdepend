@@ -20,6 +20,8 @@
 # given a package, return its dependencies
 # expects either a zap file, or an installed package name
 #
+# used by mk-pkgs-zap in iso construction
+#
 
 case $# in
 1)
@@ -35,7 +37,7 @@ case $pkgname in
 *.zap)
 	if [ -f ${pkgname} ]; then
 	   thispkg=${pkgname##*/}
-	   zipgrep '^P' ${pkgname} ${thispkg%%.*}/install/depend 2>/dev/null | /usr/bin/awk '{print $2}'
+	   unzip -p ${pkgname} ${thispkg%%.*}/install/depend 2>/dev/null | /usr/bin/awk '{if ($1 == "P") print $2}'
 	   exit 0
 	else
 	   exit 1
