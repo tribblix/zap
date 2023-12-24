@@ -81,8 +81,8 @@ do
 	    fi
 	done < ${CFGDIR}/repositories/${repo}.overlays
     fi
+    unset IFS
 done
-unset IFS
 
 #
 # this walks through all the overlays for the given repo and
