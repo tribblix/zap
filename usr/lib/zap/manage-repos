@@ -1,0 +1,442 @@
+#!/bin/ksh
+#
+# {{{ CDDL HEADER
+#
+# This file and its contents are supplied under the terms of the
+# Common Development and Distribution License ("CDDL"), version 1.0.
+# You may only use this file in accordance with the terms of version
+# 1.0 of the CDDL.
+#
+# A full copy of the text of the CDDL should have accompanied this
+# source. A copy of the CDDL is also available via the Internet at
+# http://www.illumos.org/license/CDDL.
+#
+# }}}
+#
+# Copyright 2023 Peter Tribble
+#
+
+#
+# manage package and overlay repos
+#
+
+#
+# In a normal tribblix installation there are 3 standard package
+# repositories:
+#
+# release - release metadata and zap itself
+# tribblix - regular tribblix packages
+# illumos - the OS from illumos-gate and gfx-drm
+# (opensxce - sparc only which provides anything from OpenSXCE)
+#
+# the priorities are in that order - nothing can override release, but
+# shipping something in tribblix can override something from illumos
+#
+
+#
+# In a normal tribblix installation there is 1 standard overlay
+# repository:
+#
+# tribblix - the default overlays
+#
+# the standard package repository names are also reserved for overlays
+#
+
+#
+# each repo has a priority, priorities below 1000 are reserved for the system
+#
+MINPRI=1000
+DEFPRI=1100
+
+CFGDIR="/etc/zap"
+
+#
+# global context switch
+# will force all configuration to be relative to the alternate root
+#
+case $1 in
+-C)
+	ALTROOT="$2"
+	CTXARGS="-C ${ALTROOT}"
+	shift
+	shift
+	if [ ! -d "$ALTROOT" ]; then
+	    echo "ERROR: alternate root $ALTROOT doesn't exist"
+	    exit 1
+	fi
+	CFGDIR="${ALTROOT}/${CFGDIR}"
+	;;
+esac
+
+PKGREPOLIST="${CFGDIR}/repo.list"
+OVLREPOLIST="${CFGDIR}/overlays.list"
+if [ ! -f "${PKGREPOLIST}" ]; then
+    echo "ERROR: package repository list ${PKGREPOLIST} missing"
+    exit 1
+fi
+if [ ! -f "${OVLREPOLIST}" ]; then
+    echo "ERROR: overlay repository list ${OVLREPOLIST} missing"
+    exit 1
+fi
+
+#
+# functions
+#
+
+#
+# get the priority of the given repo
+#
+get_repo_priority() {
+    REPOTYPE="$1"
+    REPONAME="$2"
+    if [ -z "${REPONAME}" ]; then
+	echo "ERROR: repository name must be given"
+	exit 1
+    fi
+    case $REPOTYPE in
+	package)
+	    /usr/bin/awk -v p=$REPONAME '{if ($2 == p) print $1}' ${PKGREPOLIST}
+	    ;;
+	overlay)
+	    /usr/bin/awk -v p=$REPONAME '{if ($2 == p) print $1}' ${OVLREPOLIST}
+	    ;;
+	*)
+	    echo "ERROR: unrecognized repo type $REPOTYPE"
+	    exit 1
+	    ;;
+    esac
+}
+
+#
+# get the repo of the given priority
+#
+get_priority_repo() {
+    REPOTYPE="$1"
+    REPOPRI="$2"
+    if [ -z "${REPONAME}" ]; then
+	echo "ERROR: repository name must be given"
+	exit 1
+    fi
+    case $REPOTYPE in
+	package)
+	    /usr/bin/awk -v p=$REPOPRI '{if ($1 == p) print $2}' ${PKGREPOLIST}
+	    ;;
+	overlay)
+	    /usr/bin/awk -v p=$REPOPRI '{if ($1 == p) print $2}' ${OVLREPOLIST}
+	    ;;
+	*)
+	    echo "ERROR: unrecognized repo type $REPOTYPE"
+	    exit 1
+	    ;;
+    esac
+}
+
+#
+# check we're allowed to manipulate a repo of the given name
+# the rule is that the predefined repos can't be touched
+# exits with an error, so if it returns you're good to continue
+#
+check_repo_name() {
+    ACTION="$1"
+    REPOTYPE="$2"
+    REPONAME="$3"
+    case $ACTION in
+	add|remove)
+	    :
+	    ;;
+	*)
+	    echo "ERROR: unrecognized action $ACTION"
+	    exit 1
+	    ;;
+    esac
+    case $REPOTYPE in
+	package|overlay)
+	    :
+	    ;;
+	*)
+	    echo "ERROR: unrecognized repo type $REPOTYPE"
+	    exit 1
+	    ;;
+    esac
+    if [ -z "${REPONAME}" ]; then
+	echo "ERROR: repository name must be given"
+	exit 1
+    fi
+    #
+    # name must only contain lower-case letters and dash
+    #
+    if [[ ! "${REPONAME}" =~ ^[a-z][a-z0-9-]*$ ]]; then
+	echo "ERROR: repository name must be lower case letters and numbers only"
+	exit 1
+    fi
+    case $REPONAME in
+	release|tribblix|illumos|opensxce)
+	    echo "ERROR: cannot $ACTION $REPOTYPE repo $REPONAME"
+	    exit 1
+	    ;;
+    esac
+}
+
+#
+# add a package repo, verifying arguments for consistency
+#
+add_repo() {
+    REPOTYPE="$1"
+    REPONAME="$2"
+    REPODESC=""
+    REPOURL=""
+    REPOSIGN=""
+    REPOPRI=$DEFPRI
+    shift
+    shift
+    while getopts "d:p:s:u:" opt; do
+	case $opt in
+	    d)
+		REPODESC="$OPTARG"
+		;;
+	    p)
+		REPOPRI="$OPTARG"
+		;;
+	    s)
+		REPOSIGN="$OPTARG"
+		;;
+	    u)
+		REPOURL="$OPTARG"
+		;;
+	    *)
+		echo "ERROR: unrecognized flag $opt"
+		exit 1
+		;;
+	esac
+    done
+    #
+    # check arguments are complete and valid
+    #
+    case $REPOTYPE in
+	package)
+	    REPODATA="${CFGDIR}/repositories/${REPONAME}.repo"
+	    REPOLIST="${PKGREPOLIST}"
+	    ;;
+	overlay)
+	    REPODATA="${CFGDIR}/repositories/${REPONAME}.ovl"
+	    REPOLIST="${OVLREPOLIST}"
+	    if [ -n "${REPOSIGN}" ]; then
+		echo "ERROR: cannot sign overlay repos"
+		exit 1
+	    fi
+	    ;;
+	*)
+	    echo "ERROR: unrecognized repo type $REPOTYPE"
+	    exit 1
+	    ;;
+    esac
+    if [ -z "${REPODESC}" ]; then
+	echo "ERROR: missing description (-d)"
+	exit 1
+    fi
+    if [ -z "${REPOURL}" ]; then
+	echo "ERROR: missing url (-u)"
+	exit 1
+    fi
+    if [[ ! $REPOPRI == +(([[:digit:]])) ]]; then
+	echo "ERROR: priority is not numeric"
+	exit 1
+    fi
+    if [ $REPOPRI -lt $MINPRI ]; then
+	echo "ERROR: invalid priority $REPOPRI (minimum $MINPRI)"
+	exit 1
+    fi
+    #
+    # check name isn't in use
+    #
+    if [ -f "${REPODATA}" ]; then
+	echo "ERROR: repo ${REPONAME} already exists"
+	exit 1
+    fi
+    #
+    # check priority isn't in use
+    #
+    USEPRI=$(get_priority_repo $REPOTYPE $REPOPRI)
+    if [ -n "${USEPRI}" ]; then
+	echo "ERROR: priority $REPOPRI is already in use by $USEPRI"
+	exit 1
+    fi
+    #
+    # verify url syntax
+    #
+    case $REPOURL in
+	*[[:blank:]]*)
+	    echo "ERROR: url contains spaces"
+	    exit 1
+	    ;;
+	http://*|https://*)
+	    :
+	    ;;
+	*)
+	    echo "ERROR: invalid url, expecting http or https"
+	    exit 1
+	    ;;
+    esac
+    #
+    # we don't yet have a way to import signers, but check that the
+    # signer is one we know about
+    #
+    if [ -n "${REPOSIGN}" ]; then
+	if [ ! -d "${CFGDIR}/sign/${REPOSIGN}" ]; then
+	    echo "ERROR: unknown signer $REPOSIGN"
+	    exit 1
+	fi
+    fi
+    #
+    echo "Creating ${REPODATA}"
+    echo "NAME=$REPONAME" > ${REPODATA}
+    echo "DESC=$REPODESC" >> ${REPODATA}
+    echo "URL=$REPOURL" >> ${REPODATA}
+    if [ -n "${REPOSIGN}" ]; then
+	echo "SIGNED=$REPOSIGN" >> ${REPODATA}
+    fi
+    echo "Registering ${REPONAME} in ${REPOLIST}"
+    echo "$REPOPRI $REPONAME" >> ${REPOLIST}
+    #
+    # now we need to refresh the metadata so the new repo's
+    # metadata gets populated
+    #
+    echo "Refreshing metadata"
+    exec ${ALTROOT}/usr/bin/zap ${CTXARGS} refresh
+}
+
+#
+# remove a repo, and associated metadata
+# in the case of an overlay repo, remove references to all ist
+# overlays
+# does not add or remove any packages
+#
+remove_repo() {
+    REPOTYPE="$1"
+    REPONAME="$2"
+    #
+    # check arguments are complete and valid
+    #
+    case $REPOTYPE in
+	package)
+	    REPODATA="${CFGDIR}/repositories/${REPONAME}.repo"
+	    REPOLIST="${PKGREPOLIST}"
+	    ;;
+	overlay)
+	    REPODATA="${CFGDIR}/repositories/${REPONAME}.ovl"
+	    REPOLIST="${OVLREPOLIST}"
+	    ;;
+	*)
+	    echo "ERROR: unrecognized repo type $REPOTYPE"
+	    exit 1
+	    ;;
+    esac
+    #
+    # get the priority of the repo we're going to remove
+    # something is amiss if we don't get a value back
+    #
+    REPOPRI=$(get_repo_priority ${REPOTYPE} ${REPONAME})
+    if [ -z "${REPOPRI}" ]; then
+	echo "ERROR: repo $REPONAME is not registered in ${REPOLIST}"
+	exit 1
+    fi
+    if [ ! -f "${REPODATA}" ]; then
+	echo "ERROR: repo $REPONAME does not exist"
+	exit 1
+    fi
+    #
+    # now we remove all the metadata associated with this repo
+    #
+    case $REPOTYPE in
+	package)
+	    rm -f "${CFGDIR}/repositories/${REPONAME}.catalog.bak"
+	    rm -f "${CFGDIR}/repositories/${REPONAME}.catalog"
+	    rm -f "${CFGDIR}/repositories/${REPONAME}.filelist.bz2.bak"
+	    rm -f "${CFGDIR}/repositories/${REPONAME}.filelist.bz2"
+	    rm -f "${CFGDIR}/repositories/${REPONAME}.aliases.bak"
+	    rm -f "${CFGDIR}/repositories/${REPONAME}.aliases"
+	    rm -f ${REPODATA}
+	    ;;
+	overlay)
+	    for OVL in $(/usr/bin/awk -F'|' '{print $1}' ${CFGDIR}/repositories/${REPONAME}.overlays)
+	    do
+		rm -f "${ALTROOT}/var/sadm/overlays/installed/${OVL}"
+		rm -f "${ALTROOT}/var/sadm/overlays/${OVL}.ovl"
+		rm -f "${ALTROOT}/var/sadm/overlays/${OVL}.pkgs"
+	    done
+	    rm -f "${CFGDIR}/repositories/${REPONAME}.overlays.bak"
+	    rm -f "${CFGDIR}/repositories/${REPONAME}.overlays"
+	    rm -f ${REPODATA}
+	    ;;
+    esac
+    #
+    # and remove it from the list
+    #
+    /usr/bin/awk -v p=$REPOPRI -v n=$REPONAME '{if ($1 != p && $2 != n) print}' ${REPOLIST} > ${REPOLIST}.tmp
+    mv ${REPOLIST}.tmp ${REPOLIST}
+    #
+    # now we need to refresh the metadata so that any old repo
+    # metadata gets properly refreshed, especially if the removed
+    # repo masked any metadata in other repos
+    #
+    echo "Refreshing metadata"
+    exec ${ALTROOT}/usr/bin/zap ${CTXARGS} refresh
+}
+
+#
+# subcommands
+# TODO - if no priority, then repo doesn't exist
+# TODO - change priority
+#
+case $1 in
+    list-package-repos)
+	cat "${PKGREPOLIST}"
+	;;
+    list-overlay-repos)
+	cat "${OVLREPOLIST}"
+	;;
+    describe-package-repo)
+	shift
+	if [ -f "${CFGDIR}/repositories/${1}.repo" ]; then
+	    REPOPRI=$(get_repo_priority package $1)
+	    echo "The $1 repo has priority $REPOPRI"
+	    cat "${CFGDIR}/repositories/${1}.repo"
+	else
+	    echo "No such package repo $1"
+	fi
+	;;
+    describe-overlay-repo)
+	shift
+	if [ -f "${CFGDIR}/repositories/${1}.ovl" ]; then
+	    REPOPRI=$(get_repo_priority overlay $1)
+	    echo "The $1 repo has priority $REPOPRI"
+	    cat "${CFGDIR}/repositories/${1}.ovl"
+	else
+	    echo "No such overlay repo $1"
+	fi
+	;;
+    remove-package-repo)
+	shift
+	check_repo_name remove package "$1"
+	remove_repo package "$1"
+	;;
+    remove-overlay-repo)
+	shift
+	check_repo_name remove overlay "$1"
+	remove_repo overlay "$1"
+	;;
+    add-package-repo)
+	shift
+	check_repo_name add package "$1"
+	add_repo package "$@"
+	;;
+    add-overlay-repo)
+	shift
+	check_repo_name add overlay "$1"
+	add_repo overlay "$@"
+	;;
+    *)
+	echo "ERROR: unrecognized subcommand"
+	exit 1
+	;;
+esac

@@ -1,0 +1,42 @@
+Managing additional package and overlay repositories
+====================================================
+
+The packages and overlays from which Tribblix is built come from
+online repositories.
+
+It's possible to add extra repositories. You'll need to get the
+details of those repositories from the relevant supplier.
+
+To add a package repository called myrepo, hosted at
+https://example.com/myrepo, the command would be:
+
+zap add-package-repo myrepo \
+  -d "My packages" \
+  -u https://example.com/myrepo/ \
+  -p 1100
+
+To add an overlay repository called myoverlays, hosted at
+https://example.com/myoverlays, the command would be:
+
+zap add-overlay-repo myoverlays \
+  -d "My overlays" \
+  -u https://example.com/myoverlays/ \
+  -p 1100
+
+The -d flag gives a descriptive name. The -u flag gives the URL of the
+repository. The -p flag gives a numeric priority, which must be
+greater than 1000. The priority is only used if you have multiple
+repositories.
+
+To remove a repository that you've added, the commands would be
+
+zap remove-package-repo myrepo
+
+and
+
+zap remove-overlay-repo myoverlays
+
+respectively.
+
+The system repositories cannot be removed or modified, and will always
+take preference over user provided repositories.
