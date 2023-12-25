@@ -17,7 +17,7 @@
 #
 
 #
-# copy a repo from a source URL to a destination path
+# copy an overlay repo from a source URL to a destination path
 #
 # note that this script is also designed to be run standalone
 # so it cannot depend on the rest of the zap machinery
@@ -41,7 +41,8 @@ WARGS="-U ${USER_AGENT} -q -O"
 # or
 #   url destination
 #
-# destination must not exist or contain a catalog
+# if the destination does not exist it will be created and the repo copied
+# if the destination exists and contains a catalog, it will be updated
 #
 # you can either specify a repo by name or url
 # url is more reliable, as it allows you to specify the
@@ -66,8 +67,8 @@ esac
 #
 # check arguments
 #
-if [ -f "/etc/zap/repositories/${REPO}.repo" ]; then
-   REPO=$(grep '^URL=' "/etc/zap/repositories/${REPO}.repo" | awk -F= '{print $2}')
+if [ -f "/etc/zap/repositories/${REPO}.ovl" ]; then
+   REPO=$(grep '^URL=' "/etc/zap/repositories/${REPO}.ovl" | awk -F= '{print $2}')
 fi
 case $DESTDIR in
 /*)
@@ -112,9 +113,6 @@ fi
 # grab the catalog and other metadata
 #
 ${CURL} ${CARGS} "${DESTDIR}"/catalog "${REPO}"/catalog
-${CURL} ${CARGS} "${DESTDIR}"/aliases "${REPO}"/aliases
-${CURL} ${CARGS} "${DESTDIR}"/index.html "${REPO}"/index.html
-${CURL} ${CARGS} "${DESTDIR}"/filelist.bz2 "${REPO}"/filelist.bz2
 
 if [ ! -f "${DESTDIR}/catalog" ]; then
    echo "ERROR: no catalog retrieved"
@@ -128,43 +126,30 @@ fi
 
 #
 # and grab all the files
-# first with curl, then wget if there's a problem
-# we always verify the checksums and delete files that fail to match
 #
-awk -F'|' '{print $1,$2,$4,$5}' ${DESTDIR}/catalog | while read pkg ver fsize fsum
+awk -F'|' '{print $1,$2}' ${DESTDIR}/catalog | while read ovl ver
 do
-    if [ ! -f "${DESTDIR}/${pkg}.${ver}.zap" ]; then
-	echo "Getting ${pkg}, $fsize bytes"
-	${CURL} ${CARGS} "${DESTDIR}/${pkg}.${ver}.zap" "${REPO}/${pkg}.${ver}.zap"
-	if [ -f "${DESTDIR}/${pkg}.${ver}.zap" ]; then
-	    rsize=$(/usr/bin/stat -c '%s' "${DESTDIR}/${pkg}.${ver}.zap")
-	    if [ $rsize -eq $fsize ]; then
-		echo "Successful download of ${pkg}.${ver}.zap"
-	    else
-		echo "ERROR: size mismatch for ${pkg}.${ver}.zap, retrying"
-		/usr/bin/rm -f "${DESTDIR}/${pkg}.${ver}.zap"
-		${WGET} ${WARGS} "${DESTDIR}/${pkg}.${ver}.zap" "${REPO}/${pkg}.${ver}.zap"
-	    fi
-	else
-	    ${WGET} ${WARGS} "${DESTDIR}/${pkg}.${ver}.zap" "${REPO}/${pkg}.${ver}.zap"
-	fi
-    fi
-    #
-    # always try pulling the sig files, although we don't actually check
-    # them here
-    #
-    if [ ! -s "${DESTDIR}/${pkg}.${ver}.zap.sig" ]; then
-	echo "Getting ${pkg}.sig"
-	${CURL} ${CARGS} "${DESTDIR}/${pkg}.${ver}.zap.sig" "${REPO}/${pkg}.${ver}.zap.sig"
-	if [ ! -s "${DESTDIR}/${pkg}.${ver}.zap,sig" ]; then
-	    ${WGET} ${WARGS} "${DESTDIR}/${pkg}.${ver}.zap.sig" "${REPO}/${pkg}.${ver}.zap.sig"
-	fi
-    fi
-    PKGMD5=$(/usr/bin/digest -a md5 "${DESTDIR}/${pkg}.${ver}.zap")
-    if [ "$PKGMD5" = "$fsum" ]; then
-	echo "Checksum verified for ${pkg}"
+    if [ ! -f "${DESTDIR}/${ovl}.ovl" ]; then
+	echo "Getting ${ovl}.ovl"
+	${CURL} ${CARGS} "${DESTDIR}/${ovl}.ovl" "${REPO}/${ovl}.ovl"
+	echo "Getting ${ovl}.pkgs"
+	${CURL} ${CARGS} "${DESTDIR}/${ovl}.pkgs" "${REPO}/${ovl}.pkgs"
     else
-	echo "ERROR: Checksum failure for ${pkg}"
-	/usr/bin/rm -f "${DESTDIR}/${pkg}.${ver}.zap" "${DESTDIR}/${pkg}.${ver}.zap.sig"
+	iver="0"
+	while read line
+	do
+	    case $line in
+		VERSION*)
+		    iver=${line#*=}
+		    break
+		    ;;
+	    esac
+	done<"${DESTDIR}/${ovl}.ovl"
+	if [ "X${ver}" != "X${iver}" ]; then
+	    echo "Updating ${ovl}.ovl"
+	    ${CURL} ${CARGS} "${DESTDIR}/${ovl}.ovl" "${REPO}/${ovl}.ovl"
+	    echo "Updating ${ovl}.pkgs"
+	    ${CURL} ${CARGS} "${DESTDIR}/${ovl}.pkgs" "${REPO}/${ovl}.pkgs"
+	fi
     fi
 done

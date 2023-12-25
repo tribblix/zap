@@ -53,6 +53,9 @@ case $# in
     delete-user)
       HELP_FILE=${HELP_DIR}/help.create-user.txt
       ;;
+    copy-package-repo|copy-overlay-repo)
+      HELP_FILE=${HELP_DIR}/help.copy-repo.txt
+      ;;
     *)
       HELP_FILE=${HELP_DIR}/help.${1}.txt
       ;;

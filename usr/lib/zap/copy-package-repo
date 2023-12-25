@@ -1,0 +1,171 @@
+#!/bin/ksh
+#
+# {{{ CDDL HEADER
+#
+# This file and its contents are supplied under the terms of the
+# Common Development and Distribution License ("CDDL"), version 1.0.
+# You may only use this file in accordance with the terms of version
+# 1.0 of the CDDL.
+#
+# A full copy of the text of the CDDL should have accompanied this
+# source. A copy of the CDDL is also available via the Internet at
+# http://www.illumos.org/license/CDDL.
+#
+# }}}
+#
+# Copyright 2023 Peter Tribble
+#
+
+#
+# copy a package repo from a source URL to a destination path
+#
+# note that this script is also designed to be run standalone
+# so it cannot depend on the rest of the zap machinery
+#
+
+ZAPLIBDIR="/usr/lib/zap"
+
+if [ -x "${ZAPLIBDIR}/zap-cfg" ]; then
+    USER_AGENT="copy-repo"/$(${ZAPLIBDIR}/zap-cfg pkgversion)
+else
+    USER_AGENT="copy-repo/standalone"
+fi
+CURL=/usr/bin/curl
+CARGS="-A ${USER_AGENT} -f -s -o"
+WGET=/usr/bin/wget
+WARGS="-U ${USER_AGENT} -q -O"
+
+#
+# arguments are
+#   repo destination
+# or
+#   url destination
+#
+# if the destination does not exist it will be created and the repo copied
+# if the destination exists and contains a catalog, it will be updated
+#
+# you can either specify a repo by name or url
+# url is more reliable, as it allows you to specify the
+# version of the repo, just specifying the repo by name
+# will pick whatever matches the currently installed system
+#
+usage() {
+	echo "Usage: $0 repo destination"
+	exit 1
+}
+
+case $# in
+2)
+	REPO=$1
+	DESTDIR=$2
+	;;
+*)
+	usage
+	;;
+esac
+
+#
+# check arguments
+#
+if [ -f "/etc/zap/repositories/${REPO}.repo" ]; then
+   REPO=$(grep '^URL=' "/etc/zap/repositories/${REPO}.repo" | awk -F= '{print $2}')
+fi
+case $DESTDIR in
+/*)
+	;;
+*)
+	echo "Destination should be an absolute path"
+	usage
+	;;
+esac
+
+case $REPO in
+http*)
+	;;
+*)
+	echo "Repository should specify a URL"
+	usage
+	;;
+esac
+
+if [ -d "${DESTDIR}" -a ! -f "${DESTDIR}"/catalog ]; then
+   echo "Destination exists but doesn't look like a valid repository"
+   usage
+fi
+
+PARENTDIR=${DESTDIR%/*}
+
+if [ ! -d "${PARENTDIR}" ]; then
+   echo "Parent directory not found"
+   usage
+fi
+
+#
+# make the directory if necessary
+#
+mkdir -p "$DESTDIR"
+if [ ! -d "${DESTDIR}" ]; then
+   echo "ERROR: unable to create destination directory"
+   exit 1
+fi
+
+#
+# grab the catalog and other metadata
+#
+${CURL} ${CARGS} "${DESTDIR}"/catalog "${REPO}"/catalog
+${CURL} ${CARGS} "${DESTDIR}"/aliases "${REPO}"/aliases
+${CURL} ${CARGS} "${DESTDIR}"/index.html "${REPO}"/index.html
+${CURL} ${CARGS} "${DESTDIR}"/filelist.bz2 "${REPO}"/filelist.bz2
+
+if [ ! -f "${DESTDIR}/catalog" ]; then
+   echo "ERROR: no catalog retrieved"
+   exit 1
+fi
+
+if [ ! -s "${DESTDIR}/catalog" ]; then
+   echo "ERROR: catalog is empty"
+   exit 1
+fi
+
+#
+# and grab all the files
+# first with curl, then wget if there's a problem
+# we always verify the checksums and delete files that fail to match
+#
+awk -F'|' '{print $1,$2,$4,$5}' ${DESTDIR}/catalog | while read pkg ver fsize fsum
+do
+    if [ ! -f "${DESTDIR}/${pkg}.${ver}.zap" ]; then
+	echo "Getting ${pkg}, $fsize bytes"
+	${CURL} ${CARGS} "${DESTDIR}/${pkg}.${ver}.zap" "${REPO}/${pkg}.${ver}.zap"
+	if [ -f "${DESTDIR}/${pkg}.${ver}.zap" ]; then
+	    rsize=$(/usr/bin/stat -c '%s' "${DESTDIR}/${pkg}.${ver}.zap")
+	    if [ $rsize -eq $fsize ]; then
+		echo "Successful download of ${pkg}.${ver}.zap"
+	    else
+		echo "ERROR: size mismatch for ${pkg}.${ver}.zap, retrying"
+		/usr/bin/rm -f "${DESTDIR}/${pkg}.${ver}.zap"
+		${WGET} ${WARGS} "${DESTDIR}/${pkg}.${ver}.zap" "${REPO}/${pkg}.${ver}.zap"
+	    fi
+	else
+	    ${WGET} ${WARGS} "${DESTDIR}/${pkg}.${ver}.zap" "${REPO}/${pkg}.${ver}.zap"
+	fi
+    fi
+    #
+    # always try pulling the sig files, although we don't actually check
+    # them here
+    #
+    if [ ! -s "${DESTDIR}/${pkg}.${ver}.zap.sig" ]; then
+	echo "Getting ${pkg}.sig"
+	${CURL} ${CARGS} "${DESTDIR}/${pkg}.${ver}.zap.sig" "${REPO}/${pkg}.${ver}.zap.sig"
+	if [ ! -s "${DESTDIR}/${pkg}.${ver}.zap,sig" ]; then
+	    ${WGET} ${WARGS} "${DESTDIR}/${pkg}.${ver}.zap.sig" "${REPO}/${pkg}.${ver}.zap.sig"
+	fi
+    fi
+    PKGMD5=$(/usr/bin/digest -a md5 "${DESTDIR}/${pkg}.${ver}.zap")
+    if [ "$PKGMD5" = "$fsum" ]; then
+	echo "Checksum verified for ${pkg}"
+    else
+	echo "ERROR: Checksum failure for ${pkg}"
+	/usr/bin/rm -f "${DESTDIR}/${pkg}.${ver}.zap" "${DESTDIR}/${pkg}.${ver}.zap.sig"
+    fi
+done

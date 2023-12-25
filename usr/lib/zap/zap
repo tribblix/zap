@@ -219,9 +219,13 @@ whatprovides)
 list-package-repos|list-overlay-repos|describe-package-repo|describe-overlay-repo|remove-package-repo|remove-overlay-repo|add-package-repo|add-overlay-repo)
 	exec ${ZAPLIBDIR}/manage-repos "$@"
 	;;
-copy-repo)
+copy-package-repo)
 	shift
-	exec ${ZAPLIBDIR}/copy-repo $*
+	exec ${ZAPLIBDIR}/copy-package-repo $*
+	;;
+copy-overlay-repo)
+	shift
+	exec ${ZAPLIBDIR}/copy-overlay-repo $*
 	;;
 staticnet)
 	shift

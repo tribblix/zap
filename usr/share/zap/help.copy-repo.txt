@@ -1,22 +1,27 @@
 Mirroring ZAP repositories
 ==========================
 
-You can mirror a repo with zap. The subcommand comes in 2 forms:
+You can mirror a package or overlay repository with zap. The subcommand
+comes in 2 forms:
 
-copy-repo repo dest_dir
+zap copy-package-repo repo dest_dir
 
 or
 
-copy-repo repo_url dest_dir
+zap copy-package-repo repo_url dest_dir
 
-If you specify a repo (such as illumos or tribblix) it will use the
-current system to resolve that to a url. This is not necessarily
-constant between platforms or versions, so it's better to specify the
-url explicitly.
+for package repositories; similarly 'zap copy-overlay-repo' will mirror
+an overlay repository.
 
-The dest_dir must be an absolute path. If it exists, it is expected to
-contain at least the catalog from a previous run; in that case running
-copy-repo again will update the copy of the repo.
+If you use the first form to specify a repository by name (such as illumos
+or tribblix) it will use the current system to resolve that to a url. This
+is not necessarily constant between platforms or versions, so it's better
+to specify the url explicitly.
 
-All files downloaded are verified for both size and checksum against
-the catalog.
+The destination directory specified by dest_dir must be an absolute path.
+If it exists, it is expected to contain at least the catalog from a
+previous run; in that case running the command again will update the
+local copy of the repository.
+
+All package files downloaded are verified for both size and checksum
+against the catalog.
