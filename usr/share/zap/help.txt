@@ -1,8 +1,8 @@
 ZAP
 ===
 
-The zap utility is the primary administration tool for software on
-Tribblix.
+The zap utility is the primary administration tool for software and zones
+on Tribblix.
 
 The basic usage is:
 
@@ -20,10 +20,15 @@ search [-R dir] search_term
   This subcommand searches for overlays and packages matching the given
   search term.
 
+whatprovides search_term
+
+  This subcommand searches for overlays and packages containing files
+  matching the given search term.
+
 retrieve pkg [pkg ...]
 
   This subcommand will retrieve the package(s) specified from a
-  repository and save it or them to the local cache
+  repository and save it or them to the local cache.
 
 install [-R dir] [-s dir] pkg [pkg ...]
 
@@ -60,7 +65,7 @@ list-overlays [-R dir] [-i|-u] [-v]
   This subcommand lists the available overlays. With -i, just shows
   installed overlays. With -u, just shows uninstalled overlays.
   Without -i or -u, indicates whether the overlay is installed.
-  With -v, also shows the short description of the overlay
+  With -v, also shows the short description of the overlay.
 
 describe-overlay overlay [overlay ...]
 
@@ -115,6 +120,12 @@ destroy-zone -z zone_name
 
   This subcommand destroys the given zone.
 
+remove-cd -z zone_name [-r]
+
+  This subcommand detaches the CD from the given bhyve zone, so that
+  when it next boots it will boot from the zone's virtual hard drive
+  rather than the CD. With -r, reboot the zone immediately.
+
 create-zone-template [args]
 
   This subcommand allows the construction of an alternate file-system
@@ -130,6 +141,12 @@ destroy-zone-template [-n] -T template_name
 
   This subcommand destroys a zone template and the file system backing
   it. The action will fail if any zones are using the template.
+
+create-user
+delete-user
+
+  These subcommands allow you to manage local user accounts. Run
+  'zap help create-user' for details.
 
 add-locale name [name...]
 
@@ -153,5 +170,14 @@ installed-locales
 
 staticnet [-y]
 
-  This subcommand converts the network configuration from dynamic
-  using nwam to a fixed static configuration.
+  This subcommand converts the network configuration from a dynamic
+  configuration using nwam to a fixed static configuration.
+
+unconfigure [-a|-b|-j|-z]
+
+  This subcommand will wipe, as far as possible, all configuration and
+  history from the system - the resulting image will be blank and ready
+  for usage anew. With -z, delete all non-global zones; with -b, clean
+  old boot environments; with -j, remove the jack user; with -a, wipe
+  everything possible. (For those with ancient Solaris muscle memory,
+  usage as 'sys-unconfig' is an alias for 'unconfigure'.)
