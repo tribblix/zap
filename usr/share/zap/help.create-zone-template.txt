@@ -15,7 +15,8 @@ The -t flag specifies the type of template zone. The default (whole)
 is to construct a whole-root template based on the global zone.
 Alternatively, with the alien type, it is possible to create a
 template from an image in the same way as an alien-root zone is
-created.
+created. Note that the type here only determines how the template is
+constructed; all zones created from the template will be sparse.
 
 The -T flag specifies the name of a template. Once constructed, this
 template can be used as the argument to the -T flag of 'zap

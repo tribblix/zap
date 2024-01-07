@@ -13,11 +13,15 @@
 #
 # }}}
 #
-# Copyright 2023 Peter Tribble
+# Copyright 2024 Peter Tribble
 #
 
 #
-# Create a zone template
+# Create a zone template, which is an OS image that can be used to create
+# sparse-root zones rather than using the global zone. The template itself
+# is created just like a zone, but is a full zone, so has to be either
+# whole-root or alien-root.
+# 
 #
 # Usage:
 #
@@ -98,6 +102,9 @@ fi
 #
 # check valid brand
 #
+# note that the brand determines how the template is created, all zones
+# created using this template will be sparse
+#
 case $ZBRAND in
     whole)
 	if [[ -n $ZISOFILE ]]; then
@@ -147,7 +154,7 @@ case $ZBRAND in
 	fi
 	;;
     *)
-	echo "ERROR: invalid brand $ZBRAND"
+	echo "ERROR: templates cannot be created with the $ZBRAND brand"
 	exit 1
 	;;
 esac
@@ -188,6 +195,24 @@ do
     fi
 done
 
+#
+# sanity check that the appropriate zone infrastructure is installed
+#
+if [ ! -f /var/sadm/pkg/TRIBblix-zones/pkginfo ]; then
+    echo "ERROR: the TRIBblix-zones package is not installed"
+    exit 1
+fi
+if [ ! -f /etc/zones/TRIBsparse.xml ]; then
+    echo "ERROR: the sparse brand cannot be found"
+    echo "  (something appears to be corrupt)"
+    exit 1
+fi
+if [ ! -f /usr/lib/brand/${ZBRAND}-root/pkgcreatezone ]; then
+    echo "ERROR: the ${ZBRAND} brand cannot be found"
+    echo "  (something appears to be corrupt)"
+    exit 1
+fi
+
 create_install_opts() {
 for OVL in $ZOVERLAY
 do
@@ -227,7 +252,7 @@ if [ ! -d "${ZROOTBASE}/${TNAME}" ]; then
 fi
 
 #
-# call pkgcreatezone by hand
+# call the relevant pkgcreatezone by hand
 # we want to specify just the zone root, but have to supply a zone name
 # as well
 #
