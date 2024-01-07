@@ -13,7 +13,7 @@
 #
 # }}}
 #
-# Copyright 2023 Peter Tribble
+# Copyright 2024 Peter Tribble
 #
 
 ONAME=""
@@ -48,7 +48,7 @@ esac
 #
 # if not installed, just exit
 #
-if [ ! -f ${DESTROOT}/${ODIR}/installed/${ONAME} ]; then
+if [ ! -f "${DESTROOT}/${ODIR}/installed/${ONAME}" ]; then
     echo "DEBUG: overlay $ONAME not installed, exiting"
     exit 0
 fi
@@ -67,12 +67,12 @@ fi
 #
 DEPCLEAN=0
 DEPLIST=""
-for OVLFILES in ${DESTROOT}/${ODIR}/installed/*
+for OVLFILES in "${DESTROOT}"/"${ODIR}"/installed/*
 do
     INSTOVLNAME=${OVLFILES##*/}
     if [ "X${INSTOVLNAME}" != "X${ONAME}" ]; then
 	INSTOVL=${DESTROOT}/${ODIR}/${INSTOVLNAME}.ovl
-	for novl in `/usr/bin/grep '^REQUIRES=' ${INSTOVL} | /usr/bin/sed s:REQUIRES=::`
+	for novl in $(/usr/bin/grep '^REQUIRES=' "${INSTOVL}" | /usr/bin/sed s:REQUIRES=::)
 	do
 	    if [ "X${novl}" = "X${ONAME}" ]; then
 		DEPCLEAN=1
@@ -92,34 +92,36 @@ fi
 # alternate root, disable the services before removing packages
 #
 if [ -z "${DESTROOT}" ]; then
-    SVCLIST=`${ZAPLIBDIR}/zap-service -list ${ONAME}`
+    SVCLIST=$(${ZAPLIBDIR}/zap-service -list "${ONAME}")
     if [ -n "${SVCLIST}" ]; then
 	echo "Disabling services associated with overlay ${ONAME}"
-	${ZAPLIBDIR}/zap-service -disable ${ONAME}
+	${ZAPLIBDIR}/zap-service -disable "${ONAME}"
     fi
 fi
 
 #
 # don't uninstall packages that are in other installed overlays
 #
-# we want to know all the installed overlays
+# first make a list of installed overlays
 #
-cd ${DESTROOT}/${ODIR}/installed
-NPKGLIST=`/usr/bin/ls -1| /usr/bin/awk '{print $1".pkgs"}'`
-cd ${DESTROOT}/${ODIR}
-for pkg in `/usr/bin/rev -l ${PLIST}`
+cd "${DESTROOT}/${ODIR}/installed" || exit 1
+NPKGLIST=$(/usr/bin/ls -1| /usr/bin/awk '{print $1".pkgs"}')
+cd "${DESTROOT}/${ODIR}" || exit 1
+for pkg in $(/usr/bin/rev -l ${PLIST})
 do
-NFOUND=`/usr/bin/grep "^${pkg}\$" $NPKGLIST|/usr/bin/wc -l|/usr/bin/awk '{print $1}'`
-# if we find it once then it's only in the overlay we're removing
-# else it's also in other overlays and we must retain it
-case $NFOUND in
-1)
-	${ZAPLIBDIR}/delpkg ${PKGARGS} $pkg
-	;;
-*)
-	echo "Retaining package $pkg"
-	;;
-esac
+    NFOUND=$(cat $NPKGLIST | /usr/bin/grep -xc "${pkg}")
+    #
+    # if we find it exactly once then it's only in the overlay we're removing
+    # else it's also present in other overlays and we must retain it
+    #
+    case $NFOUND in
+	1)
+	    ${ZAPLIBDIR}/delpkg ${PKGARGS} "$pkg"
+	    ;;
+	*)
+	    echo "Retaining package $pkg"
+	    ;;
+    esac
 done
 
 #
@@ -137,4 +139,4 @@ done
 # book keeping
 #
 echo "Overlay ${ONAME} uninstalled"
-/usr/bin/rm ${DESTROOT}/${ODIR}/installed/${ONAME}
+/usr/bin/rm -f "${DESTROOT}/${ODIR}/installed/${ONAME}"
