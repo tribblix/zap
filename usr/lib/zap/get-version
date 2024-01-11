@@ -72,6 +72,7 @@ do
 	    done < ${CFGDIR}/repositories/${repo}.catalog
 	fi
     done
+    unset IFS
     if [ -z "$PFOUND" ]; then
 	echo $PKG
     fi
@@ -98,6 +99,7 @@ do
 	    fi
 	done < ${CFGDIR}/repositories/${repo}.catalog
     fi
+    unset IFS
 done
 
 for PKG in $*

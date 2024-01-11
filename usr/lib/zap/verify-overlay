@@ -56,8 +56,8 @@ do
 	    fi
 	done < ${CFGDIR}/repositories/${repo}.catalog
     fi
+    unset IFS
 done
-unset IFS
 
 do_verify_overlay() {
 ONAME=$1
