@@ -384,6 +384,80 @@ remove_repo() {
 }
 
 #
+# modify a repo
+# the only supported modification is to change the URL, which allows
+# you to use a repo mirror (see the copy-repo script for how to
+# populate such a mirror)
+#
+modify_repo() {
+    REPOTYPE="$1"
+    REPONAME="$2"
+    shift
+    shift
+    #
+    # check arguments are complete and valid
+    #
+    case $REPOTYPE in
+	package)
+	    REPODATA="${CFGDIR}/repositories/${REPONAME}.repo"
+	    ;;
+	overlay)
+	    REPODATA="${CFGDIR}/repositories/${REPONAME}.ovl"
+	    ;;
+	*)
+	    echo "ERROR: unrecognized repo type $REPOTYPE"
+	    exit 1
+	    ;;
+    esac
+    if [ ! -f "${REPODATA}" ]; then
+	echo "ERROR: invalid repo $REPONAME"
+	exit 1
+    fi
+    while getopts "u:" opt; do
+	case $opt in
+	    u)
+		REPOURL="$OPTARG"
+		;;
+	    *)
+		echo "ERROR: unrecognized flag $opt"
+		exit 1
+		;;
+	esac
+    done
+    if [ -z "${REPOURL}" ]; then
+	echo "ERROR: missing url (-u)"
+	exit 1
+    fi
+    #
+    # verify url syntax
+    #
+    case $REPOURL in
+	*[[:blank:]]*)
+	    echo "ERROR: url contains spaces"
+	    exit 1
+	    ;;
+	http://*|https://*)
+	    :
+	    ;;
+	*)
+	    echo "ERROR: invalid url, expecting http or https"
+	    exit 1
+	    ;;
+    esac
+    #
+    # now we replace the URL line in the metadata
+    # note that we can't use any value that might appear in the URL as
+    # a sed separator
+    #
+    sed -i "s#URL=.*#URL=${REPOURL}#" $REPODATA
+    #
+    # now we need to refresh the metadata
+    #
+    echo "Refreshing metadata"
+    exec ${ALTROOT}/usr/bin/zap ${CTXARGS} refresh
+}
+
+#
 # subcommands
 # TODO - if no priority, then repo doesn't exist
 # TODO - change priority
@@ -434,6 +508,14 @@ case $1 in
 	shift
 	check_repo_name add overlay "$1"
 	add_repo overlay "$@"
+	;;
+    modify-package-repo)
+	shift
+	modify_repo package "$@"
+	;;
+    modify-overlay-repo)
+	shift
+	modify_repo overlay "$@"
 	;;
     *)
 	echo "ERROR: unrecognized subcommand"

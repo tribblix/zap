@@ -216,7 +216,7 @@ whatprovides)
 	shift
 	exec ${ZAPLIBDIR}/whatprovides $*
 	;;
-list-package-repos|list-overlay-repos|describe-package-repo|describe-overlay-repo|remove-package-repo|remove-overlay-repo|add-package-repo|add-overlay-repo)
+list-package-repos|list-overlay-repos|describe-package-repo|describe-overlay-repo|remove-package-repo|remove-overlay-repo|add-package-repo|add-overlay-repo|modify-package-repo|modify-overlay-repo)
 	exec ${ZAPLIBDIR}/manage-repos "$@"
 	;;
 copy-package-repo)
