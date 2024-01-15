@@ -13,9 +13,13 @@
 #
 # }}}
 #
-# Copyright 2023 Peter Tribble
+# Copyright 2024 Peter Tribble
 #
 
+#
+# checks all packages to see if any need updating
+# with -u, actually updates them
+#
 ZAPLIBDIR="/usr/lib/zap"
 DESTROOT=""
 
@@ -31,6 +35,20 @@ case $1 in
 	fi
 	;;
 esac
+
+ACTION="list"
+SRCARGS=""
+while getopts "us:" opt; do
+case $opt in
+u)
+    ACTION="update"
+    ;;
+s)
+    SRCARGS="-s ${OPTARG}"
+    ;;
+esac
+done
+shift $((OPTIND - 1))
 
 STATUS=0
 
@@ -55,8 +73,15 @@ do
 	done<${DESTROOT}/var/sadm/pkg/${pkg}/pkginfo
 	if [ "$AREPO" != "opensxce" ]; then
 	    if [ "X${pkg}.${IVERSION}" != "X${AVERSION}" ]; then
-		echo "WARN: package ${pkg} needs updating to ${AVERSION#*.}"
-		STATUS=2
+		case $ACTION in
+		    list)
+			echo "WARN: package ${pkg} needs updating to ${AVERSION#*.}"
+			STATUS=2
+			;;
+		    update)
+			${ZAPLIBDIR}/update-package ${CTXARGS} ${SRCARGS} ${pkg}
+			;;
+		esac
 	    fi
 	fi
     else
