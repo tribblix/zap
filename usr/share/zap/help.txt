@@ -94,6 +94,11 @@ verify-overlay [-R dir] overlay | -a
   installed overlay are in fact installed and are at the current
   version. If -a, verifies all installed overlays.
 
+verify-packages [-R dir]
+
+  This subcommand checks that all installed packages are at the current
+  version.
+
 clean-cache -a | -i | -o | -u
 
   This subcommand will clean up the cached downloaded zap files. With
