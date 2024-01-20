@@ -307,7 +307,7 @@ add_repo() {
 
 #
 # remove a repo, and associated metadata
-# in the case of an overlay repo, remove references to all ist
+# in the case of an overlay repo, remove references to all its
 # overlays
 # does not add or remove any packages
 #
