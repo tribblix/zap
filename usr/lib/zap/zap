@@ -13,7 +13,7 @@
 #
 # }}}
 #
-# Copyright 2023 Peter Tribble
+# Copyright 2024 Peter Tribble
 #
 
 #
@@ -110,7 +110,7 @@ vo|verify-overlay)
 	;;
 lp|list-packages)
 	shift
-	exec /usr/bin/pkginfo ${PKGARGS} `${ZAPLIBDIR}/resolve-alias $* | sort -u`
+	exec /usr/bin/pkginfo ${PKGARGS} $(${ZAPLIBDIR}/resolve-alias $* | sort -u)
 	;;
 vp|verify-packages)
 	shift
@@ -118,7 +118,7 @@ vp|verify-packages)
 	;;
 check-package|pkgchk)
 	shift
-	exec ${ZAPLIBDIR}/check-package `${ZAPLIBDIR}/resolve-alias $* | sort -u`
+	exec ${ZAPLIBDIR}/check-package $(${ZAPLIBDIR}/resolve-alias $* | sort -u)
 	;;
 refresh|refresh-overlays|refresh-catalog)
 	shift
@@ -126,7 +126,7 @@ refresh|refresh-overlays|refresh-catalog)
 	;;
 describe-package)
 	shift
-	exec /usr/bin/pkginfo ${PKGARGS} -l `${ZAPLIBDIR}/resolve-alias $* | sort -u`
+	exec /usr/bin/pkginfo ${PKGARGS} -l $(${ZAPLIBDIR}/resolve-alias $* | sort -u)
 	;;
 describe-overlay)
 	shift

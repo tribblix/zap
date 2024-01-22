@@ -13,7 +13,7 @@
 #
 # }}}
 #
-# Copyright 2023 Peter Tribble
+# Copyright 2024 Peter Tribble
 #
 
 CFGDIR="/etc/zap"
@@ -37,7 +37,7 @@ esac
 # given an unqualified package, return a qualified package and the name
 # of the repo it's contained in
 #
-repolist=`${ZAPLIBDIR}/zap-cfg ${CTXARGS} list-pkg-repos`
+repolist=$(${ZAPLIBDIR}/zap-cfg ${CTXARGS} list-pkg-repos)
 
 #
 # there are two paths here

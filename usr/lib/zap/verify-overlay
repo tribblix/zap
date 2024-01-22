@@ -13,7 +13,7 @@
 #
 # }}}
 #
-# Copyright 2023 Peter Tribble
+# Copyright 2024 Peter Tribble
 #
 
 CFGDIR="/etc/zap"
@@ -42,7 +42,7 @@ esac
 typeset -A map_ver
 typeset -A map_repo
 
-repolist=`${ZAPLIBDIR}/zap-cfg ${CTXARGS} list-pkg-repos`
+repolist=$(${ZAPLIBDIR}/zap-cfg ${CTXARGS} list-pkg-repos)
 for repo in $repolist
 do
     if [ -f ${CFGDIR}/repositories/${repo}.catalog ]; then

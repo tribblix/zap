@@ -13,7 +13,7 @@
 #
 # }}}
 #
-# Copyright 2023 Peter Tribble
+# Copyright 2024 Peter Tribble
 #
 
 #
@@ -58,9 +58,9 @@ if [ $# -ne 1 ]; then
     exit 1
 fi
 
-IMAGE_DIR=`${ZAPLIBDIR}/zap-cfg ${CTXARGS} image-dir`
-USER_AGENT="zap"/`${ZAPLIBDIR}/zap-cfg pkgversion`
-ZAP_PROXY=`${ZAPLIBDIR}/zap-cfg ${CTXARGS} proxy`
+IMG_DIR=$(${ZAPLIBDIR}/zap-cfg ${CTXARGS} image-dir)
+USER_AGENT="zap"/$(${ZAPLIBDIR}/zap-cfg pkgversion)
+ZAP_PROXY=$(${ZAPLIBDIR}/zap-cfg ${CTXARGS} proxy)
 
 if [ -n "$ZAP_PROXY" ]; then
     http_proxy=$ZAP_PROXY

@@ -13,7 +13,7 @@
 #
 # }}}
 #
-# Copyright 2023 Peter Tribble
+# Copyright 2024 Peter Tribble
 #
 
 ZAPLIBDIR="/usr/lib/zap"
@@ -57,7 +57,7 @@ case $1 in
 	;;
 esac
 
-SRCLIST=`${ZAPLIBDIR}/zap-cfg ${CTXARGS} cache-dir`
+SRCLIST=$(${ZAPLIBDIR}/zap-cfg ${CTXARGS} cache-dir)
 
 #
 # if we have access to a global cache, prepend that

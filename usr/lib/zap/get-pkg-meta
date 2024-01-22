@@ -13,7 +13,7 @@
 #
 # }}}
 #
-# Copyright 2023 Peter Tribble
+# Copyright 2024 Peter Tribble
 #
 
 CFGDIR="/etc/zap"
@@ -46,10 +46,10 @@ esac
 # given a package, return its name, version, size, hash, and repo
 # as given in the catalog
 #
-for repo in `${ZAPLIBDIR}/zap-cfg ${CTXARGS} list-pkg-repos`
+for repo in $(${ZAPLIBDIR}/zap-cfg ${CTXARGS} list-pkg-repos)
 do
     if [ -f ${CFGDIR}/repositories/${repo}.catalog ]; then
-	FPKG=`/usr/bin/awk -F'|' '{if ($1 == npkg) print $1,$2,$4,$5}' npkg=${PKG} ${CFGDIR}/repositories/${repo}.catalog`
+	FPKG=$(/usr/bin/awk -F'|' '{if ($1 == npkg) print $1,$2,$4,$5}' npkg=${PKG} ${CFGDIR}/repositories/${repo}.catalog)
 	if [ -n "$FPKG" ]; then
 	    echo "${FPKG} ${repo}"
 	    exit 0

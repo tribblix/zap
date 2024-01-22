@@ -13,7 +13,7 @@
 #
 # }}}
 #
-# Copyright 2023 Peter Tribble
+# Copyright 2024 Peter Tribble
 #
 
 #
@@ -93,7 +93,7 @@ case $DESTDIR in
 	;;
 esac
 
-CACHEDIR=`${ZAPLIBDIR}/zap-cfg docker-dir`
+CACHEDIR=$(${ZAPLIBDIR}/zap-cfg docker-dir)
 MDIR=${CACHEDIR}/manifests
 LDIR=${CACHEDIR}/layers
 

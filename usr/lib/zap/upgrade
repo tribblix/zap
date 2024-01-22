@@ -13,7 +13,7 @@
 #
 # }}}
 #
-# Copyright 2023 Peter Tribble
+# Copyright 2024 Peter Tribble
 #
 
 #
@@ -170,7 +170,7 @@ if [ ! -x $WCLIENT ]; then
 fi
 
 NPKG=${NEWURL##*/}
-CACHE_DIR=`${ZAPLIBDIR}/zap-cfg cache-dir`
+CACHE_DIR=$(${ZAPLIBDIR}/zap-cfg cache-dir)
 ${WCLIENT} ${WARGS} ${CACHE_DIR}/${NPKG} $NEWURL
 #
 # if the download failed then we cannot progress any further
