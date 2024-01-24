@@ -50,6 +50,10 @@ if [ ! -x $WCLIENT ]; then
     WCLIENT=/usr/bin/wget
     WARGS="-U ${USER_AGENT} -q -O"
 fi
+if [ ! -x $WCLIENT ]; then
+    WCLIENT=/usr/bin/wget2
+    WARGS="-U ${USER_AGENT} -q -O"
+fi
 
 #
 # this is all a bit complicated, as it handles the case of multiple overlay

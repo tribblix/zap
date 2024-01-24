@@ -168,6 +168,10 @@ if [ ! -x $WCLIENT ]; then
     WCLIENT=/usr/bin/wget
     WARGS="-q -O"
 fi
+if [ ! -x $WCLIENT ]; then
+    WCLIENT=/usr/bin/wget2
+    WARGS="-q -O"
+fi
 
 NPKG=${NEWURL##*/}
 CACHE_DIR=$(${ZAPLIBDIR}/zap-cfg cache-dir)

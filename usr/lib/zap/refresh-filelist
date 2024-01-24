@@ -48,6 +48,10 @@ if [ ! -x $WCLIENT ]; then
     WCLIENT=/usr/bin/wget
     WARGS="-U ${USER_AGENT} -q -O"
 fi
+if [ ! -x $WCLIENT ]; then
+    WCLIENT=/usr/bin/wget2
+    WARGS="-U ${USER_AGENT} -q -O"
+fi
 
 refresh_file_repo() {
     frepo="$1"
