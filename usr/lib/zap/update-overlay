@@ -13,7 +13,7 @@
 #
 # }}}
 #
-# Copyright 2023 Peter Tribble
+# Copyright 2024 Peter Tribble
 #
 
 ONAME=""
@@ -107,13 +107,14 @@ if [ ! -f "${PLIST}" ]; then
 fi
 
 #
-# install dependent overlays, if any
-# just in case the overlay dependencies changed
+# install any new dependent overlays
 #
 OVL="${CFGODIR}/${ONAME}.ovl"
-for novl in `/usr/bin/grep '^REQUIRES=' ${OVL} | /usr/bin/sed s:REQUIRES=::`
+for novl in $(/usr/bin/awk -F= '{if ($1=="REQUIRES") print $2}' ${OVL})
 do
-    ${ZAPLIBDIR}/install-overlay ${CTXARGS} ${PKGARGS} ${SRCARGS} ${novl}
+    if [ ! -f ${INSTODIR}/installed/${novl} ]; then
+	${ZAPLIBDIR}/install-overlay ${CTXARGS} ${PKGARGS} ${SRCARGS} ${novl}
+    fi
 done
 
-${ZAPLIBDIR}/update-package ${CTXARGS} ${PKGARGS} ${SRCARGS} `cat ${PLIST}`
+${ZAPLIBDIR}/update-package ${CTXARGS} ${PKGARGS} ${SRCARGS} $(<${PLIST})
