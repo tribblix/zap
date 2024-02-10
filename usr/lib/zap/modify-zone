@@ -1,0 +1,674 @@
+#!/bin/ksh
+#
+# Modify a zone
+#
+# Usage:
+#  -z zone_name - zone name [required]
+#  -i IPv4 address [can be multiple, for shared-ip]
+#  -x IPv4 address [can be multiple, for exclusive-ip]
+#  -d directory to create [can be multiple]
+#  -D dataset to delegate [will be created if it doesn't exist]
+#  -O add overlay [can be multiple, passed to install]
+#  -S share directory r/w with the zone
+#  -s share directory r/o with the zone
+#  -U share user and their homedir with the zone
+#
+# FIXMES:
+# add appstack overlays for sparse zones
+#
+
+ZFSBASE="/export/zonedata"
+ZROOTBASE="/export/zones"
+ZSDIR="/var/zap/zones"
+ZBRAND=TRIBsparse
+ZNAME=""
+ZIP4=""
+XIP4=""
+ZADDOVERLAY=""
+ZDIRS=""
+ZDATASETS=""
+ZSHARED=""
+ZROSHARED=""
+ZUSERS=""
+DOIP6=""
+
+#
+# these associative arrays track the interface to address mapping
+#
+typeset -A ifipmap
+typeset -A xifipmap
+
+usage() {
+    echo "Usage: $0 -z zone_name"
+    echo "  [-i ip_address] [-x ip_address]"
+    echo "  [-d extra_dir] [-O overlay]"
+    echo "  [-S|-s shared_dir] [ -D dataset] [-U user]"
+    exit 1
+}
+
+while getopts "z:i:x:O:d:D:s:S:U:" opt; do
+case $opt in
+z)
+	ZNAME="$OPTARG"
+	;;
+i)
+	ZIP4="${ZIP4} $OPTARG"
+	;;
+x)
+	XIP4="${XIP4} $OPTARG"
+	;;
+O)
+	ZADDOVERLAY="${ZADDOVERLAY} $OPTARG"
+	;;
+d)
+	ZDIRS="${ZDIRS} $OPTARG"
+	;;
+D)
+	ZDATASETS="${ZDATASETS} $OPTARG"
+	;;
+s)
+	ZROSHARED="${ZROSHARED} $OPTARG"
+	;;
+S)
+	ZSHARED="${ZSHARED} $OPTARG"
+	;;
+U)
+	ZUSERS="${ZUSERS} $OPTARG"
+	;;
+esac
+done
+
+THISZONE=$(/sbin/zonename)
+if [ "X$THISZONE" != "Xglobal" ]; then
+    echo "ERROR: zone management is only possible in the global zone"
+    exit 1
+fi
+
+if [[ -z $ZNAME ]]; then
+   echo "ERROR: zone name must be specified"
+   usage
+fi
+
+#
+# you can't create the global zone
+#
+if [ "X$ZNAME" = "Xglobal" ]; then
+    echo "ERROR: the name global is reserved"
+    exit 1
+fi
+
+#
+# check that the zone already exists
+#
+/usr/sbin/zoneadm -z $ZNAME list > /dev/null 2>&1
+ZEXISTS=$?
+if [ $ZEXISTS -ne 0 ]; then
+    echo "ERROR: zone $ZNAME does not exist"
+    exit 1
+fi
+
+
+#
+# get brand from configured zone
+#
+ZBRAND=$(/usr/sbin/zoneadm -z $ZNAME list -p | awk -F: '{print $6}')
+
+#
+# normalize the brand, reject unknown brands
+#
+case $ZBRAND in
+sparse|TRIBsparse)
+	ZBRAND="TRIBsparse"
+	;;
+whole|TRIBwhole)
+	ZBRAND="TRIBwhole"
+	;;
+alien|TRIBalien)
+	ZBRAND="TRIBalien"
+	;;
+lx|SUNWlx)
+	ZBRAND="SUNWlx"
+	;;
+s10|solaris10|SUNWsolaris10)
+	ZBRAND="SUNWsolaris10"
+	;;
+*)
+	echo "ERROR: unrecognized brand $ZBRAND"
+	usage
+	;;
+esac
+
+#
+# verify arguments against brands
+#
+case $ZBRAND in
+TRIBsparse)
+	if [[ -n $ZADDOVERLAY ]]; then
+	   echo "ERROR: cannot specify overlays for sparse-root zones"
+	   usage
+	fi
+	;;
+TRIBalien)
+	if [[ -n $ZADDOVERLAY ]]; then
+	   echo "ERROR: cannot specify overlays for alien zones"
+	   usage
+	fi
+	;;
+SUNWsolaris10)
+	if [[ -n $ZADDOVERLAY ]]; then
+	   echo "ERROR: cannot specify overlays for s10 zones"
+	   usage
+	fi
+	;;
+SUNWlx)
+	if [ ! -f /etc/zones/SUNWlx.xml ]; then
+	    echo "ERROR: lx not found - is it available?"
+	    usage
+	fi
+	if [[ -n $ZADDOVERLAY ]]; then
+	   echo "ERROR: cannot specify overlays for lx zones"
+	   usage
+	fi
+	if [[ -n $ZIP4 ]]; then
+	    echo "ERROR: lx zones must be exclusive-ip"
+	    usage
+	fi
+	;;
+esac
+
+#
+# ip-type cannot be both shared and exclusive
+#
+if [[ -n $XIP4 && -n $ZIP4 ]]; then
+    echo "ERROR: cannot specify both -i and -x"
+    usage
+fi
+
+#
+# verify against the actual installed zone's ip-type
+#
+if [[ -n $XIP4 || -n $ZIP4 ]]; then
+    IPTYPE=$(/usr/sbin/zoneadm -z $ZNAME list -p | awk -F: '{print $7}')
+    if [[ -n $ZIP4 ]]; then
+	if [ "shared" != "${IPTYPE}" ]; then
+	    echo "ERROR: cannot specify -i for an exclusive-ip zone"
+	    usage
+	fi
+    fi
+    if [[ -n $XIP4 ]]; then
+	if [ "shared" == "${IPTYPE}" ]; then
+	    echo "ERROR: cannot specify -x for a shared-ip zone"
+	    usage
+	fi
+    fi
+fi
+
+#
+# if given any directories to share, verify they exist
+#
+if [[ -n $ZSHARED ]]; then
+    for DIR in $ZSHARED
+    do
+	if [ ! -d "${DIR}" ]; then
+	    echo "ERROR: shared directory $DIR not found"
+	    exit 1
+	fi
+    done
+fi
+if [[ -n $ZROSHARED ]]; then
+    for DIR in $ZROSHARED
+    do
+	if [ ! -d "${DIR}" ]; then
+	    echo "ERROR: shared directory $DIR not found"
+	    exit 1
+	fi
+    done
+fi
+
+#
+# if given datasets to delegate, verify it's a dataset and not
+# a pool, by looking for a / separator
+#
+for DSET in $ZDATASETS
+do
+    if [[ $DSET != */* ]]; then
+	echo "ERROR: dataset cannot be a top-level pool"
+	exit 1
+    fi
+done
+
+#
+# if given users to share, verify they and their home directory exist
+# the assumption is that the user and their home directory
+# are local, hence the explicit check against /etc/passwd rather than
+# getent which may select from a nameservice
+#
+if [[ -n $ZUSERS ]]; then
+    for TUSER in $ZUSERS
+    do
+	chk=$(/usr/bin/grep "^${TUSER}:" /etc/passwd)
+	if [ -z "${chk}" ]; then
+	    echo "ERROR: user $TUSER doesn't exist, cannot share"
+	    exit 1
+	fi
+	DIR=$(/usr/bin/grep "^${TUSER}:" /etc/passwd | /usr/bin/awk -F: '{print $6}')
+	if [ -z "${DIR}" ]; then
+	    echo "ERROR: home for user $TUSER doesn't exist, cannot share"
+	    exit 1
+	fi
+	if [ ! -d "${DIR}" ]; then
+	    echo "ERROR: shared home directory $DIR not found"
+	    exit 1
+	fi
+    done
+fi
+
+#
+# check any overlays are valid
+# -O - error if this is not a valid overlay 
+#
+for OVL in $ZADDOVERLAY
+do
+	if [ ! -f /var/sadm/overlays/${OVL}.ovl ]; then
+	    echo "ERROR: unrecognized overlay ${OVL}"
+	    exit 1
+	fi
+done
+
+#
+# construct a zone configuration file
+#
+
+get_mask() {
+CIDR=0
+for octet in $(echo $1 | /usr/bin/sed 's:\.: :g')
+do
+case $octet in
+255)
+	CIDR=$(($CIDR+8)) ;;
+254)
+	CIDR=$(($CIDR+7)) ; break ;;
+252)
+	CIDR=$(($CIDR+6)) ; break ;;
+248)
+	CIDR=$(($CIDR+5)) ; break ;;
+240)
+	CIDR=$(($CIDR+4)) ; break ;;
+224)
+	CIDR=$(($CIDR+3)) ; break ;;
+192)
+	CIDR=$(($CIDR+2)) ; break ;;
+128)
+	CIDR=$(($CIDR+1)) ; break ;;
+*)
+	;;
+esac
+done
+echo $CIDR
+}
+
+#
+# return interface and cidr prefix for the given address
+#
+get_net_details() {
+    IIP=$1
+    NIP=$(get_short_net ${IIP}/24)
+    if [ -f ${ZSDIR}/rconfig.${NIP} ] ; then
+	IFACE=$(/usr/bin/grep interface: ${ZSDIR}/rconfig.${NIP} | /usr/bin/awk '{print $NF}')
+	ICIDR=24
+	echo "$IFACE $ICIDR"
+	return
+    fi
+    NIP=$(get_short_net ${IIP}/16)
+    if [ -f ${ZSDIR}/rconfig.${NIP} ] ; then
+	IFACE=$(/usr/bin/grep interface: ${ZSDIR}/rconfig.${NIP} | /usr/bin/awk '{print $NF}')
+	ICIDR=16
+	echo "$IFACE $ICIDR"
+	return
+    fi
+    NIP=$(get_short_net ${IIP}/8)
+    if [ -f ${ZSDIR}/rconfig.${NIP} ] ; then
+	IFACE=$(/usr/bin/grep interface: ${ZSDIR}/rconfig.${NIP} | /usr/bin/awk '{print $NF}')
+	ICIDR=8
+	echo "$IFACE $ICIDR"
+	return
+    fi
+    IFACE=$(/usr/sbin/route -n get $IIP | /usr/bin/grep interface: | /usr/bin/awk '{print $NF}')
+    IMASK=$(/usr/sbin/route -n get $IIP | /usr/bin/grep mask: | /usr/bin/awk '{print $NF}')
+    ICIDR=$(get_mask $IMASK)
+    echo "$IFACE $ICIDR"
+}
+
+#
+# return the parent zone if routed
+#
+get_parent_zone() {
+    IIP=$1
+    NIP=$(get_short_net ${IIP}/24)
+    if [ -f ${ZSDIR}/rconfig.${NIP} ] ; then
+	/usr/bin/grep zone: ${ZSDIR}/rconfig.${NIP} | /usr/bin/awk '{print $NF}'
+	return
+    fi
+    NIP=$(get_short_net ${IIP}/16)
+    if [ -f ${ZSDIR}/rconfig.${NIP} ] ; then
+	/usr/bin/grep zone: ${ZSDIR}/rconfig.${NIP} | /usr/bin/awk '{print $NF}'
+	return
+    fi
+    NIP=$(get_short_net ${IIP}/8)
+    if [ -f ${ZSDIR}/rconfig.${NIP} ] ; then
+        /usr/bin/grep zone: ${ZSDIR}/rconfig.${NIP} | /usr/bin/awk '{print $NF}'
+	return
+    fi
+}
+
+#
+# return the default gateway for the given address
+#
+get_gateway() {
+    IIP=$1
+    NIP=$(get_short_net ${IIP}/24)
+    if [ -f ${ZSDIR}/rconfig.${NIP} ] ; then
+	/usr/bin/grep gateway: ${ZSDIR}/rconfig.${NIP} | /usr/bin/awk '{print $NF}'
+	return
+    fi
+    NIP=$(get_short_net ${IIP}/16)
+    if [ -f ${ZSDIR}/rconfig.${NIP} ] ; then
+	/usr/bin/grep gateway: ${ZSDIR}/rconfig.${NIP} | /usr/bin/awk '{print $NF}'
+	return
+    fi
+    NIP=$(get_short_net ${IIP}/8)
+    if [ -f ${ZSDIR}/rconfig.${NIP} ] ; then
+        /usr/bin/grep gateway: ${ZSDIR}/rconfig.${NIP} | /usr/bin/awk '{print $NF}'
+	return
+    fi
+    /usr/sbin/route -n get default | /usr/bin/grep gateway: | /usr/bin/awk '{print $NF}'
+}
+
+#
+# return the short form of the network address - just the significant octets
+# we only support /8 /16 /24 for router/proxy zones so no need to check
+#
+get_short_net() {
+    IIP=$1
+    SRPREFIX=${IIP##*/}
+    SRSUBNET=${IIP%/*}
+    echo $SRSUBNET | tr '.' ' '|read OCT1 OCT2 OCT3 OCT4
+    case $SRPREFIX in
+	8)
+	    echo "${OCT1}"
+	    ;;
+	16)
+	    echo "${OCT1}.${OCT2}"
+	    ;;
+	24)
+	    echo "${OCT1}.${OCT2}.${OCT3}"
+	    ;;
+    esac
+}
+
+#
+# create a link-local IPv6 address for the given IPv4 address
+# the way we do this is simply to convert the IPv4 address to
+# hex format, this guarantees we're unique if the IPv4 address
+# is unique and won't conflict with regular addresses that are
+# constructed from the mac address of the interface
+#
+# this is only used for shared-ip stacks; exclusive-ip stacks
+# use the normal mechanism based on the mac address of the vnic
+#
+get_link_local() {
+    IIP=$1
+    printf "fe80::%x%x:%x%x/10" ${IIP//./ }
+}
+
+#
+# this variant is for exclusive-ip, we get the mac address of the
+# vnic and construct the address based on that
+#
+# the complex part here is that we need to flip bit 7
+# also canonical format suppresses leading zeros
+#
+get_mac_link_local() {
+    VNIC=$1
+    /usr/sbin/dladm show-vnic -p -o MACADDRESS $VNIC | /usr/bin/sed 's=:= =g' | read o1 o2 o3 o4 o5 o6
+    integer -i2 vi=16#$o1
+    integer -i2 nvi
+    nvi=$(($vi ^ 2#00000010))
+    integer -i16 xv=$nvi
+    no1=${xv/16#/}
+    if [ "$no1" = "0" ]; then
+	no1=""
+    fi
+    if [ "$no3" = "0" ]; then
+	no3=""
+    fi
+    if [ "$no5" = "0" ]; then
+	no5=""
+    fi
+    printf "fe80::%s%s:%sff:fe%s:%s%s/10" "$no1" "$o2" "$o3" "$o4" "$o5" "$o6"
+}
+
+create_configuration() {
+if [ ! -d $ZSDIR ]; then
+    /usr/bin/mkdir -p $ZSDIR
+fi
+touch ${ZSDIR}/zconfig.${ZNAME}
+if [ ! -f ${ZSDIR}/destroy.${ZNAME} ]; then
+    echo "#!/bin/sh" > ${ZSDIR}/destroy.${ZNAME}
+    /usr/bin/chmod a+x ${ZSDIR}/destroy.${ZNAME}
+fi
+echo "/bin/rm -f ${ZSDIR}/zconfig.${ZNAME}" >> ${ZSDIR}/destroy.${ZNAME}
+echo "brand: $ZBRAND" >> ${ZSDIR}/zconfig.${ZNAME}
+echo "zone: $ZNAME" >> ${ZSDIR}/zconfig.${ZNAME}
+echo create -t $ZBRAND
+echo set autoboot=true
+echo set zonepath=${ZROOTBASE}/${ZNAME}
+if [[ -n $XIP4 ]]; then
+    echo set ip-type=exclusive
+fi
+#
+# shared ip addresses
+#
+for IP in $ZIP4
+do
+	get_net_details $IP | read ZIFACE ZCIDR
+	echo add net
+	echo set physical=$ZIFACE
+	echo set address=${IP}/${ZCIDR}
+	echo end
+done
+#
+# exclusive-ip addresses
+# the address is used to construct the topology, it's up to the
+# zone to manage it, but we set up a valid hostname file later
+#
+# we also set the allowed-address property to restrict the zone
+# (only for pure ipv4, as ipv6 doesn't seem to work properly)
+#
+# we set up the vnic here, and save details so that we can remove it
+# when the zone is destroyed
+#
+ZENUM=0
+for IP in $XIP4
+do
+	get_net_details $IP | read ZIFACE ZCIDR
+	/usr/sbin/dladm show-vnic znic$ZENUM > /dev/null 2>&1
+	ZESTATUS=$?
+	while [ $ZESTATUS -eq 0 ]
+	do
+	    ZENUM=$(($ZENUM+1))
+	    /usr/sbin/dladm show-vnic znic$ZENUM > /dev/null 2>&1
+	    ZESTATUS=$?
+	done
+	/usr/sbin/dladm create-vnic -l $ZIFACE znic$ZENUM
+	echo "/usr/sbin/dladm delete-vnic znic$ZENUM" >> ${ZSDIR}/destroy.${ZNAME}
+	ifipmap[znic$ZENUM]=$IP/$ZCIDR
+	xifipmap[znic$ZENUM]=$IP/$ZCIDR
+	echo add net
+	echo set physical=znic$ZENUM
+	echo set allowed-address=$IP/$ZCIDR
+	echo end
+	# in S11 allowed-address can be a list, but in illumos
+	# you need to use multiple net blocks
+	# this doesn't seem to work, the IPv6 address isn't brought up
+	# if allowed-address is specified
+	#if [[ -n $DOIP6 ]]; then
+	#    echo add net
+	#    echo set physical=znic$ZENUM
+	#    echo set allowed-address=$)get_mac_link_local znic$ZENUM)
+	#    echo end
+	#fi
+	ZROUTER=$(get_parent_zone $IP)
+	if [[ -n $ZROUTER ]]; then
+	    echo "parent_zone: $ZROUTER" >> ${ZSDIR}/zconfig.${ZNAME}
+	fi
+done
+#
+# Note that the destroy script must have been initialized above as we
+# require a router/proxy zone to have an exclusive-ip address, and we
+# carry on enumerating ZENUM where we left off
+#
+ZENUM=$(($ZENUM+1))
+for DSET in $ZDATASETS
+do
+	echo add dataset
+	echo set name=${DSET}
+	echo end
+done
+for DIR in $ZDIRS
+do
+	/usr/bin/mkdir -p ${ZFSBASE}/${ZNAME}${DIR}
+	echo add fs
+	echo set dir=${DIR}
+	echo set special=${ZFSBASE}/${ZNAME}${DIR}
+	echo set type=lofs
+	echo add options [nodevices]
+	echo end
+done
+for DIR in $ZSHARED
+do
+	echo add fs
+	echo set dir=${DIR}
+	echo set special=${DIR}
+	echo set type=lofs
+	echo add options [nodevices]
+	echo end
+done
+for DIR in $ZROSHARED
+do
+	echo add fs
+	echo set dir=${DIR}
+	echo set special=${DIR}
+	echo set type=lofs
+	echo add options [ro,nodevices]
+	echo end
+done
+for TUSER in $ZUSERS
+do
+	echo add fs
+	DIR=$(/usr/bin/grep "^${TUSER}:" /etc/passwd | /usr/bin/awk -F: '{print $6}')
+	echo set dir=${DIR}
+	echo set special=${DIR}
+	echo set type=lofs
+	echo add options [nodevices]
+	echo end
+	echo add admin
+	echo set user=${TUSER}
+	echo set auths=manage
+	echo end
+done
+echo verify
+echo commit
+}
+
+create_install_opts() {
+for OVL in $ZADDOVERLAY
+do
+	printf " -O $OVL"
+done
+}
+
+#
+# create any missing zfs datasets
+#
+if [[ -n ${ZDIRS} ]]; then
+   ZPARENT=${ZFSBASE%/*}
+   ZDPARENT=$(/usr/sbin/zfs list -H ${ZPARENT} | /usr/bin/awk '{print $1}')
+   ZREALNAME=$(echo $ZFSBASE | /usr/bin/sed s:${ZPARENT}:${ZDPARENT}:)
+   if [ ! -d "${ZFSBASE}" ]; then
+      /usr/sbin/zfs create "${ZREALNAME}"
+   fi
+   if [ ! -d "${ZFSBASE}/${ZNAME}" ]; then
+      /usr/sbin/zfs create "${ZREALNAME}/${ZNAME}"
+   fi
+fi
+if [ ! -d "${ZROOTBASE}" ]; then
+   ZPARENT=${ZROOTBASE%/*}
+   ZDPARENT=$(/usr/sbin/zfs list -H ${ZPARENT} | /usr/bin/awk '{print $1}')
+   ZREALNAME=$(echo $ZROOTBASE | /usr/bin/sed s:${ZPARENT}:${ZDPARENT}:)
+   /usr/sbin/zfs create "${ZREALNAME}"
+fi
+#
+# this one is split, we create any missing intermediate datasets
+# but the final dataset has an explicit mountpoint property
+#
+for DSET in $ZDATASETS
+do
+    ZPARENT=${DSET%/*}
+    /usr/sbin/zfs create -p ${ZPARENT}
+    /usr/sbin/zfs create -o mountpoint=none ${DSET}
+done
+
+ZCFGFILE=/tmp/zap.zcfg.$(date '+%F-%T').$$
+create_configuration > ${ZCFGFILE}
+
+/usr/sbin/zonecfg -z ${ZNAME} -f ${ZCFGFILE}
+
+#
+# XXTODO apply the changes to the zone
+#
+##/usr/sbin/zoneadm -z ${ZNAME} install $(create_install_opts)
+
+#
+# copy the shared user accounts specified into the zone
+# and allow them the root role if it's a Solarish type of zone
+#
+for TUSER in $ZUSERS
+do
+    /usr/bin/grep "^${TUSER}:" /etc/passwd >> ${ZROOTBASE}/${ZNAME}/root/etc/passwd
+    /usr/bin/grep "^${TUSER}:" /etc/shadow >> ${ZROOTBASE}/${ZNAME}/root/etc/shadow
+    #
+    # try to make sure the shared user's group exists in the zone too
+    #
+    TGID=$(/usr/bin/grep "^${TUSER}:" /etc/passwd | /usr/bin/awk -F: '{print $4}')
+    if [[ -n $TGID ]]; then
+	if ! /usr/bin/grep -q ":${TGID}:" ${ZROOTBASE}/${ZNAME}/root/etc/group
+	then
+	    /usr/bin/grep ":${TGID}:" /etc/group >> ${ZROOTBASE}/${ZNAME}/root/etc/group
+	fi
+    fi
+    if [[ $ZBRAND != SUNWlx ]]; then
+	echo "${TUSER}::::roles=root" >> ${ZROOTBASE}/${ZNAME}/root/etc/user_attr
+    fi
+done
+
+#
+# for exclusive-ip stacks:
+#  create /etc/hostname.* files for each vnic we created
+#  set the default route
+#
+if [[ $ZBRAND != SUNWlx ]]; then
+    for index in "${!ifipmap[@]}"
+    do
+	echo "${ifipmap[$index]}" > ${ZROOTBASE}/${ZNAME}/root/etc/hostname.$index
+	if [[ -n $DOIP6 ]]; then
+	    touch ${ZROOTBASE}/${ZNAME}/root/etc/hostname6.$index
+	fi
+    done
+    if [[ -n $XIP4 ]]; then
+	ZGW=$(get_gateway $XIP4)
+	echo $ZGW > ${ZROOTBASE}/${ZNAME}/root/etc/defaultrouter
+    fi
+fi
+
+/usr/bin/rm $ZCFGFILE

@@ -4,6 +4,7 @@ TRIBv-apache-maven-38
 TRIBv-cmake-36
 TRIBv-emacs-27
 TRIBv-groovy-25
+TRIBv-groovy-3
 TRIBopenjdk8u302
 TRIBopenjdk8u302-src
 TRIBopenjdk8u312
@@ -576,6 +577,7 @@ TRIBblix-plproxy15
 TRIBscout2-python-311
 TRIBopinel-python-311
 TRIBnetaddr-python-311
+TRIBdjango3-python-311
 TRIBsuricata
 TRIBguile
 TRIBsys-net-spdadm
