@@ -13,17 +13,15 @@
 #
 # }}}
 #
-# Copyright 2023 Peter Tribble
+# Copyright 2024 Peter Tribble
 #
 
 ZAPLIBDIR="/usr/lib/zap"
 DESTROOT=""
-PKGARGS=""
 
 case $1 in
 -R)
 	DESTROOT="$2"
-	PKGARGS="-R ${DESTROOT}"
 	shift
 	shift
 	if [ ! -d "$DESTROOT" ]; then
@@ -53,8 +51,14 @@ typeset -A pmap
 # simplistic search, start with exact matches on overlays
 #
 if [ -f "${DESTROOT}/var/sadm/overlays/${PKG}.ovl" ]; then
-    echo "Found a matching overlay"
-    ${ZAPLIBDIR}/describe-overlay ${PKGARGS} "${PKG}"
+    if [ -f "${DESTROOT}/var/sadm/overlays/installed/${PKG}" ]; then
+	OSTATUS="Installed"
+    else
+	OSTATUS="Uninstalled"
+    fi
+    echo "${OSTATUS} overlay ${PKG}"
+    grep "^NAME=" "${DESTROOT}/var/sadm/overlays/${PKG}.ovl"
+    echo
 fi
 
 #
