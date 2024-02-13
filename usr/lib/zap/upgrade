@@ -244,17 +244,14 @@ ${ALTROOT}/${ZAPLIBDIR}/refresh-filelist -C ${ALTROOT}
 /usr/bin/cp -p /etc/security/device_policy ${ALTROOT}/etc/security/device_policy
 /usr/bin/cp -p /etc/security/extra_privs ${ALTROOT}/etc/security/extra_privs
 #
-# remove any obsoleted packages
+# remove obsoleted packages
 #
 if [ -f ${ALTROOT}/usr/share/zap/deprecated.pkgs ]; then
     echo "Removing obsoleted packages"
-    for oldpkg in `cat ${ALTROOT}/usr/share/zap/deprecated.pkgs`
-    do
-	/usr/bin/zap uninstall -R ${ALTROOT} ${oldpkg}
-    done
+    /usr/bin/zap uninstall -R ${ALTROOT} `cat ${ALTROOT}/usr/share/zap/deprecated.pkgs`
 fi
 #
-# remove any obsoleted overlays
+# remove obsoleted overlays
 # note this just removes any metadata, any constituent packages
 # needing removal must be listed in deprecated.pkgs
 #
