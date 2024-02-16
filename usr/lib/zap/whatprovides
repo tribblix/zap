@@ -13,7 +13,7 @@
 #
 # }}}
 #
-# Copyright 2023 Peter Tribble
+# Copyright 2024 Peter Tribble
 #
 
 #
@@ -115,6 +115,9 @@ else
 # which will have a leading / and a trailing space
 #
 # bare words that look like a library have a special pattern
+# to pick up all the versioned variants
+#
+# versioned libraries look for the name as a file or a link
 #
 # if it looks like a package name, list all the pathnames
 #
@@ -126,7 +129,8 @@ case $PKG in
 	:
 	;;
     lib*.*)
-	PKG="/${PKG} "
+	PKG="/${PKG}( |=)"
+	GREP="/usr/bin/egrep"
 	;;
     lib*)
 	PKG="/${PKG}(\.so(\.*| )| )"
