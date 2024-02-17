@@ -336,6 +336,9 @@ if [ -d ${ALTROOT}/zonelib/lib/svc ]; then
 fi
 
 #
+# this is the legacy upgrade path, manually marking certain zone brands
+# as safe
+#
 # we can propagate some zones into the upgraded BE
 # alien-root and solaris10 zones are safe
 # whole and sparse-root clearly aren't
@@ -356,6 +359,33 @@ done
 for zname in `/usr/sbin/zoneadm list -icp | awk -F: '{if ($6 == "lx") print $2}'`
 do
     grep "^${zname}:" /etc/zones/index >> ${ALTROOT}/etc/zones/index
+done
+
+#
+# this is the stub for the new zone upgrade path
+# eventually the legacy propagation of zones to the new BE
+# will be performed here, after the relevant brand upgrade script
+# has returned successfully
+#
+# zoneadm list output format is
+# id:name:state:path:uuid:brand:ip-type
+# what we're interested in is the name, path, and brand
+#
+# we look for the brand-specific upgrader in the *new* BE, to give
+# the ability to apply bugfixes there
+#
+# zone brands that don't need to do any work on upgrade should simply
+# return 0 from their upgrader
+#
+/usr/sbin/zoneadm list -icpn | awk -F: '{print $2,$4,$6}' | while read zname zpath zbrand
+do
+    UPGRADER="${ALTROOT}/usr/lib/brand/${zbrand}/zap-upgrade"
+    if [ -x "${UPGRADER}" ]; then
+	echo "Running upgrade script for ${zbrand} zone ${zname}"
+	${UPGRADER} -R ${ALTROOT} -b ${zbrand} -z ${zname} -p ${zpath} -v ${NEWVER}
+    else
+	echo "No upgrade script found for ${zbrand} zone ${zname}"
+    fi
 done
 
 #
