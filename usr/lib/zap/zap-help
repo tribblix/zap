@@ -13,7 +13,7 @@
 #
 # }}}
 #
-# Copyright 2023 Peter Tribble
+# Copyright 2024 Peter Tribble
 #
 
 #
@@ -55,6 +55,9 @@ case $# in
       ;;
     copy-package-repo|copy-overlay-repo)
       HELP_FILE=${HELP_DIR}/help.copy-repo.txt
+      ;;
+    destroy-zone-template|list-zone-templates)
+      HELP_FILE=${HELP_DIR}/help.create-zone-template.txt
       ;;
     *)
       HELP_FILE=${HELP_DIR}/help.${1}.txt

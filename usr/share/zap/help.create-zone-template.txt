@@ -1,7 +1,7 @@
 ZAP and zone templates
 ======================
 
-The zap utility allows you to create template zones to a given
+The zap utility allows you to create zone templates to a given
 specification which can then be used to create sparse root zones.
 
 The syntax of the subcommand is:
@@ -50,6 +50,24 @@ global zone.
 The -I flag specifies an image for an alien template. For an alien
 template, the -I flag is required, and the -o, -O, -p and -P flags
 must not be used.
+
+To list current zone templates, use the following command
+
+    zap list-zone-templates [-p]
+
+which will list all existing templates, the path to the template
+image, and any zones using that template. With the -p flag, gives
+parsable output.
+
+To create a zone from a template, supply the name of the template as
+the argument to the -T flag to 'zap create-zone'.
+
+To remove a template, and its files, run
+
+    zap destroy-zone-template [-n] -T template_name
+
+This will fail if any zones are using the template. With the -n flag,
+show what would be done without doing it.
 
 A note on implementation: the templates can be found under
 /export/zone-templates.
