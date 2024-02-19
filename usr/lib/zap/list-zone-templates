@@ -13,12 +13,26 @@
 #
 # }}}
 #
-# Copyright 2023 Peter Tribble
+# Copyright 2024 Peter Tribble
 #
 
 #
 # list zone templates
 #
+
+#
+# -p gives parsable output
+# template:path:zone
+#
+PARSABLE=""
+while getopts "p" opt ; do
+case $opt in
+p)
+    PARSABLE="y"
+    ;;
+esac
+done
+shift $((OPTIND - 1))
 
 #
 # this is just the naming convention
@@ -31,14 +45,20 @@ do
     UDIR=$(/usr/bin/grep 'directory=\"/usr\"' "${TFILE}" | /usr/bin/awk '{print $2}' | /usr/bin/awk -F= '{print $2}' | /usr/bin/sed 's:"::g')
     UROOT=${UDIR%/usr}
     ZLIST=$(/usr/bin/grep 'special=\"'${UDIR}'\"' /etc/zones/*.xml | /usr/bin/grep -v '^'$TFILE| /usr/bin/awk -F: '{print $1}')
-    echo "Template: $TNAME"
-    echo "  Root: $UROOT"
-    echo "  Zones: "
+    if [ -z "${PARSABLE}" ]; then
+	echo "Template: $TNAME"
+	echo "  Root: $UROOT"
+	echo "  Zones: "
+    fi
     for ZFILE in $ZLIST
     do
 	ZNAME=${ZFILE#/etc/zones/}
 	ZNAME=${ZNAME%.xml}
-	echo "    $ZNAME"
+	if [ -z "${PARSABLE}" ]; then
+	    echo "    $ZNAME"
+	else
+	    echo "${TNAME}:${UROOT}:${ZNAME}"
+	fi
     done
     echo ""
   fi
