@@ -648,8 +648,34 @@ if [[ -n $BHYVEVOLSIZES && $ZBRAND != bhyve ]]; then
     usage
 fi
 if [[ -n $RAMSPEC ]]; then
-    if [[ $RAMSPEC != *G && $RAMSPEC != *M ]]; then
-	echo "ERROR: -m must be in G or M"
+    if [[ $RAMSPEC != *G && $RAMSPEC != *M && $RAMSPEC != *T ]]; then
+	echo "ERROR: -m must be in G or M or T"
+	usage
+    fi
+    #
+    # validate against available system memory
+    # this is to prevent absurd requests being made by accident,
+    # and doesn't prevent overcommitment
+    # heuristically, reserve the global zone 128M + 10%
+    #
+    AVAILRAM=$(/usr/sbin/prtconf -m)
+    AVAILRAM=$((AVAILRAM-128))
+    AVAILRAM=$((0.9*AVAILRAM))
+    case $RAMSPEC in
+	*T)
+	    RAMREQ=${RAMSPEC//T}
+	    RAMREQ=$((RAMREQ*1024*1024))
+	    ;;
+	*G)
+	    RAMREQ=${RAMSPEC//G}
+	    RAMREQ=$((RAMREQ*1024))
+	    ;;
+	*M)
+	    RAMREQ=${RAMSPEC//M}
+	    ;;
+    esac
+    if [[ $RAMREQ -gt $AVAILRAM ]]; then
+	echo "ERROR: -m request exceeds available memory ${AVAILRAM}M"
 	usage
     fi
 fi
