@@ -679,6 +679,72 @@ if [[ -n $RAMSPEC ]]; then
 	usage
     fi
 fi
+#
+# validate cpu request against number of cpus available in system
+# we don't do a full check of the vcpus syntax for bhyve, but do
+# try and check the total number of cpus requested
+#
+if [[ -n $CPUSPEC ]]; then
+    AVAILCPU=$(/usr/sbin/psrinfo -t -S on-line)
+    if [[ $ZBRAND = bhyve ]]; then
+	case $CPUSPEC in
+	    cpus=*,*)
+		CPUREQ=${CPUSPEC%%,*}
+		CPUREQ=${CPUREQ/cpus=}
+		if [[ $CPUREQ -gt $AVAILCPU ]]; then
+		    echo "ERROR: -c request for $CPUREQ exceeds available cpus ${AVAILCPU}"
+		    usage
+		fi
+		if [[ $CPUREQ -gt 32 ]]; then
+		    echo "ERROR: -c request for $CPUREQ exceeds bhyve limit of 32"
+		    usage
+		fi
+		;;
+	    *,*)
+		CPUREQ=${CPUSPEC%%,*}
+		if [[ $CPUREQ -gt $AVAILCPU ]]; then
+		    echo "ERROR: -c request for $CPUREQ exceeds available cpus ${AVAILCPU}"
+		    usage
+		fi
+		if [[ $CPUREQ -gt 32 ]]; then
+		    echo "ERROR: -c request for $CPUREQ exceeds bhyve limit of 32"
+		    usage
+		fi
+		;;
+	    cpus=*)
+		CPUREQ=${CPUSPEC/cpus=}
+		if [[ $CPUREQ -gt $AVAILCPU ]]; then
+		    echo "ERROR: -c request for $CPUREQ exceeds available cpus ${AVAILCPU}"
+		    usage
+		fi
+		if [[ $CPUREQ -gt 32 ]]; then
+		    echo "ERROR: -c request for $CPUREQ exceeds bhyve limit of 32"
+		    usage
+		fi
+		;;
+	    *=*)
+		echo "ERROR: invalid bhyve vcpu specification"
+		usage
+		;;
+	    *)
+		# simple case, just a number
+		if [[ $CPUSPEC -gt $AVAILCPU ]]; then
+		    echo "ERROR: -c request for $CPUSPEC exceeds available cpus ${AVAILCPU}"
+		    usage
+		fi
+		if [[ $CPUSPEC -gt 32 ]]; then
+		    echo "ERROR: -c request for $CPUSPEC exceeds bhyve limit of 32"
+		    usage
+		fi
+		;;
+	esac
+    else
+	if [[ $CPUSPEC -gt $AVAILCPU ]]; then
+	    echo "ERROR: -c request exceeds available cpus ${AVAILCPU}"
+	    usage
+	fi
+    fi
+fi
 if [[ -n $BHYVEVOLSIZES ]]; then
     for BHYVEVOLSIZE in $BHYVEVOLSIZES
     do
