@@ -145,8 +145,6 @@ TRIBblix-timescaledb14
 TRIBsmpeg
 TRIBlibsdl-net
 TRIBlibsdl-ttf
-TRIBdrv-net-socal
-TRIBdrv-storage-sf
 TRIBcycler-python-39
 TRIBgixy-python-39
 TRIBmako-python-39

@@ -71,3 +71,8 @@ SUNWxvnc
 TRIBlibsdl-mixer
 SUNWtss
 SUNWxorg-mesa
+TRIBdrv-storage-sdcard
+TRIBsys-boot-loader
+TRIBsys-boot-real-mode
+TRIBdrv-net-socal
+TRIBdrv-storage-sf
