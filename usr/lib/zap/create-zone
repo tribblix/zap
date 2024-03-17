@@ -77,6 +77,7 @@ ZSHARED=""
 ZROSHARED=""
 ZUSERS=""
 ZTEMPLATE=""
+ZTEMPLATEPATH=""
 ZBLANK=""
 NZONES=""
 KARGS=""
@@ -1130,10 +1131,10 @@ esac
 #
 
 #
-# we overload ZBRAND with the template; the actual brand is
-# specified in the template, and note that create -t actually
-# refers to a template. Verify that the template and the file
-# systems it uses exist.
+# we overload ZBRAND with the template; the actual brand is specified
+# in the template, and note that create -t actually refers to a template.
+# Verify that the template and the file systems it uses exist, and save
+# the root directory of the template into ZTEMPLATEPATH for use later.
 #
 if [[ -n $ZTEMPLATE ]]; then
     ZBRAND=TRIBtemplate-${ZTEMPLATE}
@@ -1146,6 +1147,7 @@ if [[ -n $ZTEMPLATE ]]; then
 	echo "ERROR: unable to find file systems for template ${ZTEMPLATE}"
 	exit 1
     fi
+    ZTEMPLATEPATH=${UDIR%/usr}
 fi
 
 get_mask() {
@@ -1903,6 +1905,9 @@ if [[ -n $ZISOFILE && $ZBRAND != bhyve ]]; then
 fi
 if [[ $ZBRAND = SUNWsolaris10 ]]; then
     printf " -u"
+fi
+if [[ -n $ZTEMPLATE ]]; then
+    printf " -T $ZTEMPLATEPATH"
 fi
 }
 
