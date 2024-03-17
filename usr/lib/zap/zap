@@ -162,7 +162,7 @@ create-zone-template)
 	;;
 list-zone-templates)
 	shift
-	exec ${ZAPLIBDIR}/list-zone-template $*
+	exec ${ZAPLIBDIR}/list-zone-templates $*
 	;;
 destroy-zone-template)
 	shift
