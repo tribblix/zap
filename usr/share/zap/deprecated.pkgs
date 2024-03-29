@@ -333,7 +333,6 @@ TRIBsix-python-39
 TRIBv-python-39
 TRIBv-python-39-tests
 TRIBv-python-39-tkinter
-TRIBfuture-python-311
 TRIBcrtsh-python-311
 TRIBnose-python-311
 TRIBv-openssl3
@@ -365,3 +364,4 @@ TRIBfreealut
 TRIBv-ganttproject
 TRIBimportlib-python-311
 TRIBc7n-python-311
+TRIBxdir
