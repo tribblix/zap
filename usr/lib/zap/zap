@@ -116,6 +116,10 @@ vp|verify-packages)
 	shift
 	exec ${ZAPLIBDIR}/verify-packages $*
 	;;
+ua|update-all-packages)
+	shift
+	exec ${ZAPLIBDIR}/verify-packages ${PKGARGS} -u
+	;;
 check-package|pkgchk)
 	shift
 	exec ${ZAPLIBDIR}/check-package $(${ZAPLIBDIR}/resolve-alias $* | sort -u)
@@ -135,6 +139,13 @@ describe-overlay)
 refresh-filelist)
 	shift
 	exec ${ZAPLIBDIR}/refresh-filelist ${CTXARGS}
+	;;
+ue|update-everything)
+	shift
+	${ZAPLIBDIR}/refresh-overlays ${CTXARGS}
+	${ZAPLIBDIR}/refresh-filelist ${CTXARGS}
+	${ZAPLIBDIR}/update-overlay ${CTXARGS} -a
+	exec ${ZAPLIBDIR}/verify-packages ${PKGARGS} -u
 	;;
 clean-cache)
 	shift
