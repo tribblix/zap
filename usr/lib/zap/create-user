@@ -1,5 +1,7 @@
 #!/bin/sh
 #
+# SPDX-License-Identifier: CDDL-1.0
+#
 # {{{ CDDL HEADER
 #
 # This file and its contents are supplied under the terms of the
@@ -13,7 +15,7 @@
 #
 # }}}
 #
-# Copyright 2023 Peter Tribble
+# Copyright 2024 Peter Tribble
 #
 
 #
@@ -31,7 +33,7 @@ usage() {
 USER_NAME=""
 USER_UID=""
 UID_MIN=1000
-SYS_UID_MIN=10
+SYS_UID_MIN=100
 UID_MAX=60000
 USER_MINLENGTH=3
 USER_MAXLENGTH=16
@@ -174,7 +176,7 @@ if [ -z "$USER_DIR" ]; then
     fi
     USER_DIR=${BASE_DIR}/${USER_NAME}
 else
-    if [ ${USER_DIR:0:1} != / ]; then
+    if [ "${USER_DIR:0:1}" != / ]; then
 	echo "ERROR: home directory must be an absolute path"
 	exit 1
     fi
@@ -209,12 +211,12 @@ if [ -n "${USER_UID}" ]; then
 	echo "ERROR: userid $USER_UID is already in use"
 	exit 1
     fi
-    if [ ${USER_UID} -gt ${UID_MAX} ]; then
+    if [ "${USER_UID}" -gt "${UID_MAX}" ]; then
 	echo "ERROR: uid too large"
 	exit 1
     fi
     # the following check also catches not-a-number
-    if [ ${USER_UID} -le ${SYS_UID_MIN} ]; then
+    if [ "${USER_UID}" -le "${SYS_UID_MIN}" ]; then
 	echo "ERROR: uid too small (or invalid)"
 	exit 1
     fi
