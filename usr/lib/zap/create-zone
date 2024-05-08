@@ -41,7 +41,7 @@
 #  -R Ipv4 network to proxy, in CIDR notation
 #  -s share directory r/o with the zone
 #  -S share directory r/w with the zone
-#  -t brand - sparse, whole, alien, s10, bhyve, or lx [default sparse]
+#  -t brand - sparse, whole, alien, appstack, s10, bhyve, or lx [default sparse]
 #  -T template (implies sparse)
 #  -U share user and their homedir with the zone
 #  -v existing zvol for bhyve to use
@@ -332,6 +332,9 @@ lx|SUNWlx)
 s10|solaris10|SUNWsolaris10)
 	ZBRAND="SUNWsolaris10"
 	;;
+appstack|TRIBappstack)
+	ZBRAND="TRIBappstack"
+	;;
 *)
 	echo "ERROR: unrecognized brand $ZBRAND"
 	usage
@@ -419,6 +422,24 @@ TRIBalien)
 	#
 	if [[ -z $ZISOFILE ]]; then
 	    echo "ERROR: an alien zone requires an image to be specified"
+	    usage
+	fi
+	;;
+TRIBappstack)
+	if [[ -n $ZTEMPLATE ]]; then
+	    echo "ERROR: templates must be sparse-root"
+	    usage
+	fi
+	if [[ -n $ZOVERLAY || -n $ZADDOVERLAY ]]; then
+	   echo "ERROR: cannot specify overlays for appstack zones"
+	   usage
+	fi
+	if [[ -n $ZPACKAGE ]]; then
+	   echo "ERROR: cannot specify copy packages for appstack zones"
+	   usage
+	fi
+	if [[ -n $ZISOFILE ]]; then
+	    echo "ERROR: cannot install an appstack zone from an image"
 	    usage
 	fi
 	;;
@@ -617,6 +638,10 @@ if [[ -n $RIP4 && -z $XIP4 ]]; then
 fi
 if [[ -n $RIP4 && $ZBRAND = TRIBalien ]]; then
     echo "ERROR: proxy zones must not be of type alien"
+    usage
+fi
+if [[ -n $RIP4 && $ZBRAND = TRIBappstack ]]; then
+    echo "ERROR: proxy zones must not be of type appstack"
     usage
 fi
 if [[ -n $RIP4 && $ZBRAND = SUNWsolaris10 ]]; then
@@ -2180,6 +2205,8 @@ fi
 /usr/bin/cp /etc/resolv.conf "${ZROOTBASE}/${ZNAME}/root/etc"
 if [[ $ZBRAND != SUNWlx && $ZBRAND != bhyve ]]; then
     /usr/bin/cp /etc/default/init "${ZROOTBASE}/${ZNAME}/root/etc/default/init"
+    echo "${ZNAME}" > "${ZROOTBASE}/${ZNAME}/root/etc/nodename"
+    /usr/bin/sed -i "s:tribblix:${ZNAME}:g" "${ZROOTBASE}/${ZNAME}/root/etc/inet/hosts"
 fi
 
 #
@@ -2200,6 +2227,7 @@ fi
 
 #
 # copy an ssh key to wherever the zone might expect it
+# not for appstack zones, which aren't expected to be running ssh
 #
 if [[ -n "$SSHKEYFILE" ]]; then
     if [[ $ZBRAND = bhyve ]]; then
