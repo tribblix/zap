@@ -1,5 +1,7 @@
 #!/bin/ksh
 #
+# SPDX-License-Identifier: CDDL-1.0
+#
 # {{{ CDDL HEADER
 #
 # This file and its contents are supplied under the terms of the
@@ -13,7 +15,7 @@
 #
 # }}}
 #
-# Copyright 2023 Peter Tribble
+# Copyright 2024 Peter Tribble
 #
 
 #
@@ -55,15 +57,15 @@ fi
 
 refresh_file_repo() {
     frepo="$1"
-    REPO=$(${ZAPLIBDIR}/zap-cfg ${CTXARGS} repo-url $frepo)
-    ${WCLIENT} ${WARGS} ${CFGDIR}/repositories/${frepo}.filelist.bz2.tmp ${REPO}/filelist.bz2
-    if [ -s ${CFGDIR}/repositories/${frepo}.filelist.bz2.tmp ]; then
-	mv ${CFGDIR}/repositories/${frepo}.filelist.bz2 ${CFGDIR}/repositories/${frepo}.filelist.bz2.bak
-	mv ${CFGDIR}/repositories/${frepo}.filelist.bz2.tmp ${CFGDIR}/repositories/${frepo}.filelist.bz2
+    REPO=$(${ZAPLIBDIR}/zap-cfg ${CTXARGS} repo-url "$frepo")
+    ${WCLIENT} ${WARGS} "${CFGDIR}/repositories/${frepo}.filelist.bz2.tmp" "${REPO}/filelist.bz2"
+    if [ -s "${CFGDIR}/repositories/${frepo}.filelist.bz2.tmp" ]; then
+	mv "${CFGDIR}/repositories/${frepo}.filelist.bz2" "${CFGDIR}/repositories/${frepo}.filelist.bz2.bak"
+	mv "${CFGDIR}/repositories/${frepo}.filelist.bz2.tmp" "${CFGDIR}/repositories/${frepo}.filelist.bz2"
     fi
 }
 
 for repo in $(/usr/bin/awk '{print $2}' ${CFGDIR}/repo.list)
 do
-    refresh_file_repo $repo
+    refresh_file_repo "$repo"
 done

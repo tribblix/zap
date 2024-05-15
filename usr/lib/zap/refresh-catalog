@@ -1,5 +1,7 @@
 #!/bin/ksh
 #
+# SPDX-License-Identifier: CDDL-1.0
+#
 # {{{ CDDL HEADER
 #
 # This file and its contents are supplied under the terms of the
@@ -13,7 +15,7 @@
 #
 # }}}
 #
-# Copyright 2023 Peter Tribble
+# Copyright 2024 Peter Tribble
 #
 
 #
@@ -55,20 +57,20 @@ fi
 
 refresh_repo() {
     frepo="$1"
-    REPO=$(${ZAPLIBDIR}/zap-cfg ${CTXARGS} repo-url $frepo)
-    ${WCLIENT} ${WARGS} ${CFGDIR}/repositories/${frepo}.catalog.tmp ${REPO}/catalog
-    if [ -s ${CFGDIR}/repositories/${frepo}.catalog.tmp ]; then
-	mv ${CFGDIR}/repositories/${frepo}.catalog ${CFGDIR}/repositories/${frepo}.catalog.bak
-	mv ${CFGDIR}/repositories/${frepo}.catalog.tmp ${CFGDIR}/repositories/${frepo}.catalog
+    REPO=$(${ZAPLIBDIR}/zap-cfg ${CTXARGS} repo-url "$frepo")
+    ${WCLIENT} ${WARGS} "${CFGDIR}/repositories/${frepo}.catalog.tmp" "${REPO}/catalog"
+    if [ -s "${CFGDIR}/repositories/${frepo}.catalog.tmp" ]; then
+	mv "${CFGDIR}/repositories/${frepo}.catalog" "${CFGDIR}/repositories/${frepo}.catalog.bak"
+	mv "${CFGDIR}/repositories/${frepo}.catalog.tmp" "${CFGDIR}/repositories/${frepo}.catalog"
     fi
-    ${WCLIENT} ${WARGS} ${CFGDIR}/repositories/${frepo}.aliases.tmp ${REPO}/aliases
-    if [ -s ${CFGDIR}/repositories/${frepo}.aliases.tmp ]; then
-	mv ${CFGDIR}/repositories/${frepo}.aliases ${CFGDIR}/repositories/${frepo}.aliases.bak
-	mv ${CFGDIR}/repositories/${frepo}.aliases.tmp ${CFGDIR}/repositories/${frepo}.aliases
+    ${WCLIENT} ${WARGS} "${CFGDIR}/repositories/${frepo}.aliases.tmp" "${REPO}/aliases"
+    if [ -s "${CFGDIR}/repositories/${frepo}.aliases.tmp" ]; then
+	mv "${CFGDIR}/repositories/${frepo}.aliases" "${CFGDIR}/repositories/${frepo}.aliases.bak"
+	mv "${CFGDIR}/repositories/${frepo}.aliases.tmp" "${CFGDIR}/repositories/${frepo}.aliases"
     fi
 }
 
-for repo in $(/usr/bin/awk '{print $2}' ${CFGDIR}/repo.list)
+for repo in $(/usr/bin/awk '{print $2}' "${CFGDIR}/repo.list")
 do
-    refresh_repo $repo
+    refresh_repo "$repo"
 done

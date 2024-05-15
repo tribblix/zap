@@ -1,5 +1,7 @@
 #!/bin/ksh
 #
+# SPDX-License-Identifier: CDDL-1.0
+#
 # {{{ CDDL HEADER
 #
 # This file and its contents are supplied under the terms of the
@@ -13,7 +15,7 @@
 #
 # }}}
 #
-# Copyright 2023 Peter Tribble
+# Copyright 2024 Peter Tribble
 #
 
 #
@@ -41,10 +43,10 @@ case $1 in
     ;;
 esac
 
-for pkg in `${ZAPLIBDIR}/resolve-alias $*`
+for pkg in $(${ZAPLIBDIR}/resolve-alias "$@")
 do
-	if [ -f ${DESTROOT}/var/sadm/pkg/${pkg}/pkginfo ]; then
+	if [ -f "${DESTROOT}/var/sadm/pkg/${pkg}/pkginfo" ]; then
                 echo "Removing ${UTEXT}$pkg"
-                /usr/sbin/pkgrm -n -a ${ZAPLIBDIR}/pkg.force ${BFLAGS} $pkg
+                /usr/sbin/pkgrm -n -a ${ZAPLIBDIR}/pkg.force ${BFLAGS} "$pkg"
         fi
 done

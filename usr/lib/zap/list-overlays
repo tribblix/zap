@@ -1,5 +1,7 @@
 #!/bin/ksh
 #
+# SPDX-License-Identifier: CDDL-1.0
+#
 # {{{ CDDL HEADER
 #
 # This file and its contents are supplied under the terms of the
@@ -13,7 +15,7 @@
 #
 # }}}
 #
-# Copyright 2023 Peter Tribble
+# Copyright 2024 Peter Tribble
 #
 
 ODIR="/var/sadm/overlays"
@@ -68,7 +70,7 @@ fi
 #
 typeset -A omap
 if [[ -n "$VERBOSE" ]]; then
-    grep '^NAME=' ${DESTROOT}/${ODIR}/*.ovl | while read -r line
+    grep '^NAME=' "${DESTROOT}"/${ODIR}/*.ovl | while read -r line
     do
 	namestr=${line##*:}
 	namestr=${namestr##*=}

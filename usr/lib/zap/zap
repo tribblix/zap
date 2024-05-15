@@ -1,5 +1,7 @@
 #!/bin/ksh
 #
+# SPDX-License-Identifier: CDDL-1.0
+#
 # {{{ CDDL HEADER
 #
 # This file and its contents are supplied under the terms of the
@@ -56,7 +58,7 @@ case $1 in
 		exit 1
 		;;
 	esac
-	exec ${ZAPLIBDIR}/run-in-zone -z $ZNAME $*
+	exec ${ZAPLIBDIR}/run-in-zone -z $ZNAME "$@"
 	;;
 esac
 
@@ -66,55 +68,55 @@ esac
 case $1 in
 upgrade)
 	shift
-	exec ${ZAPLIBDIR}/upgrade $*
+	exec ${ZAPLIBDIR}/upgrade "$@"
 	;;
 r|get|retrieve)
 	shift
-	exec ${ZAPLIBDIR}/retrieve-pkg ${CTXARGS} $*
+	exec ${ZAPLIBDIR}/retrieve-pkg ${CTXARGS} "$@"
 	;;
 i|ip|add|install)
 	shift
-	exec ${ZAPLIBDIR}/install-pkg ${CTXARGS} $*
+	exec ${ZAPLIBDIR}/install-pkg ${CTXARGS} "$@"
 	;;
 install-recursive)
 	shift
-	exec ${ZAPLIBDIR}/install-recursive ${CTXARGS} $*
+	exec ${ZAPLIBDIR}/install-recursive ${CTXARGS} "$@"
 	;;
 up|update)
 	shift
-	exec ${ZAPLIBDIR}/update-package ${CTXARGS} $*
+	exec ${ZAPLIBDIR}/update-package ${CTXARGS} "$@"
 	;;
 d|dp|del|delete|uninstall)
 	shift
-	exec ${ZAPLIBDIR}/delpkg ${PKGARGS} $*
+	exec ${ZAPLIBDIR}/delpkg ${PKGARGS} "$@"
 	;;
 io|add-overlay|install-overlay)
 	shift
-	exec ${ZAPLIBDIR}/install-overlay ${CTXARGS} $*
+	exec ${ZAPLIBDIR}/install-overlay ${CTXARGS} "$@"
 	;;
 uo|update-overlay)
 	shift
-	exec ${ZAPLIBDIR}/update-overlay ${CTXARGS} $*
+	exec ${ZAPLIBDIR}/update-overlay ${CTXARGS} "$@"
 	;;
 do|delete-overlay|uninstall-overlay)
 	shift
-	exec ${ZAPLIBDIR}/uninstall-overlay $*
+	exec ${ZAPLIBDIR}/uninstall-overlay "$@"
 	;;
 lo|list-overlays)
 	shift
-	exec ${ZAPLIBDIR}/list-overlays $*
+	exec ${ZAPLIBDIR}/list-overlays "$@"
 	;;
 vo|verify-overlay)
 	shift
-	exec ${ZAPLIBDIR}/verify-overlay $*
+	exec ${ZAPLIBDIR}/verify-overlay "$@"
 	;;
 lp|list-packages)
 	shift
-	exec /usr/bin/pkginfo ${PKGARGS} $(${ZAPLIBDIR}/resolve-alias $* | sort -u)
+	exec /usr/bin/pkginfo ${PKGARGS} $(${ZAPLIBDIR}/resolve-alias "$@" | sort -u)
 	;;
 vp|verify-packages)
 	shift
-	exec ${ZAPLIBDIR}/verify-packages $*
+	exec ${ZAPLIBDIR}/verify-packages "$@"
 	;;
 ua|update-all-packages)
 	shift
@@ -122,7 +124,7 @@ ua|update-all-packages)
 	;;
 check-package|pkgchk)
 	shift
-	exec ${ZAPLIBDIR}/check-package $(${ZAPLIBDIR}/resolve-alias $* | sort -u)
+	exec ${ZAPLIBDIR}/check-package $(${ZAPLIBDIR}/resolve-alias "$@" | sort -u)
 	;;
 refresh|refresh-overlays|refresh-catalog)
 	shift
@@ -130,11 +132,11 @@ refresh|refresh-overlays|refresh-catalog)
 	;;
 describe-package)
 	shift
-	exec /usr/bin/pkginfo ${PKGARGS} -l $(${ZAPLIBDIR}/resolve-alias $* | sort -u)
+	exec /usr/bin/pkginfo ${PKGARGS} -l $(${ZAPLIBDIR}/resolve-alias "$@" | sort -u)
 	;;
 describe-overlay)
 	shift
-	exec ${ZAPLIBDIR}/describe-overlay $*
+	exec ${ZAPLIBDIR}/describe-overlay "$@"
 	;;
 refresh-filelist)
 	shift
@@ -149,67 +151,67 @@ ue|update-everything)
 	;;
 clean-cache)
 	shift
-	exec ${ZAPLIBDIR}/clean-cache ${CTXARGS} $*
+	exec ${ZAPLIBDIR}/clean-cache ${CTXARGS} "$@"
 	;;
 set-hostname)
 	shift
-	exec ${ZAPLIBDIR}/set-hostname ${CTXARGS} $*
+	exec ${ZAPLIBDIR}/set-hostname ${CTXARGS} "$@"
 	;;
 set-timezone)
 	shift
-	exec ${ZAPLIBDIR}/set-timezone ${CTXARGS} $*
+	exec ${ZAPLIBDIR}/set-timezone ${CTXARGS} "$@"
 	;;
 cz|create-zone)
 	shift
-	exec ${ZAPLIBDIR}/create-zone $*
+	exec ${ZAPLIBDIR}/create-zone "$@"
 	;;
 dz|destroy-zone)
 	shift
-	exec ${ZAPLIBDIR}/destroy-zone $*
+	exec ${ZAPLIBDIR}/destroy-zone "$@"
 	;;
 create-zone-template)
 	shift
-	exec ${ZAPLIBDIR}/create-zone-template $*
+	exec ${ZAPLIBDIR}/create-zone-template "$@"
 	;;
 list-zone-templates)
 	shift
-	exec ${ZAPLIBDIR}/list-zone-templates $*
+	exec ${ZAPLIBDIR}/list-zone-templates "$@"
 	;;
 destroy-zone-template)
 	shift
-	exec ${ZAPLIBDIR}/destroy-zone-template $*
+	exec ${ZAPLIBDIR}/destroy-zone-template "$@"
 	;;
 list-services)
 	shift
-	exec ${ZAPLIBDIR}/zap-service -list $*
+	exec ${ZAPLIBDIR}/zap-service -list "$@"
 	;;
 show-services)
 	shift
-	exec ${ZAPLIBDIR}/zap-service -show $*
+	exec ${ZAPLIBDIR}/zap-service -show "$@"
 	;;
 enable-services)
 	shift
-	exec ${ZAPLIBDIR}/zap-service -enable $*
+	exec ${ZAPLIBDIR}/zap-service -enable "$@"
 	;;
 disable-services)
 	shift
-	exec ${ZAPLIBDIR}/zap-service -disable $*
+	exec ${ZAPLIBDIR}/zap-service -disable "$@"
 	;;
 add-locale)
 	shift
-	exec ${ZAPLIBDIR}/add-locale ${CTXARGS} $*
+	exec ${ZAPLIBDIR}/add-locale ${CTXARGS} "$@"
 	;;
 remove-locale)
 	shift
-	exec ${ZAPLIBDIR}/add-locale ${PKGARGS} -d $*
+	exec ${ZAPLIBDIR}/add-locale ${PKGARGS} -d "$@"
 	;;
 installed-locales)
 	shift
-	exec ${ZAPLIBDIR}/add-locale ${PKGARGS} -i $*
+	exec ${ZAPLIBDIR}/add-locale ${PKGARGS} -i "$@"
 	;;
 list-locales)
 	shift
-	exec ${ZAPLIBDIR}/add-locale ${PKGARGS} -l $*
+	exec ${ZAPLIBDIR}/add-locale ${PKGARGS} -l "$@"
 	;;
 useradd|create-user)
 	shift
@@ -217,42 +219,42 @@ useradd|create-user)
 	;;
 userdel|delete-user)
 	shift
-	exec ${ZAPLIBDIR}/delete-user $*
+	exec ${ZAPLIBDIR}/delete-user "$@"
 	;;
 search)
 	shift
-	exec ${ZAPLIBDIR}/search $*
+	exec ${ZAPLIBDIR}/search "$@"
 	;;
 whatprovides)
 	shift
-	exec ${ZAPLIBDIR}/whatprovides $*
+	exec ${ZAPLIBDIR}/whatprovides "$@"
 	;;
 list-package-repos|list-overlay-repos|describe-package-repo|describe-overlay-repo|remove-package-repo|remove-overlay-repo|add-package-repo|add-overlay-repo|modify-package-repo|modify-overlay-repo)
 	exec ${ZAPLIBDIR}/manage-repos "$@"
 	;;
 copy-package-repo)
 	shift
-	exec ${ZAPLIBDIR}/copy-package-repo $*
+	exec ${ZAPLIBDIR}/copy-package-repo "$@"
 	;;
 copy-overlay-repo)
 	shift
-	exec ${ZAPLIBDIR}/copy-overlay-repo $*
+	exec ${ZAPLIBDIR}/copy-overlay-repo "$@"
 	;;
 staticnet)
 	shift
-	exec ${ZAPLIBDIR}/staticnet-nwam.sh $*
+	exec ${ZAPLIBDIR}/staticnet-nwam.sh "$@"
 	;;
 unconfigure|sys-unconfig)
 	shift
-	exec ${ZAPLIBDIR}/unconfigure $*
+	exec ${ZAPLIBDIR}/unconfigure "$@"
 	;;
 remove-cd|remove-cdrom|remove-iso)
 	shift
-	exec ${ZAPLIBDIR}/remove-cd $*
+	exec ${ZAPLIBDIR}/remove-cd "$@"
 	;;
 h|help)
 	shift
-	exec ${ZAPLIBDIR}/zap-help $*
+	exec ${ZAPLIBDIR}/zap-help "$@"
 	;;
 *)
 	echo "Unrecognized subcommand $1"

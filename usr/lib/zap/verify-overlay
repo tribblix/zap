@@ -1,5 +1,7 @@
 #!/bin/ksh
 #
+# SPDX-License-Identifier: CDDL-1.0
+#
 # {{{ CDDL HEADER
 #
 # This file and its contents are supplied under the terms of the
@@ -45,16 +47,16 @@ typeset -A map_repo
 repolist=$(${ZAPLIBDIR}/zap-cfg ${CTXARGS} list-pkg-repos)
 for repo in $repolist
 do
-    if [ -f ${CFGDIR}/repositories/${repo}.catalog ]; then
+    if [ -f "${CFGDIR}/repositories/${repo}.catalog" ]; then
 	IFS='|'
-	while read npkg nver line
+	while read -r npkg nver line
 	do
 	    if [ -z "${map_ver[$npkg]}" ]; then
 		# remember this if we've not seen it before
 		map_ver[$npkg]=$nver
 		map_repo[$npkg]=$repo
 	    fi
-	done < ${CFGDIR}/repositories/${repo}.catalog
+	done < "${CFGDIR}/repositories/${repo}.catalog"
     fi
     unset IFS
 done
@@ -79,7 +81,7 @@ fi
 #
 # if we're not installed then nothing else to verify
 #
-if [ ! -f ${ODIR}/installed/${ONAME} ]; then
+if [ ! -f "${ODIR}/installed/${ONAME}" ]; then
     echo "Overlay ${ONAME} is not installed"
     return 0
 fi
@@ -89,12 +91,12 @@ STATUS=0
 #
 # first check dependencies on other overlays
 #
-for tovl in $(<${OVL})
+for tovl in $(<"${OVL}")
 do
     case $tovl in
 	REQUIRES*)
 	    novl=${tovl#REQUIRES=}
-	    if [ ! -f ${ODIR}/installed/${novl} ]; then
+	    if [ ! -f "${ODIR}/installed/${novl}" ]; then
 		echo "ERROR: prerequisite overlay ${novl} is not installed"
 		STATUS=1
 	    fi
@@ -108,9 +110,9 @@ done
 # first report on any uninstalled packages
 #
 npkg=""
-for pkg in $(<${PLIST})
+for pkg in $(<"${PLIST}")
 do
-  if [ ! -f ${DESTROOT}/var/sadm/pkg/${pkg}/pkginfo ]; then
+  if [ ! -f "${DESTROOT}/var/sadm/pkg/${pkg}/pkginfo" ]; then
       echo "ERROR: member package ${pkg} is not installed"
       STATUS=1
   else
@@ -124,7 +126,7 @@ done
 for pkg in $npkg
 do
     IVERSION=""
-    while read line
+    while read -r line
     do
 	case $line in
 	    VERSION*)
@@ -132,7 +134,7 @@ do
 		break
 		;;
 	esac
-    done<${DESTROOT}/var/sadm/pkg/${pkg}/pkginfo
+    done<"${DESTROOT}/var/sadm/pkg/${pkg}/pkginfo"
     AREPO=${map_repo[$pkg]}
     RVERSION=${map_ver[$pkg]}
     if [ "$AREPO" != "opensxce" ]; then
@@ -159,15 +161,15 @@ esac
 #
 case $ONAME in
 -a)
-	cd ${ODIR}/installed
+	cd "${ODIR}/installed" || exit 1
 	for do_ovl in *
 	do
 	    echo "Checking overlay ${do_ovl}"
-	    do_verify_overlay ${do_ovl}
+	    do_verify_overlay "${do_ovl}"
 	done
 	exit 0
 	;;
 esac
 
-do_verify_overlay $ONAME
-exit $STATUS
+do_verify_overlay "$ONAME"
+exit "$STATUS"
