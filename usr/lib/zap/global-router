@@ -1,5 +1,7 @@
 #!/bin/ksh
 #
+# SPDX-License-Identifier: CDDL-1.0
+#
 # {{{ CDDL HEADER
 #
 # This file and its contents are supplied under the terms of the
@@ -13,7 +15,7 @@
 #
 # }}}
 #
-# Copyright 2023 Peter Tribble
+# Copyright 2024 Peter Tribble
 #
 
 #
@@ -58,7 +60,210 @@ R)
 esac
 done
 
- configured on it
+#
+# for any routing/proxy, verify we're being given sensible information
+# It must look like a.b.c.d/n, and d must be zero
+# rewrite addresses from the network address to the host address of .1
+# check no other zone is routing this network
+#
+if [[ -n $RIP4 ]]; then
+    for RIP in $RIP4
+    do
+	case $RIP in
+	    *.*.*.*.*)
+		echo "Invalid proxy network $RIP"
+		echo "  Expected a.b.c.d/prefix"
+		exit 2
+		;;
+	    */*/*)
+		echo "Invalid proxy network $RIP"
+		echo "  Expected a.b.c.d/prefix"
+		exit 2
+		;;
+	    *.*.*.*/*)
+		RPREFIX=${RIP##*/}
+		RSUBNET=${RIP%/*}
+		echo $RSUBNET | tr '.' ' '|read OCT1 OCT2 OCT3 OCT4
+		if [ $OCT1 -lt 1 -o $OCT1 -gt 223 ]; then
+		    echo "Invalid proxy network $RIP"
+		    echo "  first octet $OCT1 out of range"
+		    exit 2
+		fi
+		if [ $OCT2 -lt 0 -o $OCT2 -gt 255 ]; then
+		    echo "Invalid proxy network $RIP"
+		    echo "  second octet $OCT2 out of range"
+		    exit 2
+		fi
+		if [ $OCT3 -lt 0 -o $OCT3 -gt 255 ]; then
+		    echo "Invalid proxy network $RIP"
+		    echo "  third octet $OCT3 out of range"
+		    exit 2
+		fi
+		if [ $OCT4 -ne 0 ]; then
+		    echo "Invalid proxy network $RIP"
+		    echo "  fourth octet $OCT4 out of range, must be 0"
+		    exit 2
+		fi
+		case $RPREFIX in
+		    8)
+			if [ $OCT2 -ne 0 ]; then
+			    echo "Invalid proxy network $RIP"
+			    echo "  second octet $OCT2 out of range, must be zero for /8"
+			    exit 2
+			fi
+			if [ $OCT3 -ne 0 ]; then
+			    echo "Invalid proxy address $RIP"
+			    echo "  third octet $OCT3 out of range, must be zero for /8"
+			    exit 2
+			fi
+			if [ -f "${ZSDIR}/rconfig.${OCT1}" ]; then
+			    ZOWNER=$(/usr/bin/grep zone: ${ZSDIR}/rconfig.${OCT1} | /usr/bin/awk '{print $NF}')
+			    echo "ERROR: network $RIP is already in use by zone $ZOWNER"
+			    exit 2
+			fi
+			NRIP4="$NRIP4 ${OCT1}.${OCT2}.${OCT3}.1/${RPREFIX}"
+			;;
+		    16)
+			if [ $OCT3 -ne 0 ]; then
+			    echo "Invalid proxy address $RIP"
+			    echo "  third octet $OCT3 out of range, must be zero for /16"
+			    exit 2
+			fi
+			if [ -f "${ZSDIR}/rconfig.${OCT1}" ]; then
+			    ZOWNER=$(/usr/bin/grep zone: ${ZSDIR}/rconfig.${OCT1} | /usr/bin/awk '{print $NF}')
+			    echo "ERROR: parent network ${OCT1}.0.0.0/8 for $RIP is already in use by zone $ZOWNER"
+			    exit 2
+			fi
+			if [ -f "${ZSDIR}/rconfig.${OCT1}.${OCT2}" ]; then
+			    ZOWNER=$(/usr/bin/grep zone: ${ZSDIR}/rconfig.${OCT1}.${OCT2} | /usr/bin/awk '{print $NF}')
+			    echo "ERROR: network $RIP is already in use by zone $ZOWNER"
+			    exit 2
+			fi
+			NRIP4="$NRIP4 ${OCT1}.${OCT2}.${OCT3}.1/${RPREFIX}"
+			;;
+		    24)
+			if [ -f "${ZSDIR}/rconfig.${OCT1}" ]; then
+			    ZOWNER=$(/usr/bin/grep zone: ${ZSDIR}/rconfig.${OCT1} | /usr/bin/awk '{print $NF}')
+			    echo "ERROR: parent network ${OCT1}.0.0.0/8 for $RIP is already in use by zone $ZOWNER"
+			    exit 2
+			fi
+			if [ -f "${ZSDIR}/rconfig.${OCT1}.${OCT2}" ]; then
+			    ZOWNER=$(/usr/bin/grep zone: ${ZSDIR}/rconfig.${OCT1}.${OCT2} | /usr/bin/awk '{print $NF}')
+			    echo "ERROR: parent network ${OCT1}.${OCT2}.0.0/16 for $RIP is already in use by zone $ZOWNER"
+			    exit 2
+			fi
+			if [ -f "${ZSDIR}/rconfig.${OCT1}.${OCT2}.${OCT3}" ]; then
+			    ZOWNER=$(/usr/bin/grep zone: ${ZSDIR}/rconfig.${OCT1}.${OCT2}.${OCT3} | /usr/bin/awk '{print $NF}')
+			    echo "ERROR: network $RIP is already in use by zone $ZOWNER"
+			    exit 2
+			fi
+			NRIP4="$NRIP4 ${OCT1}.${OCT2}.${OCT3}.1/${RPREFIX}"
+			;;
+		    *)
+			echo "Invalid proxy prefix /$RPREFIX"
+			echo "  Supported values: /8 /16 /24"
+			exit 2
+			;;
+		esac
+		;;
+	    *)
+		echo "Invalid proxy address $RIP"
+		echo "  Expected a.b.c.d/prefix"
+		exit 2
+		;;
+	esac
+    done
+    ORIP4=$RIP4
+    RIP4=$NRIP4
+fi
+
+#
+# return the short form of the network address - just the significant octets
+# we only support /8 /16 /24 for router/proxy zones so no need to check
+#
+get_short_net() {
+    IIP=$1
+    SRPREFIX=${IIP##*/}
+    SRSUBNET=${IIP%/*}
+    echo $SRSUBNET | tr '.' ' '|read OCT1 OCT2 OCT3 OCT4
+    case $SRPREFIX in
+	8)
+	    echo "${OCT1}"
+	    ;;
+	16)
+	    echo "${OCT1}.${OCT2}"
+	    ;;
+	24)
+	    echo "${OCT1}.${OCT2}.${OCT3}"
+	    ;;
+    esac
+}
+
+#
+# For router/proxy zones we create an etherstub for the internal virtual
+# network, and create a vnic over that etherstub. The router/proxy zone
+# will have the matching .1 address on that network. We also create an
+# extra vnic that can be used to connect shared-ip zones to the internal
+# network, as they need some form of link to run over
+#
+# the naming convention is that vnics attached to zones are called znic,
+# while the shared vnics are called snic
+#
+# Note that the destroy script must have been initialized above as we
+# require a router/proxy zone to have an exclusive-ip address, and we
+# carry on enumerating ZENUM where we left off
+#
+ZRNUM=0
+ZSNUM=0
+ZENUM=$(($ZENUM+1))
+for IP in $RIP4
+do
+	/usr/sbin/dladm show-etherstub "zrstub$ZRNUM" > /dev/null 2>&1
+	ZRSTATUS=$?
+	while [ $ZRSTATUS -eq 0 ]
+	do
+	    ZRNUM=$(($ZRNUM+1))
+	    /usr/sbin/dladm show-etherstub "zrstub$ZRNUM" > /dev/null 2>&1
+	    ZRSTATUS=$?
+	done
+	ZIFACE=zrstub$ZRNUM
+	/usr/sbin/dladm create-etherstub "$ZIFACE"
+	#
+	# create the vnic attached to the router/proxy zone that's
+	# connected to the routed subnet
+	#
+	/usr/sbin/dladm show-vnic "znic$ZENUM" > /dev/null 2>&1
+	ZESTATUS=$?
+	while [ $ZESTATUS -eq 0 ]
+	do
+	    ZENUM=$(($ZENUM+1))
+	    /usr/sbin/dladm show-vnic "znic$ZENUM" > /dev/null 2>&1
+	    ZESTATUS=$?
+	done
+	/usr/sbin/dladm create-vnic -l "$ZIFACE" "znic$ZENUM"
+	echo "/usr/sbin/dladm delete-vnic znic$ZENUM" >> "${ZSDIR}/destroy.${ZNAME}"
+	#
+	# create the second vnic connected to the routed subnet
+	# that can be used for shared-ip zones
+	#
+	# this vnic must have an IP interface enabled (ie plumbed) in
+	# the global zone but doesn't need an address configured, and
+	# it won't be associated with any zones at this point
+	#
+	/usr/sbin/dladm show-vnic "snic$ZSNUM" > /dev/null 2>&1
+	ZSSTATUS=$?
+	while [ $ZSSTATUS -eq 0 ]
+	do
+	    ZSNUM=$(($ZSNUM+1))
+	    /usr/sbin/dladm show-vnic "snic$ZSNUM" > /dev/null 2>&1
+	    ZSSTATUS=$?
+	done
+	/usr/sbin/dladm create-vnic -l "$ZIFACE" "snic$ZSNUM"
+	/usr/sbin/ipadm create-if "snic$ZSNUM"
+	echo "/usr/sbin/ipadm delete-if snic$ZSNUM" >> "${ZSDIR}/destroy.${ZNAME}"
+	echo "/usr/sbin/dladm delete-vnic snic$ZSNUM" >> "${ZSDIR}/destroy.${ZNAME}"
+	#
+	# delete the etherstub after the vnics configured on it
 	#
 	echo "/usr/sbin/dladm delete-etherstub $ZIFACE" >> "${ZSDIR}/destroy.${ZNAME}"
 	ifipmap[znic$ZENUM]=$IP
