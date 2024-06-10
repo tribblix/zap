@@ -76,3 +76,4 @@ TRIBsys-boot-loader
 TRIBsys-boot-real-mode
 TRIBdrv-net-socal
 TRIBdrv-storage-sf
+TRIBtesseract
