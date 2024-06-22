@@ -1,5 +1,7 @@
 #!/bin/ksh
 #
+# SPDX-License-Identifier: CDDL-1.0
+#
 # {{{ CDDL HEADER
 #
 # This file and its contents are supplied under the terms of the
@@ -13,7 +15,7 @@
 #
 # }}}
 #
-# Copyright 2023 Peter Tribble
+# Copyright 2024 Peter Tribble
 #
 
 #
@@ -1031,7 +1033,7 @@ fi
 #
 # check any overlays are valid
 # -o - error if this overlay isn't installed
-# -o/-O - error if this is not a valid overlay 
+# -o/-O - error if this is not a valid overlay
 #
 for OVL in $ZOVERLAY
 do
@@ -2180,7 +2182,7 @@ if [[ -n $ISROUTER ]]; then
     # running as user dnsmasq with privileges was tested and failed
     echo "user=dnsmasq" >> "${ZROOTBASE}/${ZNAME}/root/etc/dnsmasq.conf"
     # a dhcp-range entry is required to enable the dhcp server
-    # all configuration is static, we fix the IP addresses 
+    # all configuration is static, we fix the IP addresses
     for subnet in $ORIP4
     do
 	echo "dhcp-range=${subnet%/*},static" >> "${ZROOTBASE}/${ZNAME}/root/etc/dnsmasq.conf"

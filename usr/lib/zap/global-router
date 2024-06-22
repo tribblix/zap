@@ -351,7 +351,7 @@ if [[ -n $ISROUTER ]]; then
     # running as user dnsmasq with privileges was tested and failed
     echo "user=dnsmasq" >> "/etc/dnsmasq.conf"
     # a dhcp-range entry is required to enable the dhcp server
-    # all configuration is static, we fix the IP addresses 
+    # all configuration is static, we fix the IP addresses
     for subnet in $ORIP4
     do
 	echo "dhcp-range=${subnet%/*},static" >> "/etc/dnsmasq.conf"

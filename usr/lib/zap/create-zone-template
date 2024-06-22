@@ -1,5 +1,7 @@
 #!/bin/ksh
 #
+# SPDX-License-Identifier: CDDL-1.0
+#
 # {{{ CDDL HEADER
 #
 # This file and its contents are supplied under the terms of the
@@ -21,7 +23,6 @@
 # sparse-root zones rather than using the global zone. The template itself
 # is created just like a zone, but is a full zone, so has to be either
 # whole-root or alien-root.
-# 
 #
 # Usage:
 #
@@ -162,7 +163,7 @@ esac
 #
 # check any overlays are valid
 # -o - error if this overlay isn't installed
-# -o/-O - error if this is not a valid overlay 
+# -o/-O - error if this is not a valid overlay
 #
 for OVL in $ZOVERLAY
 do

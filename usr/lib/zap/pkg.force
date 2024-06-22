@@ -1,4 +1,4 @@
-#ident	"@(#)default	1.4	92/12/23 SMI"	/* SVr4.0  1.5.2.1	*/ 
+#ident	"@(#)default	1.4	92/12/23 SMI"	/* SVr4.0  1.5.2.1	*/
 mail=
 instance=unique
 partial=ask
