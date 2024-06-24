@@ -1711,11 +1711,13 @@ if [[ $ZBRAND != bhyve ]]; then
 	echo add capped-memory
 	echo set physical=$RAMSPEC
 	echo end
+	echo "memory: $RAMSPEC" >> "${ZSDIR}/zconfig.${ZNAME}"
     fi
     if [[ -n $CPUSPEC ]]; then
 	echo add capped-cpu
 	echo set ncpus=$CPUSPEC
 	echo end
+	echo "cpus: $CPUSPEC" >> "${ZSDIR}/zconfig.${ZNAME}"
     fi
 fi
 #
@@ -1837,6 +1839,7 @@ if [[ $ZBRAND = bhyve ]]; then
 	echo set type=string
 	echo set value=$RAMSPEC
 	echo end
+	echo "memory: $RAMSPEC" >> "${ZSDIR}/zconfig.${ZNAME}"
     fi
     if [[ -n $CPUSPEC ]]; then
 	echo add attr
@@ -1844,6 +1847,7 @@ if [[ $ZBRAND = bhyve ]]; then
 	echo set type=string
 	echo set value=$CPUSPEC
 	echo end
+	echo "cpus: $CPUSPEC" >> "${ZSDIR}/zconfig.${ZNAME}"
     fi
     if [[ -n $CLOUDINIT ]]; then
 	echo add attr
