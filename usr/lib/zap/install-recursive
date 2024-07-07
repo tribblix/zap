@@ -25,8 +25,11 @@
 # needs to guarantee to converge
 #
 ZAPLIBDIR="/usr/lib/zap"
+ODIR="/var/sadm/overlays"
+INSTODIR="${ODIR}"
 CTXARGS=""
 DESTROOT=""
+SRCARGS=""
 
 #
 # we need tsort to install in dependency order
@@ -51,6 +54,8 @@ case $1 in
 	    echo "ERROR: alternate root $DESTROOT doesn't exist"
 	    exit 1
 	fi
+	INSTODIR="${DESTROOT}/${ODIR}"
+	OVLARGS="-C ${DESTROOT}"
 	;;
 esac
 
@@ -63,12 +68,14 @@ case $1 in
 	    echo "ERROR: alternate root $DESTROOT doesn't exist"
 	    exit 1
 	fi
+	INSTODIR="${DESTROOT}/${ODIR}"
+	OVLARGS="-R ${DESTROOT}"
 	;;
 esac
 
 case $1 in
 -s)
-	INSTARGS="-s $2"
+	SRCARGS="-s $2"
 	shift
 	shift
 	;;
@@ -80,6 +87,19 @@ case $# in
 	exit 1
 	;;
 esac
+
+#
+# if we're passed an overlay, treat it as such
+#
+for ovl in "$@"
+do
+    if [ -f "${INSTODIR}/${ovl}.ovl" ]; then
+	if [ ! -f "${INSTODIR}/installed/${ovl}" ]; then
+	    echo "Installing matching overlay $ovl"
+	    ${ZAPLIBDIR}/install-overlay ${OVLARGS} ${SRCARGS} "$ovl"
+	fi
+    fi
+done
 
 #
 # avoid having to look up information repeatedly
@@ -173,4 +193,4 @@ done | $TSORT
 
 echo "\nInstalling ${ntoinstall} packages:\n${npkglist}\n"
 
-${ZAPLIBDIR}/install-pkg ${CTXARGS} ${INSTARGS} $(gensort)
+${ZAPLIBDIR}/install-pkg ${CTXARGS} ${SRCARGS} $(gensort)
