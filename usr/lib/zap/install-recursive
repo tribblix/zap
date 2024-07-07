@@ -137,7 +137,11 @@ do
     if [ "X$fpkg" != "X$inpkg" ]; then
 	npkglist="${npkglist} $inpkg"
     else
-	echo "Invalid package $inpkg"
+	if [ -f "${INSTODIR}/${inpkg}.ovl" ]; then
+	    echo "Skipping overlay $inpkg"
+	else
+	    echo "Invalid package $inpkg"
+	fi
     fi
 done
 
