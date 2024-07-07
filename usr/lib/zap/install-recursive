@@ -156,6 +156,7 @@ do
 	    echo "Skipping overlay $inpkg"
 	else
 	    echo "Invalid package $inpkg"
+	    ${ZAPLIBDIR}/psearch "$inpkg"
 	fi
     fi
 done
