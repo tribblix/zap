@@ -34,14 +34,29 @@ SRCARGS=""
 #
 # we need tsort to install in dependency order
 # coreutils is in the base overlay, so it should be installed
-# fall back on the one in TRIBdev-object-file just in case
+# fall back on the one in SUNWcs (originally in TRIBdev-object-file)
+# which is in core-tribblix
 #
 TSORT="/usr/gnu/bin/tsort"
 if [ ! -x "${TSORT}" ]; then
     TSORT="/usr/bin/tsort"
 fi
 if [ ! -x "${TSORT}" ]; then
-    echo "ERROR: tsort missing, install TRIBfile-gnu-coreutils"
+    #
+    # something has gone horribly wrong, attempt to recover by
+    # installing coreutils, in the current context
+    #
+    echo "ERROR: tsort missing, installing TRIBfile-gnu-coreutils"
+    ${ZAPLIBDIR}/install-pkg TRIBfile-gnu-coreutils
+    TSORT="/usr/gnu/bin/tsort"
+fi
+if [ ! -x "${TSORT}" ]; then
+    #
+    # horribly wrong doesn't cover it, but we need to make the best
+    # possible effort so that we can install something
+    #
+    echo "ERROR: tsort still missing, continuing in degraded mode"
+    TSORT="cat"
 fi
 
 case $1 in
