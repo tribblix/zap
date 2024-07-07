@@ -1,5 +1,7 @@
 #!/bin/ksh
 #
+# SPDX-License-Identifier: CDDL-1.0
+#
 # {{{ CDDL HEADER
 #
 # This file and its contents are supplied under the terms of the
@@ -24,7 +26,6 @@ DESTROOT=""
 SRCARGS=""
 NINSTALLED=0
 NFAILED=0
-DOPKGS=""
 
 case $1 in
 -C)
@@ -93,12 +94,12 @@ esac
 #
 # if we're passed an overlay, treat it as such
 #
-for ovl in $*
+for ovl in "$@"
 do
-    if [ -f ${INSTODIR}/${ovl}.ovl ]; then
-	if [ ! -f ${INSTODIR}/installed/${ovl} ]; then
+    if [ -f "${INSTODIR}/${ovl}.ovl" ]; then
+	if [ ! -f "${INSTODIR}/installed/${ovl}" ]; then
 	    echo "Installing matching overlay $ovl"
-	    ${ZAPLIBDIR}/install-overlay ${OVLARGS} ${SRCARGS} $ovl
+	    ${ZAPLIBDIR}/install-overlay ${OVLARGS} ${SRCARGS} "$ovl"
 	fi
     fi
 done
@@ -106,25 +107,26 @@ done
 #
 # first look for and download any packages we need
 #
-for pkg in `${ZAPLIBDIR}/resolve-alias ${CTXARGS} $*`
+pkglist=""
+for pkg in $(${ZAPLIBDIR}/resolve-alias ${CTXARGS} "$@")
 do
-  if [ -f ${DESTROOT}/var/sadm/pkg/${pkg}/pkginfo ]; then
+  if [ -f "${DESTROOT}/var/sadm/pkg/${pkg}/pkginfo" ]; then
     echo "Package $pkg already installed"
   else
-    DOPKGS="${DOPKGS} $pkg"
+    pkglist="${pkglist} $pkg"
     ISINST="false"
-    fpkg=`${ZAPLIBDIR}/get-version ${CTXARGS} $pkg`
+    fpkg=$(${ZAPLIBDIR}/get-version ${CTXARGS} "$pkg")
     fpkg=${fpkg%% *}
     for SRCDIR in $SRCLIST
     do
-	if [ -f ${SRCDIR}/${fpkg}.zap ]; then
+	if [ -f "${SRCDIR}/${fpkg}.zap" ]; then
 	    ISINST="true"
 	    break
 	fi
     done
     # download if we don't have it yet
     if [ "$ISINST" = "false" ]; then
-	${ZAPLIBDIR}/retrieve-pkg ${CTXARGS} ${pkg}
+	${ZAPLIBDIR}/retrieve-pkg ${CTXARGS} "${pkg}"
     fi
   fi
 done
@@ -133,32 +135,32 @@ done
 # we have resolved all names and only have uninstalled packages,
 # so no need to check again
 #
-for pkg in $DOPKGS
+for pkg in $pkglist
 do
   ISINST="false"
-  fpkg=`${ZAPLIBDIR}/get-version ${CTXARGS} $pkg`
+  fpkg=$(${ZAPLIBDIR}/get-version ${CTXARGS} "$pkg")
   fpkg=${fpkg%% *}
   for SRCDIR in $SRCLIST
   do
-    if [ -f ${SRCDIR}/${fpkg}.zap ]; then
-      ${ZAPLIBDIR}/instzap ${PKGARGS} ${SRCDIR}/${fpkg}.zap ${pkg}
+    if [ -f "${SRCDIR}/${fpkg}.zap" ]; then
+      ${ZAPLIBDIR}/instzap ${PKGARGS} "${SRCDIR}/${fpkg}.zap" "${pkg}"
       ISINST="true"
       break
     fi
   done
   if [ "$ISINST" = "false" ]; then
     echo "No source for package ${pkg}"
-    ${ZAPLIBDIR}/psearch $pkg
-    NFAILED=$(($NFAILED+1))
+    ${ZAPLIBDIR}/psearch "$pkg"
+    NFAILED=$((NFAILED+1))
   else
-    NINSTALLED=$(($NINSTALLED+1))
+    NINSTALLED=$((NINSTALLED+1))
   fi
 done
 
 if [ $NFAILED -eq 0 ]; then
-    echo Installed $NINSTALLED packages
+    echo "Installed $NINSTALLED packages"
 else
-    echo Installed $NINSTALLED packages, $NFAILED failed
+    echo "Installed $NINSTALLED packages, $NFAILED failed"
 fi
 
 exit $NFAILED
