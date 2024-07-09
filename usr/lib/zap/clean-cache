@@ -1,5 +1,7 @@
 #!/bin/ksh
 #
+# SPDX-License-Identifier: CDDL-1.0
+#
 # {{{ CDDL HEADER
 #
 # This file and its contents are supplied under the terms of the
@@ -13,7 +15,7 @@
 #
 # }}}
 #
-# Copyright 2023 Peter Tribble
+# Copyright 2024 Peter Tribble
 #
 
 #
@@ -61,7 +63,7 @@ case $1 in
 for apkg in *.zap
 do
     pkg=${apkg%%.*}
-    ${ZAPLIBDIR}/get-version ${CTXARGS} $pkg | read fpkg frepo
+    ${ZAPLIBDIR}/get-version ${CTXARGS} "$pkg" | read -r fpkg frepo
     if [ -z "$frepo" ]; then
 	echo "Removing unknown: $apkg"
 	/usr/bin/rm -f "$apkg" "${apkg}.sig"
@@ -84,7 +86,7 @@ done
 for apkg in *.zap
 do
     pkg=${apkg%%.*}
-    ${ZAPLIBDIR}/get-version ${CTXARGS} $pkg | read fpkg frepo
+    ${ZAPLIBDIR}/get-version ${CTXARGS} "$pkg" | read -r fpkg frepo
     if [ -n "$frepo" ]; then
 	cpkg="${fpkg}.zap"
 	if [ "X${cpkg}" != "X${apkg}" ]; then
