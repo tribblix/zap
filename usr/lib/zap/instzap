@@ -1,5 +1,7 @@
 #!/bin/ksh
 #
+# SPDX-License-Identifier: CDDL-1.0
+#
 # {{{ CDDL HEADER
 #
 # This file and its contents are supplied under the terms of the
@@ -13,7 +15,7 @@
 #
 # }}}
 #
-# Copyright 2023 Peter Tribble
+# Copyright 2024 Peter Tribble
 #
 
 #
@@ -60,30 +62,34 @@ esac
 #
 # install if not found
 #
-if [ -f ${DESTROOT}/var/sadm/pkg/${PKG}/pkginfo ]; then
+if [ -f "${DESTROOT}/var/sadm/pkg/${PKG}/pkginfo" ]; then
     echo "Package $PKG already installed"
 else
-    if [ ! -f ${DIR} ]; then
+    if [ ! -f "${DIR}" ]; then
 	echo "Zap source file ${DIR} doesn't exist"
 	exit 1
     fi
     echo "Installing ${UTEXT}$PKG"
-    ZTMP=/tmp/zap.tmp.`date '+%F-%T'`.$$
-    /usr/bin/rm -fr ${ZTMP}
-    /usr/bin/mkdir ${ZTMP}
-    cd ${ZTMP}
+    ZTMP=/tmp/zap.tmp.$(date '+%F-%T').$$
+    /usr/bin/rm -fr "${ZTMP}"
+    /usr/bin/mkdir "${ZTMP}"
+    if [ ! -d "${ZTMP}" ]; then
+	echo "Unable to create temporary working directory"
+	exit 1
+    fi
+    cd "${ZTMP}" || exit 1
     #
     # prefer unzip, as it is quieter and quicker, but fall back on
     # alternatives if necessary
     #
     if [ -x /usr/bin/unzip ]; then
-	/usr/bin/unzip -q ${DIR}
+	/usr/bin/unzip -q "${DIR}"
     elif [ -x /usr/bin/7z ]; then
-	/usr/bin/7z x ${DIR}
+	/usr/bin/7z x "${DIR}"
     else
-	jar xf $DIR
+	jar xf "$DIR"
     fi
     cd /
-    /usr/sbin/pkgadd -n -a ${ZAPLIBDIR}/pkg.force ${BFLAGS} -d ${ZTMP} ${PKG}
-    /usr/bin/rm -fr $ZTMP
+    /usr/sbin/pkgadd -n -a ${ZAPLIBDIR}/pkg.force ${BFLAGS} -d "${ZTMP}" "${PKG}"
+    /usr/bin/rm -fr "$ZTMP"
 fi
