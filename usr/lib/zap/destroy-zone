@@ -1,5 +1,7 @@
 #!/bin/ksh
 #
+# SPDX-License-Identifier: CDDL-1.0
+#
 # {{{ CDDL HEADER
 #
 # This file and its contents are supplied under the terms of the
@@ -13,7 +15,7 @@
 #
 # }}}
 #
-# Copyright 2023 Peter Tribble
+# Copyright 2024 Peter Tribble
 #
 
 #
@@ -30,7 +32,7 @@ z)
 esac
 done
 
-THISZONE=`/sbin/zonename`
+THISZONE=$(/sbin/zonename)
 if [ "X$THISZONE" != "Xglobal" ]; then
     echo "ERROR: zone management is only possible in the global zone"
     exit 1
@@ -52,13 +54,13 @@ fi
 #
 # check if this zone is a parent of any other zones
 #
-PZCHECK=`grep "^parent_zone: $ZNAME\$" ${ZSDIR}/zconfig.*`
+PZCHECK=$(grep "^parent_zone: $ZNAME\$" ${ZSDIR}/zconfig.*)
 if [[ -n $PZCHECK ]]; then
     echo "Zone $ZNAME is a parent for the following zones, and cannot be deleted"
     echo "until all the child zones have been deleted"
-    for pzc in `grep "^parent_zone: $ZNAME\$" ${ZSDIR}/zconfig.* | awk -F: '{print $1}'`
+    for pzc in $(grep "^parent_zone: $ZNAME\$" ${ZSDIR}/zconfig.* | awk -F: '{print $1}')
     do
-	grep '^zone:' $pzc | awk '{print "  "$NF}'
+	grep '^zone:' "$pzc" | awk '{print "  "$NF}'
     done
     exit 1
 fi
@@ -66,27 +68,27 @@ fi
 #
 # check it exists, otherwise behaviour is correct but messy
 #
-/usr/sbin/zoneadm -z $ZNAME list > /dev/null 2>&1
+/usr/sbin/zoneadm -z "$ZNAME" list > /dev/null 2>&1
 ZEXISTS=$?
 if [ $ZEXISTS -eq 0 ]; then
-    if [ -x ${ZSDIR}/predestroy.${ZNAME} ]; then
-	${ZSDIR}/predestroy.${ZNAME}
+    if [ -x "${ZSDIR}/predestroy.${ZNAME}" ]; then
+	${ZSDIR}/predestroy."${ZNAME}"
 	echo "Running pre-destroy hook for zone $ZNAME"
-	/usr/bin/rm -f ${ZSDIR}/predestroy.${ZNAME}
+	/usr/bin/rm -f "${ZSDIR}/predestroy.${ZNAME}"
     fi
-    /usr/sbin/zoneadm -z $ZNAME halt
+    /usr/sbin/zoneadm -z "$ZNAME" halt
     echo "Halted zone $ZNAME"
-    /usr/sbin/zoneadm -z $ZNAME uninstall -F
+    /usr/sbin/zoneadm -z "$ZNAME" uninstall -F
     echo "Uninstalled zone $ZNAME"
-    /usr/sbin/zonecfg -z $ZNAME delete -F
+    /usr/sbin/zonecfg -z "$ZNAME" delete -F
     echo "Deleted zone $ZNAME"
-    if [ -x ${ZSDIR}/destroy.${ZNAME} ]; then
-	${ZSDIR}/destroy.${ZNAME}
+    if [ -x "${ZSDIR}/destroy.${ZNAME}" ]; then
+	${ZSDIR}/destroy."${ZNAME}"
 	echo "Cleaned up after zone $ZNAME"
-	/usr/bin/rm -f ${ZSDIR}/destroy.${ZNAME}
+	/usr/bin/rm -f "${ZSDIR}/destroy.${ZNAME}"
     fi
-    if [ -f ${ZSDIR}/zconfig.${ZNAME} ]; then
-	/usr/bin/rm -f ${ZSDIR}/zconfig.${ZNAME}
+    if [ -f "${ZSDIR}/zconfig.${ZNAME}" ]; then
+	/usr/bin/rm -f "${ZSDIR}/zconfig.${ZNAME}"
     fi
 else
     echo "ERROR: No such zone $ZNAME"
