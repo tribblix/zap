@@ -180,3 +180,16 @@ TRIBopenntpd
 TRIBduplicity-python-311
 TRIBfasteners-python-311
 TRIBlibrsync
+TRIBzeroconf-python-311
+TRIBuwsgitop-python-311
+TRIBstatsmodels-python-311
+TRIBflask-python-311
+TRIBbandit-python-311
+TRIBdistro-python-311
+TRIBwerkzeug-python-311
+TRIBstevedore-python-311
+TRIBpatsy-python-311
+TRIBnetifaces-python-311
+TRIBitsdangerous-python-311
+TRIBifaddr-python-311
+TRIBpbr-python-311
