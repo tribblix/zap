@@ -302,6 +302,10 @@ case $SCHEME in
 		DLFILE="alpine-3.18-default_20230607_amd64.tar.xz"
 		DLNAME="proxmox-alpine-3.18.tar.xz"
 		;;
+	    alpine-3.19)
+		DLFILE="alpine-3.19-default_20240207_amd64.tar.xz"
+		DLNAME="proxmox-alpine-3.19.tar.xz"
+		;;
 	    arch|archlinux)
 		DLFILE="archlinux-base_20230608-1_amd64.tar.zst"
 		DLNAME="proxmox-archlinux.tar.zst"
@@ -447,6 +451,7 @@ case $SCHEME in
 		#
 		EXT="gz"
 		UUVER=""
+		UUREL="1"
 		case $UVER in
 		    14.04)
 			UUVER=".5"
@@ -457,11 +462,18 @@ case $SCHEME in
 		    18.04)
 			UUVER=".1"
 			;;
+		    18.10)
+			UUREL="2"
+			;;
 		    21.10|22.04|22.10|23.04|23.10)
 			EXT="zst"
 			;;
+		    24.04)
+			EXT="zst"
+			UUREL="2"
+			;;
 		esac
-		DLFILE="ubuntu-${UVER}-standard_${UVER}${UUVER}-1_amd64.tar.${EXT}"
+		DLFILE="ubuntu-${UVER}-standard_${UVER}${UUVER}-${UUREL}_amd64.tar.${EXT}"
 		DLNAME="proxmox-ubuntu-${UVER}.tar.${EXT}"
 		;;
 	    ubuntu)
