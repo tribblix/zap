@@ -113,14 +113,14 @@ blobsums="/tmp/blobsums-$(uuidgen).txt"
 #
 # uniquify the list, although only the null layer will be duplicated
 #
-cat ${MFILE} | $JQ -r '.fsLayers[].blobSum' | sort -u > $blobsums
+cat "${MFILE}" | $JQ -r '.fsLayers[].blobSum' | sort -u > "$blobsums"
 echo "Verifying layers"
-while read BLOBSUM
+while read -r BLOBSUM
 do
-    if [ -f ${LDIR}/${BLOBSUM}.gz ]; then
+    if [ -f "${LDIR}/${BLOBSUM}.gz" ]; then
 	CKSCHEME=${BLOBSUM%%:*}
 	CKSUM=${BLOBSUM#*:}
-	VSUM=$(openssl ${CKSCHEME} ${LDIR}/${BLOBSUM}.gz)
+	VSUM=$(openssl "${CKSCHEME}" "${LDIR}/${BLOBSUM}.gz")
 	VSUM=${VSUM#* }
 	if [ "X$CKSUM" != "X$VSUM" ]; then
 	    echo "ERROR: corrupt layer ${BLOBSUM}"
@@ -130,7 +130,7 @@ do
 	echo "ERROR: missing layer ${BLOBSUM}"
 	exit 1
     fi
-done < $blobsums
+done < "$blobsums"
 
 #
 # now unpack
@@ -138,32 +138,32 @@ done < $blobsums
 # they're listed in stacking order, with the top layer at the top
 # or first, so need to reverse
 #
-cat ${MFILE} | $JQ -r '.fsLayers[].blobSum' | rev -l > $blobsums
-NLAYERS=$(wc -l $blobsums|awk '{print $1}')
+cat "${MFILE}" | $JQ -r '.fsLayers[].blobSum' | rev -l > "$blobsums"
+NLAYERS=$(wc -l "$blobsums" |awk '{print $1}')
 ILAYER=0
-mkdir -p ${DESTDIR}
-if [ ! -d ${DESTDIR} ]; then
+mkdir -p "${DESTDIR}"
+if [ ! -d "${DESTDIR}" ]; then
     echo "ERROR: missing destination"
     exit 1
 fi
-cd $DESTDIR
+cd "$DESTDIR" || exit 1
 echo "Unpacking $NLAYERS layers"
-while read BLOBSUM
+while read -r BLOBSUM
 do
-    ILAYER=$(($ILAYER+1))
+    ILAYER=$((ILAYER+1))
     echo "${ILAYER}/${NLAYERS} $BLOBSUM"
-    $TAR xf ${LDIR}/${BLOBSUM}.gz
-    for fname in `find . -name '.wh.*'`
+    $TAR xf "${LDIR}/${BLOBSUM}.gz"
+    for fname in $(find . -name '.wh.*')
     do
 	ofname=${fname/.wh./}
 	if [ -f "${ofname}" ]; then
-	    rm -f ${ofname}
+	    rm -f "${ofname}"
 	else
 	    echo "unhandled whiteout ${fname}"
 	fi
-	rm -f ${fname}
+	rm -f "${fname}"
     done
-done < $blobsums
+done < "$blobsums"
 
 # Clean up
-rm -f $blobsums
+rm -f "$blobsums"
