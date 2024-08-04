@@ -108,8 +108,8 @@ case $SCHEME in
 		;;
 
 	    stable)
-		RELDIR="r151048"
-		RELVER="r151048"
+		RELDIR="r151050"
+		RELVER="r151050"
 		;;
 	    lts)
 		RELDIR="r151046"
@@ -127,7 +127,7 @@ case $SCHEME in
     oi|openindiana)
 	DLPREFIX="https://dlc.openindiana.org/isos/hipster/"
 	DLSUFFIX=".iso"
-	RELVER="20230502"
+	RELVER="20240426"
 	RELDIR="${RELVER}"
 	#https://dlc.openindiana.org/isos/hipster/20230502/OI-hipster-gui-20230502.iso
 	# we expect a marker of the form gui|text|minimal|img
@@ -141,7 +141,7 @@ case $SCHEME in
 		DLNAME="OI-hipster-${RELTYPE}-${RELVER}.iso"
 		;;
 	    img)
-		DLNAME="OI-hipster-cloudimage.img.gz"
+		DLNAME="OI-hipster-cloudimage.img.zstd"
 		;;
 	    *)
 		echo "ERROR: Expected openindiana:gui|text|minimal|img"
