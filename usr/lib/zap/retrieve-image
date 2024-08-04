@@ -214,6 +214,9 @@ case $SCHEME in
 	    mantic)
 		RELVER="23.10"
 		;;
+	    noble)
+		RELVER="24.04"
+		;;
 	    *.*)
 		:
 		;;
