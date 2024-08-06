@@ -1,5 +1,7 @@
 #!/bin/ksh
 #
+# SPDX-License-Identifier: CDDL-1.0
+#
 # {{{ CDDL HEADER
 #
 # This file and its contents are supplied under the terms of the
@@ -58,7 +60,7 @@ if [ $# -ne 1 ]; then
     exit 1
 fi
 
-IMG_DIR=$(${ZAPLIBDIR}/zap-cfg ${CTXARGS} image-dir)
+IMAGE_DIR=$(${ZAPLIBDIR}/zap-cfg ${CTXARGS} image-dir)
 USER_AGENT="zap"/$(${ZAPLIBDIR}/zap-cfg pkgversion)
 ZAP_PROXY=$(${ZAPLIBDIR}/zap-cfg ${CTXARGS} proxy)
 
@@ -524,27 +526,27 @@ case $MODE in
 	# get the checksum file first, and exit if that fails
 	#
 	if [ -n "$CKNAME" ]; then
-	    if [ ! -s ${CKNAME} ]; then
-		${WCLIENT} ${WARGS} ${CKNAME} ${CKURL}
+	    if [ ! -s "${CKNAME}" ]; then
+		${WCLIENT} ${WARGS} "${CKNAME}" "${CKURL}"
 	    fi
-	    if [ ! -f ${CKNAME} ]; then
+	    if [ ! -f "${CKNAME}" ]; then
 		echo "ERROR: unable to retrieve checksum file"
 		exit 1
 	    fi
-	    if [ ! -s ${CKNAME} ]; then
+	    if [ ! -s "${CKNAME}" ]; then
 		echo "ERROR: checksum file is empty"
-		/usr/bin/rm -f ${CKNAME}
+		/usr/bin/rm -f "${CKNAME}"
 		exit 1
 	    fi
 	fi
-	${WCLIENT} ${WARGS} ${FDLNAME} ${URL}
-	if [ ! -f ${FDLNAME} ]; then
+	${WCLIENT} ${WARGS} "${FDLNAME}" "${URL}"
+	if [ ! -f "${FDLNAME}" ]; then
 	    echo "ERROR: download failed"
 	    exit 1
 	fi
-	if [ ! -s ${FDLNAME} ]; then
+	if [ ! -s "${FDLNAME}" ]; then
 	    echo "ERROR: download file is empty"
-	    /usr/bin/rm -f ${FDLNAME}
+	    /usr/bin/rm -f "${FDLNAME}"
 	    exit 1
 	fi
 	if [ -n "$CKNAME" ]; then
@@ -552,14 +554,14 @@ case $MODE in
 		*.txt)
 		    CKSCHEME=${CKNAME%%.txt}
 		    CKSCHEME=${CKSCHEME##*.}
-		    CKVAL=`/usr/bin/grep $DLNAME $CKNAME|/usr/bin/tr ' ' '\n'|/usr/bin/grep -v $DLNAME`
+		    CKVAL=$(/usr/bin/grep "$DLNAME" "$CKNAME" | /usr/bin/tr ' ' '\n'|/usr/bin/grep -v "$DLNAME")
 		    ;;
 		*)
 		    CKSCHEME=${CKNAME##*.}
-		    CKVAL=`/usr/bin/cat $CKNAME|awk '{print $1}'`
+		    CKVAL=$(/usr/bin/awk '{print $1}' "$CKNAME")
 		    ;;
 	    esac
-	    DLVAL=`/usr/bin/openssl $CKSCHEME $FDLNAME | /usr/bin/awk '{print $NF}'`
+	    DLVAL=$(/usr/bin/openssl "$CKSCHEME" "$FDLNAME" | /usr/bin/awk '{print $NF}')
 	    if [ "${DLVAL}" != "${CKVAL}" ]; then
 		echo "ERROR: checksum mismatch"
 		exit 1
