@@ -1,5 +1,7 @@
 #!/bin/ksh
 #
+# SPDX-License-Identifier: CDDL-1.0
+#
 # {{{ CDDL HEADER
 #
 # This file and its contents are supplied under the terms of the
@@ -92,27 +94,27 @@ esac
 #
 # if we're passed an overlay, treat it as such
 #
-for ovl in $*
+for ovl in "$@"
 do
-    if [ -f ${INSTODIR}/${ovl}.ovl ]; then
-	if [ -f ${INSTODIR}/installed/${ovl} ]; then
+    if [ -f "${INSTODIR}/${ovl}.ovl" ]; then
+	if [ -f "${INSTODIR}/installed/${ovl}" ]; then
 	    echo "Updating matching overlay $ovl"
-	    ${ZAPLIBDIR}/update-overlay ${OVLARGS} ${SRCARGS} $ovl
+	    ${ZAPLIBDIR}/update-overlay ${OVLARGS} ${SRCARGS} "$ovl"
 	fi
     fi
 done
 
-${ZAPLIBDIR}/get-version ${CTXARGS} `${ZAPLIBDIR}/resolve-alias ${CTXARGS} $*` | while read AFVERSION
+${ZAPLIBDIR}/get-version ${CTXARGS} $(${ZAPLIBDIR}/resolve-alias ${CTXARGS} "$@") | while read -r AFVERSION
 do
     AVERSION=${AFVERSION% *}
     AREPO=${AFVERSION#* }
     RVERSION=${AVERSION#*.}
     pkg=${AVERSION%%.*}
-    if [ ! -f ${DESTROOT}/var/sadm/pkg/${pkg}/pkginfo ]; then
-	${ZAPLIBDIR}/install-pkg ${CTXARGS} ${PKGARGS} ${SRCARGS} $pkg
+    if [ ! -f "${DESTROOT}/var/sadm/pkg/${pkg}/pkginfo" ]; then
+	${ZAPLIBDIR}/install-pkg ${CTXARGS} ${PKGARGS} ${SRCARGS} "$pkg"
     else
 	IVERSION=""
-	while read line
+	while read -r line
 	do
 	    case $line in
 		VERSION*)
@@ -120,31 +122,31 @@ do
 		    break
 		    ;;
 	    esac
-	done<${DESTROOT}/var/sadm/pkg/${pkg}/pkginfo
+	done<"${DESTROOT}/var/sadm/pkg/${pkg}/pkginfo"
 	if [ "$AREPO" != "opensxce" ]; then
 	    if [ "X${pkg}.${IVERSION}" != "X${AVERSION}" ]; then
 		echo "Package $pkg is at version $IVERSION and needs updating to $RVERSION"
 		ISINST="false"
 		for SRCDIR in $SRCLIST
 		do
-		    if [ -f ${SRCDIR}/${AVERSION}.zap ]; then
+		    if [ -f "${SRCDIR}/${AVERSION}.zap" ]; then
 			ISINST="true"
 			break
 		    fi
 		done
 		# download if we don't have it yet
 		if [ "$ISINST" = "false" ]; then
-		    ${ZAPLIBDIR}/retrieve-pkg ${CTXARGS} ${pkg}
+		    ${ZAPLIBDIR}/retrieve-pkg ${CTXARGS} "${pkg}"
 		fi
 		for SRCDIR in $SRCLIST
 		do
-		    if [ -f ${SRCDIR}/${AVERSION}.zap ]; then
-			${ZAPLIBDIR}/delpkg -u ${PKGARGS} $pkg
-			${ZAPLIBDIR}/instzap -u ${PKGARGS} ${SRCDIR}/${AVERSION}.zap ${pkg}
+		    if [ -f "${SRCDIR}/${AVERSION}.zap" ]; then
+			${ZAPLIBDIR}/delpkg -u ${PKGARGS} "$pkg"
+			${ZAPLIBDIR}/instzap -u ${PKGARGS} "${SRCDIR}/${AVERSION}.zap" "${pkg}"
 			break
 		    fi
 		done
-		NVERSION=`/usr/bin/awk -F= '{if ($1 == "VERSION") print $2}' ${DESTROOT}/var/sadm/pkg/${pkg}/pkginfo`
+		NVERSION=$(/usr/bin/awk -F= '{if ($1 == "VERSION") print $2}' "${DESTROOT}/var/sadm/pkg/${pkg}/pkginfo")
 		if [ "X${NVERSION}" = "X${RVERSION}" ]; then
 		    echo "Update of $pkg successful."
 		fi

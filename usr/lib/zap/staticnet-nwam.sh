@@ -1,5 +1,7 @@
 #!/bin/sh
 #
+# SPDX-License-Identifier: CDDL-1.0
+#
 # {{{ CDDL HEADER
 #
 # This file and its contents are supplied under the terms of the
@@ -13,7 +15,7 @@
 #
 # }}}
 #
-# Copyright 2023 Peter Tribble
+# Copyright 2024 Peter Tribble
 #
 
 #
@@ -24,7 +26,7 @@
 #
 # get the current interface name
 #
-IFACE=`/usr/sbin/route -n get default | /usr/bin/grep interface: | /usr/bin/awk '{print $NF}'`
+IFACE=$(/usr/sbin/route -n get default | /usr/bin/grep interface: | /usr/bin/awk '{print $NF}')
 if [ -z "$IFACE" ]; then
     echo "ERROR: unable to infer primary interface"
     exit 2
@@ -32,7 +34,7 @@ fi
 #
 # check for legacy static config
 #
-if [ -f /etc/hostname.${IFACE} ]; then
+if [ -f "/etc/hostname.${IFACE}" ]; then
     echo "ERROR: already configured manually"
     exit 1
 fi
@@ -56,7 +58,7 @@ fi
 #
 # conventionally the main interface would be /_b
 #
-IP1=$(/usr/sbin/ipadm show-addr -p -o addr ${IFACE}/_b)
+IP1=$(/usr/sbin/ipadm show-addr -p -o addr "${IFACE}/_b")
 #
 # IP1 will be in CIDR notation; strip the CIDR part off
 #
@@ -65,7 +67,7 @@ IP1A=${IP1%%/*}
 # if you're root, ifconfig output changes and puts the mac address
 # on another line
 #
-IP2=$(/usr/sbin/ifconfig ${IFACE} | grep -w inet | tail -1 | awk '{print $2}')
+IP2=$(/usr/sbin/ifconfig "${IFACE}" | grep -w inet | tail -1 | awk '{print $2}')
 if [ -z "$IP1" ]; then
     echo "ERROR: unable to get address from ipadm"
     exit 2
@@ -118,9 +120,9 @@ echo "/usr/sbin/svcadm disable -s svc:/network/routing/route:default"
 if [ -z "$DRYRUN" ]; then
     /usr/sbin/svcadm disable -s svc:/network/physical:nwam
     /usr/sbin/svcadm enable -s svc:/network/physical:default
-    /usr/sbin/ipadm create-if ${IFACE}
-    /usr/sbin/ipadm create-addr -T static -a $IP1 ${IFACE}/v4
-    /usr/sbin/route -p add net default $IPROUTE
-    echo $IPROUTE > /etc/defaultrouter
+    /usr/sbin/ipadm create-if "${IFACE}"
+    /usr/sbin/ipadm create-addr -T static -a "$IP1" "${IFACE}/v4"
+    /usr/sbin/route -p add net default "$IPROUTE"
+    echo "$IPROUTE" > /etc/defaultrouter
     /usr/sbin/svcadm disable -s svc:/network/routing/route:default
 fi
