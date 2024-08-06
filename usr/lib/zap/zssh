@@ -1,0 +1,122 @@
+#!/bin/sh
+#
+# SPDX-License-Identifier: CDDL-1.0
+#
+# wrapper around ssh that allows you to connect to a zone by name,
+# extracts the IP address for the zone from its configuration
+#
+# also treats the target as ephemeral, nether verifying nor saving
+# its host key
+#
+# -T port
+# Tunnel the given port (same port both sides)
+#
+
+ZSDIR="/var/zap/zones"
+# these 2 variables set from command line flags
+ZARGS=""
+TUNNEL=""
+# these 2 variables derived from zone properties
+JARGS=""
+ALGS=""
+
+case $1 in
+    -T)
+	PORT="$2"
+	TUNNEL="-L ${PORT}:localhost:${PORT}"
+	shift
+	shift
+	;;
+    -*)
+	ZARGS="$1"
+	shift
+	;;
+esac
+
+case $# in
+    0)
+	echo "Usage: $0 [username@]zone_name [cmd]"
+	exit 2
+	;;
+esac
+
+ZNAME=$1
+shift
+
+#
+# handle user@zone
+#
+ZUSER=""
+case $ZNAME in
+    *@*)
+	# Split user off
+	ZUSER=${ZNAME%@*}@
+	ZNAME=${ZNAME#*@}
+	;;
+esac
+
+#
+# function to get the address of a zone
+# try the zap saved data first
+#
+get_zone_ip() {
+    ZNAME=$1
+    ZIP=""
+    if [ -f "${ZSDIR}/zconfig.${ZNAME}" ]; then
+	ZIP=$(grep '^address:' "${ZSDIR}/zconfig.${ZNAME}" | awk '{print $2}')
+    fi
+    if [ -n "${ZIP}" ]; then
+	echo "$ZIP"
+    else
+	ZIP=$(/usr/sbin/zonecfg -z "$ZNAME" info net 2>/dev/null | grep address: | head -1 | awk '{print $NF}')
+	# strip off cidr
+	echo ${ZIP%/*}
+    fi
+}
+
+#
+# now we have to work out how to get to the zone
+#
+
+#
+# see if it's on a private subnet behind a router zone
+# if so, use the router zone as a jumphost
+#
+if [ -f "${ZSDIR}/zconfig.${ZNAME}" ]; then
+    ZROUTER=$(grep '^parent_zone:' "${ZSDIR}/zconfig.${ZNAME}" | awk '{print $2}')
+    if [ -n "${ZROUTER}" ]; then
+	JIP=$(get_zone_ip "${ZROUTER}")
+	JARGS="-J ${JIP}"
+    fi
+fi
+
+ZIP=$(get_zone_ip "$ZNAME")
+if [ -z "${ZIP}" ]; then
+    if [ ! -f "/etc/zones/${ZNAME}.xml" ]; then
+	echo "No such zone ${ZNAME}"
+    else
+	echo "Cannot determine zone IP address"
+    fi
+    exit 1
+fi
+
+#
+# if the zone is running the solaris10 brand, it's probably running a
+# rather ancient ssh version that we aren't compatible with by default
+#
+ZBRAND=$(/usr/sbin/zonecfg -z "$ZNAME" info brand 2>/dev/null | grep brand: | awk '{print $NF}')
+case $ZBRAND in
+    solaris10)
+	ALGS="-oKexAlgorithms=+diffie-hellman-group1-sha1"
+	;;
+esac
+
+#
+# if the only argument is a hostname, set the window title
+# if more than that, skip as it's noisy and would be wrong anyway
+#
+if [ $# -eq 0 ]; then
+    printf "]2;$ZNAME]1;$ZNAME$"
+fi
+
+exec /usr/bin/ssh $ALGS -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $JARGS $ZARGS $TUNNEL "${ZUSER}${ZIP}" "$@"

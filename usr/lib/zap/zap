@@ -169,6 +169,10 @@ dz|destroy-zone)
 	shift
 	exec ${ZAPLIBDIR}/destroy-zone "$@"
 	;;
+zssh|ssh-zone)
+	shift
+	exec ${ZAPLIBDIR}/zssh "$@"
+	;;
 create-zone-template)
 	shift
 	exec ${ZAPLIBDIR}/create-zone-template "$@"

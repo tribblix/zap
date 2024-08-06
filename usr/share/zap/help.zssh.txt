@@ -1,0 +1,26 @@
+Connect to a zone with SSH
+==========================
+
+In order to connect to a zone with ssh, it's first necessary to work
+out what its IP address is. Fortunately, zap can do the work for you.
+
+To connect to a zone with ssh, you can use the command:
+
+  zap zssh zone_name
+
+or, to use a specific username:
+
+  zap zssh user_name@zone_name
+
+This will log you in to an interactive session; if you simply wish to
+run a command or commands, simply append them, for example:
+
+  zap zssh zone_name uname -a
+
+If the zone you're trying to connect to is on a private subnet behind
+a router zone, zssh will use the router zone as a jumphost.
+
+There's one flag, -T will create a tunnel over the given port. This
+can be useful to tunnel VNC, for example:
+
+  zap zssh -T 5901 zone_name

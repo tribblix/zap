@@ -59,6 +59,9 @@ case $# in
     destroy-zone-template|list-zone-templates)
       HELP_FILE=${HELP_DIR}/help.create-zone-template.txt
       ;;
+    ssh-zone)
+      HELP_FILE=${HELP_DIR}/help.zssh.txt
+      ;;
     *)
       HELP_FILE=${HELP_DIR}/help.${1}.txt
       ;;
