@@ -1,5 +1,7 @@
 #!/bin/ksh
 #
+# SPDX-License-Identifier: CDDL-1.0
+#
 # {{{ CDDL HEADER
 #
 # This file and its contents are supplied under the terms of the
@@ -13,7 +15,7 @@
 #
 # }}}
 #
-# Copyright 2023 Peter Tribble
+# Copyright 2024 Peter Tribble
 #
 
 #
@@ -88,9 +90,11 @@ http*)
 	;;
 esac
 
-if [ -d "${DESTDIR}" -a ! -f "${DESTDIR}"/catalog ]; then
-   echo "Destination exists but doesn't look like a valid repository"
-   usage
+if [ -d "${DESTDIR}" ]; then
+    if [ ! -f "${DESTDIR}"/catalog ]; then
+	echo "Destination exists but doesn't look like a valid repository"
+	usage
+    fi
 fi
 
 PARENTDIR=${DESTDIR%/*}
@@ -132,7 +136,7 @@ fi
 # first with curl, then wget if there's a problem
 # we always verify the checksums and delete files that fail to match
 #
-awk -F'|' '{print $1,$2,$4,$5}' ${DESTDIR}/catalog | while read pkg ver fsize fsum
+awk -F'|' '{print $1,$2,$4,$5}' "${DESTDIR}"/catalog | while read -r pkg ver fsize fsum
 do
     if [ ! -f "${DESTDIR}/${pkg}.${ver}.zap" ]; then
 	echo "Getting ${pkg}, $fsize bytes"

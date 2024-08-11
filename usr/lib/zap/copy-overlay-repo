@@ -1,5 +1,7 @@
 #!/bin/ksh
 #
+# SPDX-License-Identifier: CDDL-1.0
+#
 # {{{ CDDL HEADER
 #
 # This file and its contents are supplied under the terms of the
@@ -13,7 +15,7 @@
 #
 # }}}
 #
-# Copyright 2023 Peter Tribble
+# Copyright 2024 Peter Tribble
 #
 
 #
@@ -32,8 +34,6 @@ else
 fi
 CURL=/usr/bin/curl
 CARGS="-A ${USER_AGENT} -f -s -o"
-WGET=/usr/bin/wget
-WARGS="-U ${USER_AGENT} -q -O"
 
 #
 # arguments are
@@ -88,9 +88,11 @@ http*)
 	;;
 esac
 
-if [ -d "${DESTDIR}" -a ! -f "${DESTDIR}"/catalog ]; then
-   echo "Destination exists but doesn't look like a valid repository"
-   usage
+if [ -d "${DESTDIR}" ]; then
+    if [ ! -f "${DESTDIR}"/catalog ]; then
+	echo "Destination exists but doesn't look like a valid repository"
+	usage
+    fi
 fi
 
 PARENTDIR=${DESTDIR%/*}
@@ -127,7 +129,7 @@ fi
 #
 # and grab all the files
 #
-awk -F'|' '{print $1,$2}' ${DESTDIR}/catalog | while read ovl ver
+awk -F'|' '{print $1,$2}' "${DESTDIR}"/catalog | while read -r ovl ver
 do
     if [ ! -f "${DESTDIR}/${ovl}.ovl" ]; then
 	echo "Getting ${ovl}.ovl"
@@ -136,7 +138,7 @@ do
 	${CURL} ${CARGS} "${DESTDIR}/${ovl}.pkgs" "${REPO}/${ovl}.pkgs"
     else
 	iver="0"
-	while read line
+	while read -r line
 	do
 	    case $line in
 		VERSION*)
