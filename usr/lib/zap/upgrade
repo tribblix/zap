@@ -1,5 +1,7 @@
 #!/bin/ksh
 #
+# SPDX-License-Identifier: CDDL-1.0
+#
 # {{{ CDDL HEADER
 #
 # This file and its contents are supplied under the terms of the
@@ -59,8 +61,8 @@ if [ ! -f "${BEADM}" ]; then
 fi
 
 show_available() {
-  INSTVER=`cat $VINSTFILE`
-  /usr/bin/awk -F'|' '{print $1,$2,$3}' $VLISTFILE | while read nver nurl ntext
+  INSTVER=$(cat $VINSTFILE)
+  /usr/bin/awk -F'|' '{print $1,$2,$3}' $VLISTFILE | while read -r nver nurl ntext
   do
     if [ "X$nver" = "X$INSTVER" ]; then
       echo "${nver}: (current)"
@@ -71,8 +73,8 @@ show_available() {
 }
 
 validate() {
-  INSTVER=`cat $VINSTFILE`
-  /usr/bin/awk -F'|' '{print $1,$2}' $VLISTFILE | while read nver nurl
+  INSTVER=$(cat $VINSTFILE)
+  /usr/bin/awk -F'|' '{print $1,$2}' $VLISTFILE | while read -r nver nurl
   do
     if [ "X$1" = "X$INSTVER" ]; then
       echo "ERROR: $1 is the current version"
@@ -87,13 +89,13 @@ validate() {
 }
 
 bail() {
-  echo $1
+  echo "$1"
   exit 1
 }
 
 case $# in
 0)
-  echo "Usage: zap upgrade [-n] [-B] new_version | list | current"
+  echo "Usage: zap upgrade [-B] new_version | list | current"
   exit 1
   ;;
 esac
@@ -121,13 +123,12 @@ shift $((OPTIND - 1))
 #
 # Beyond here is an upgrade, either real or dry-run
 #
-echo $*
 NEWVER="$1"
 
 #
 # validate the requested version, and get the corresponding URL
 #
-NEWURL=$(validate $NEWVER) || bail "$NEWURL"
+NEWURL=$(validate "$NEWVER") || bail "$NEWURL"
 
 #
 # before we do anything, apply any urgent fixes
@@ -140,8 +141,8 @@ NEWURL=$(validate $NEWVER) || bail "$NEWURL"
 #
 # find the current BE and matching FS dataset
 #
-OLDBE=`$BEADM list -H | awk -F\; '{if ($3=="NR") print $1}'`
-OLDDS=`$BEADM list -Ha | awk -F\; '{if ($3=="NR") print $2}'`
+OLDBE=$($BEADM list -H | awk -F\; '{if ($3=="NR") print $1}')
+OLDDS=$($BEADM list -Ha | awk -F\; '{if ($3=="NR") print $2}')
 if [ -z "$OLDBE" ]; then
     echo "ERROR: Unable to find current BE name"
     exit 1
@@ -151,14 +152,14 @@ fi
 # find a BE name that is unused
 #
 BENAME="$NEWVER"
-$BEADM list $BENAME > /dev/null 2>&1
+$BEADM list "$BENAME" > /dev/null 2>&1
 BESTATUS=$?
 BENUM=0
 while [ $BESTATUS -eq 0 ]
 do
   BENUM=$(($BENUM+1))
   BENAME="${NEWVER}-${BENUM}"
-  $BEADM list $BENAME > /dev/null 2>&1
+  $BEADM list "$BENAME" > /dev/null 2>&1
   BESTATUS=$?
 done
 
@@ -175,22 +176,22 @@ fi
 
 NPKG=${NEWURL##*/}
 CACHE_DIR=$(${ZAPLIBDIR}/zap-cfg cache-dir)
-${WCLIENT} ${WARGS} ${CACHE_DIR}/${NPKG} $NEWURL
+${WCLIENT} ${WARGS} "${CACHE_DIR}/${NPKG}" "$NEWURL"
 #
 # if the download failed then we cannot progress any further
 # depending on the download client we may get no file at all
 # or a zero-length file
 #
-if [ ! -f ${CACHE_DIR}/${NPKG} ]; then
+if [ ! -f "${CACHE_DIR}/${NPKG}" ]; then
     echo "ERROR: Unable to download the new release"
     exit 1
 fi
-if [ ! -s ${CACHE_DIR}/${NPKG} ]; then
+if [ ! -s "${CACHE_DIR}/${NPKG}" ]; then
     echo "ERROR: Unable to download the new release"
     exit 1
 fi
 
-$BEADM create $BENAME
+$BEADM create "$BENAME"
 ALTROOT="/a"
 BENUM=0
 while [ -d $ALTROOT ]
@@ -204,19 +205,19 @@ done
 # -a could return multiple lines, one with a dataset and possibly
 # multiple snapshots; match the dataset by looking for a /
 #
-NEWDS=`$BEADM list -Ha $BENAME | awk -F\; '{if ($2~/\//) print $2}'`
+NEWDS=$($BEADM list -Ha "$BENAME" | awk -F\; '{if ($2~/\//) print $2}')
 
-echo New BE will be called $BENAME
-echo Backed by dataset $NEWDS
-echo And will be driven from $NEWURL
+echo "New BE will be called $BENAME"
+echo "Backed by dataset $NEWDS"
+echo "And will be driven from $NEWURL"
 
 #
 # update zap in the new BE
 #
 mkdir $ALTROOT
-$BEADM mount $BENAME $ALTROOT
+$BEADM mount "$BENAME" $ALTROOT
 zap uninstall -R $ALTROOT TRIBzap
-${ZAPLIBDIR}/instzap -R $ALTROOT ${CACHE_DIR}/${NPKG} TRIBzap
+${ZAPLIBDIR}/instzap -R $ALTROOT "${CACHE_DIR}/${NPKG}" TRIBzap
 #
 # must refresh the overlays and catalog, as contents and dependencies
 # may have changed
@@ -248,7 +249,7 @@ ${ALTROOT}/${ZAPLIBDIR}/refresh-filelist -C ${ALTROOT}
 #
 if [ -f ${ALTROOT}/usr/share/zap/deprecated.pkgs ]; then
     echo "Removing obsoleted packages"
-    /usr/bin/zap uninstall -R ${ALTROOT} `cat ${ALTROOT}/usr/share/zap/deprecated.pkgs`
+    /usr/bin/zap uninstall -R ${ALTROOT} $(cat ${ALTROOT}/usr/share/zap/deprecated.pkgs)
 fi
 #
 # remove obsoleted overlays
@@ -257,13 +258,13 @@ fi
 #
 if [ -f ${ALTROOT}/usr/share/zap/deprecated.ovl ]; then
     echo "Removing obsoleted overlays"
-    for oldovl in `cat ${ALTROOT}/usr/share/zap/deprecated.ovl`
+    for oldovl in $(cat ${ALTROOT}/usr/share/zap/deprecated.ovl)
     do
-	/usr/bin/rm -f ${ALTROOT}/var/sadm/overlays/${oldovl}.pkgs
-	/usr/bin/rm -f ${ALTROOT}/var/sadm/overlays/${oldovl}.ovl
-	/usr/bin/rm -f ${ALTROOT}/var/sadm/overlays/${oldovl}.pkgs.bak
-	/usr/bin/rm -f ${ALTROOT}/var/sadm/overlays/${oldovl}.ovl.bak
-	/usr/bin/rm -f ${ALTROOT}/var/sadm/overlays/installed/${oldovl}
+	/usr/bin/rm -f "${ALTROOT}/var/sadm/overlays/${oldovl}.pkgs"
+	/usr/bin/rm -f "${ALTROOT}/var/sadm/overlays/${oldovl}.ovl"
+	/usr/bin/rm -f "${ALTROOT}/var/sadm/overlays/${oldovl}.pkgs.bak"
+	/usr/bin/rm -f "${ALTROOT}/var/sadm/overlays/${oldovl}.ovl.bak"
+	/usr/bin/rm -f "${ALTROOT}/var/sadm/overlays/installed/${oldovl}"
     done
 fi
 #
@@ -344,19 +345,19 @@ fi
 # whole and sparse-root clearly aren't
 # lx and bhyve ought to work
 #
-for zname in `/usr/sbin/zoneadm list -icp | awk -F: '{if ($6 == "solaris10") print $2}'`
+for zname in $(/usr/sbin/zoneadm list -icp | awk -F: '{if ($6 == "solaris10") print $2}')
 do
     grep "^${zname}:" /etc/zones/index >> ${ALTROOT}/etc/zones/index
 done
-for zname in `/usr/sbin/zoneadm list -icp | awk -F: '{if ($6 == "alien-root") print $2}'`
+for zname in $(/usr/sbin/zoneadm list -icp | awk -F: '{if ($6 == "alien-root") print $2}')
 do
     grep "^${zname}:" /etc/zones/index >> ${ALTROOT}/etc/zones/index
 done
-for zname in `/usr/sbin/zoneadm list -icp | awk -F: '{if ($6 == "bhyve") print $2}'`
+for zname in $(/usr/sbin/zoneadm list -icp | awk -F: '{if ($6 == "bhyve") print $2}')
 do
     grep "^${zname}:" /etc/zones/index >> ${ALTROOT}/etc/zones/index
 done
-for zname in `/usr/sbin/zoneadm list -icp | awk -F: '{if ($6 == "lx") print $2}'`
+for zname in $(/usr/sbin/zoneadm list -icp | awk -F: '{if ($6 == "lx") print $2}')
 do
     grep "^${zname}:" /etc/zones/index >> ${ALTROOT}/etc/zones/index
 done
@@ -377,12 +378,12 @@ done
 # zone brands that don't need to do any work on upgrade should simply
 # return 0 from their upgrader
 #
-/usr/sbin/zoneadm list -icpn | awk -F: '{print $2,$4,$6}' | while read zname zpath zbrand
+/usr/sbin/zoneadm list -icpn | awk -F: '{print $2,$4,$6}' | while read -r zname zpath zbrand
 do
     UPGRADER="${ALTROOT}/usr/lib/brand/${zbrand}/zap-upgrade"
     if [ -x "${UPGRADER}" ]; then
 	echo "Running upgrade script for ${zbrand} zone ${zname}"
-	${UPGRADER} -R ${ALTROOT} -b ${zbrand} -z ${zname} -p ${zpath} -v ${NEWVER}
+	${UPGRADER} -R ${ALTROOT} -b "${zbrand}" -z "${zname}" -p "${zpath}" -v "${NEWVER}"
     else
 	echo "No upgrade script found for ${zbrand} zone ${zname}"
     fi
@@ -392,7 +393,7 @@ done
 # need to update the boot archive
 #
 /usr/sbin/bootadm update-archive -R $ALTROOT
-$BEADM unmount $BENAME
+$BEADM unmount "$BENAME"
 rmdir $ALTROOT
 #
 # activation is optional
@@ -403,20 +404,20 @@ rmdir $ALTROOT
 # set it that way
 #
 echo "Upgrade complete"
-$ZFSCMD set canmount=noauto $OLDDS
-$ZFSCMD set canmount=noauto $NEWDS
-$ZFSCMD set mountpoint=/ $OLDDS
-$ZFSCMD set mountpoint=/ $NEWDS
+$ZFSCMD set canmount=noauto "$OLDDS"
+$ZFSCMD set canmount=noauto "$NEWDS"
+$ZFSCMD set mountpoint=/ "$OLDDS"
+$ZFSCMD set mountpoint=/ "$NEWDS"
 if [ "X${ACTIVATE}" = "Xtrue" ]; then
   echo "Activating new BE"
-  $BEADM activate $BENAME
+  $BEADM activate "$BENAME"
   init 6
 else
   echo ""
   echo "====================================================="
   echo "|| To switch to the newly upgraded version, issue  ||"
   echo "|| the following commands:                         ||"
-  printf "||   beadm activate %-31s||\n" $BENAME
+  printf "||   beadm activate %-31s||\n" "$BENAME"
   echo "||   init 6                                        ||"
   echo "====================================================="
 fi

@@ -906,7 +906,7 @@ if [[ -n $RIP4 ]]; then
 			    exit 2
 			fi
 			if [ -f "${ZSDIR}/rconfig.${OCT1}" ]; then
-			    ZOWNER=$(/usr/bin/grep zone: ${ZSDIR}/rconfig.${OCT1} | /usr/bin/awk '{print $NF}')
+			    ZOWNER=$(/usr/bin/grep zone: "${ZSDIR}/rconfig.${OCT1}" | /usr/bin/awk '{print $NF}')
 			    echo "ERROR: network $RIP is already in use by zone $ZOWNER"
 			    exit 2
 			fi
@@ -919,12 +919,12 @@ if [[ -n $RIP4 ]]; then
 			    exit 2
 			fi
 			if [ -f "${ZSDIR}/rconfig.${OCT1}" ]; then
-			    ZOWNER=$(/usr/bin/grep zone: ${ZSDIR}/rconfig.${OCT1} | /usr/bin/awk '{print $NF}')
+			    ZOWNER=$(/usr/bin/grep zone: "${ZSDIR}/rconfig.${OCT1}" | /usr/bin/awk '{print $NF}')
 			    echo "ERROR: parent network ${OCT1}.0.0.0/8 for $RIP is already in use by zone $ZOWNER"
 			    exit 2
 			fi
 			if [ -f "${ZSDIR}/rconfig.${OCT1}.${OCT2}" ]; then
-			    ZOWNER=$(/usr/bin/grep zone: ${ZSDIR}/rconfig.${OCT1}.${OCT2} | /usr/bin/awk '{print $NF}')
+			    ZOWNER=$(/usr/bin/grep zone: "${ZSDIR}/rconfig.${OCT1}.${OCT2}" | /usr/bin/awk '{print $NF}')
 			    echo "ERROR: network $RIP is already in use by zone $ZOWNER"
 			    exit 2
 			fi
@@ -932,17 +932,17 @@ if [[ -n $RIP4 ]]; then
 			;;
 		    24)
 			if [ -f "${ZSDIR}/rconfig.${OCT1}" ]; then
-			    ZOWNER=$(/usr/bin/grep zone: ${ZSDIR}/rconfig.${OCT1} | /usr/bin/awk '{print $NF}')
+			    ZOWNER=$(/usr/bin/grep zone: "${ZSDIR}/rconfig.${OCT1}" | /usr/bin/awk '{print $NF}')
 			    echo "ERROR: parent network ${OCT1}.0.0.0/8 for $RIP is already in use by zone $ZOWNER"
 			    exit 2
 			fi
 			if [ -f "${ZSDIR}/rconfig.${OCT1}.${OCT2}" ]; then
-			    ZOWNER=$(/usr/bin/grep zone: ${ZSDIR}/rconfig.${OCT1}.${OCT2} | /usr/bin/awk '{print $NF}')
+			    ZOWNER=$(/usr/bin/grep zone: "${ZSDIR}/rconfig.${OCT1}.${OCT2}" | /usr/bin/awk '{print $NF}')
 			    echo "ERROR: parent network ${OCT1}.${OCT2}.0.0/16 for $RIP is already in use by zone $ZOWNER"
 			    exit 2
 			fi
 			if [ -f "${ZSDIR}/rconfig.${OCT1}.${OCT2}.${OCT3}" ]; then
-			    ZOWNER=$(/usr/bin/grep zone: ${ZSDIR}/rconfig.${OCT1}.${OCT2}.${OCT3} | /usr/bin/awk '{print $NF}')
+			    ZOWNER=$(/usr/bin/grep zone: "${ZSDIR}/rconfig.${OCT1}.${OCT2}.${OCT3}" | /usr/bin/awk '{print $NF}')
 			    echo "ERROR: network $RIP is already in use by zone $ZOWNER"
 			    exit 2
 			fi
@@ -1081,14 +1081,14 @@ TRIBalien|SUNWlx)
 	    #
 	    # check validity of the name
 	    #
-	    DLFILE=$(${ZAPLIBDIR}/retrieve-image -n $ZISOFILE)
+	    DLFILE=$(${ZAPLIBDIR}/retrieve-image -n "$ZISOFILE")
 	    if [[ $DLFILE = /* ]]; then
 		if [ -f "$DLFILE" ]; then
 		    echo "Using cached image $DLFILE for $ZISOFILE"
 		    ZISOFILE="$DLFILE"
 		else
 		    echo "Downloading $ZISOFILE"
-		    DLFILE=$(${ZAPLIBDIR}/retrieve-image $ZISOFILE)
+		    DLFILE=$(${ZAPLIBDIR}/retrieve-image "$ZISOFILE")
 		    if [ -f "$DLFILE" ]; then
 			echo "Using downloaded image $DLFILE for $ZISOFILE"
 			ZISOFILE="$DLFILE"
@@ -1100,7 +1100,7 @@ TRIBalien|SUNWlx)
 	    echo "ERROR: image name must be absolute or specify a valid download"
 	    usage
 	fi
-	if [ ! -f $ZISOFILE ]; then
+	if [ ! -f "$ZISOFILE" ]; then
 	    echo "ERROR: specified image not found"
 	    usage
 	fi
@@ -1110,7 +1110,7 @@ SUNWsolaris10)
 	    echo "ERROR: image name must be absolute or specify a valid download"
 	    usage
 	fi
-	if [ ! -f $ZISOFILE ]; then
+	if [ ! -f "$ZISOFILE" ]; then
 	    echo "ERROR: specified image not found"
 	    usage
 	fi
@@ -1124,13 +1124,13 @@ bhyve)
 		#
 		DLFILE=$(${ZAPLIBDIR}/retrieve-image -n $ZISOFILE)
 		if [[ $DLFILE = /* ]]; then
-		    if [ -f $DLFILE ]; then
+		    if [ -f "$DLFILE" ]; then
 			echo "Using cached image $DLFILE for $ZISOFILE"
 			ZISOFILE="$DLFILE"
 		    else
 			echo "Downloading $ZISOFILE"
 			DLFILE=$(${ZAPLIBDIR}/retrieve-image $ZISOFILE)
-			if [ -f $DLFILE ]; then
+			if [ -f "$DLFILE" ]; then
 			    echo "Using downloaded image $DLFILE for $ZISOFILE"
 			    ZISOFILE="$DLFILE"
 			fi
@@ -1145,7 +1145,7 @@ bhyve)
 		echo "ERROR: bhyve requires an iso image"
 		usage
 	    fi
-	    if [ ! -f $ZISOFILE ]; then
+	    if [ ! -f "$ZISOFILE" ]; then
 		echo "ERROR: specified image not found"
 		usage
 	    fi
@@ -1169,7 +1169,7 @@ if [[ -n $ZTEMPLATE ]]; then
 	echo "ERROR: no such template ${ZTEMPLATE}"
 	exit 1
     fi
-    UDIR=$(/usr/bin/grep 'directory=\"/usr\"' /etc/zones/${ZBRAND}.xml | /usr/bin/awk '{print $2}' | /usr/bin/awk -F= '{print $2}' | /usr/bin/sed 's:"::g')
+    UDIR=$(/usr/bin/grep 'directory=\"/usr\"' "/etc/zones/${ZBRAND}.xml" | /usr/bin/awk '{print $2}' | /usr/bin/awk -F= '{print $2}' | /usr/bin/sed 's:"::g')
     if [ ! -d "${UDIR}" ]; then
 	echo "ERROR: unable to find file systems for template ${ZTEMPLATE}"
 	exit 1
@@ -1237,28 +1237,28 @@ get_net_details() {
     esac
     NIP=$(get_short_net ${IIP}/24)
     if [ -f "${ZSDIR}/rconfig.${NIP}" ] ; then
-	IFACE=$(/usr/bin/grep ${SRCHIFACE} ${ZSDIR}/rconfig.${NIP} | /usr/bin/awk '{print $NF}')
+	IFACE=$(/usr/bin/grep "${SRCHIFACE}" "${ZSDIR}/rconfig.${NIP}" | /usr/bin/awk '{print $NF}')
 	ICIDR=24
 	echo "$IFACE $ICIDR"
 	return
     fi
     NIP=$(get_short_net ${IIP}/16)
     if [ -f "${ZSDIR}/rconfig.${NIP}" ] ; then
-	IFACE=$(/usr/bin/grep ${SRCHIFACE} ${ZSDIR}/rconfig.${NIP} | /usr/bin/awk '{print $NF}')
+	IFACE=$(/usr/bin/grep "${SRCHIFACE}" "${ZSDIR}/rconfig.${NIP}" | /usr/bin/awk '{print $NF}')
 	ICIDR=16
 	echo "$IFACE $ICIDR"
 	return
     fi
     NIP=$(get_short_net ${IIP}/8)
     if [ -f "${ZSDIR}/rconfig.${NIP}" ] ; then
-	IFACE=$(/usr/bin/grep ${SRCHIFACE} ${ZSDIR}/rconfig.${NIP} | /usr/bin/awk '{print $NF}')
+	IFACE=$(/usr/bin/grep "${SRCHIFACE}" "${ZSDIR}/rconfig.${NIP}" | /usr/bin/awk '{print $NF}')
 	ICIDR=8
 	echo "$IFACE $ICIDR"
 	return
     fi
-    IFACE=$(/usr/sbin/route -n get $IIP | /usr/bin/grep interface: | /usr/bin/awk '{print $NF}')
-    IMASK=$(/usr/sbin/route -n get $IIP | /usr/bin/grep mask: | /usr/bin/awk '{print $NF}')
-    ICIDR=$(get_mask $IMASK)
+    IFACE=$(/usr/sbin/route -n get "$IIP" | /usr/bin/grep interface: | /usr/bin/awk '{print $NF}')
+    IMASK=$(/usr/sbin/route -n get "$IIP" | /usr/bin/grep mask: | /usr/bin/awk '{print $NF}')
+    ICIDR=$(get_mask "$IMASK")
     echo "$IFACE $ICIDR"
 }
 
@@ -1269,19 +1269,19 @@ get_net_details() {
 #
 get_parent_zone() {
     IIP=$1
-    NIP=$(get_short_net ${IIP}/24)
-    if [ -f ${ZSDIR}/rconfig.${NIP} ] ; then
-	/usr/bin/grep zone: ${ZSDIR}/rconfig.${NIP} | /usr/bin/awk '{print $NF}'
+    NIP=$(get_short_net "${IIP}/24")
+    if [ -f "${ZSDIR}/rconfig.${NIP}" ] ; then
+	/usr/bin/grep zone: "${ZSDIR}/rconfig.${NIP}" | /usr/bin/awk '{print $NF}'
 	return
     fi
-    NIP=$(get_short_net ${IIP}/16)
-    if [ -f ${ZSDIR}/rconfig.${NIP} ] ; then
-	/usr/bin/grep zone: ${ZSDIR}/rconfig.${NIP} | /usr/bin/awk '{print $NF}'
+    NIP=$(get_short_net "${IIP}/16")
+    if [ -f "${ZSDIR}/rconfig.${NIP}" ] ; then
+	/usr/bin/grep zone: "${ZSDIR}/rconfig.${NIP}" | /usr/bin/awk '{print $NF}'
 	return
     fi
-    NIP=$(get_short_net ${IIP}/8)
-    if [ -f ${ZSDIR}/rconfig.${NIP} ] ; then
-        /usr/bin/grep zone: ${ZSDIR}/rconfig.${NIP} | /usr/bin/awk '{print $NF}'
+    NIP=$(get_short_net "${IIP}/8")
+    if [ -f "${ZSDIR}/rconfig.${NIP}" ] ; then
+        /usr/bin/grep zone: "${ZSDIR}/rconfig.${NIP}" | /usr/bin/awk '{print $NF}'
 	return
     fi
 }
@@ -1297,18 +1297,18 @@ get_parent_zone() {
 get_gateway() {
     IIP=$1
     NIP=$(get_short_net ${IIP}/24)
-    if [ -f ${ZSDIR}/rconfig.${NIP} ] ; then
-	/usr/bin/grep gateway: ${ZSDIR}/rconfig.${NIP} | /usr/bin/awk '{print $NF}'
+    if [ -f "${ZSDIR}/rconfig.${NIP}" ] ; then
+	/usr/bin/grep gateway: "${ZSDIR}/rconfig.${NIP}" | /usr/bin/awk '{print $NF}'
 	return
     fi
     NIP=$(get_short_net ${IIP}/16)
-    if [ -f ${ZSDIR}/rconfig.${NIP} ] ; then
-	/usr/bin/grep gateway: ${ZSDIR}/rconfig.${NIP} | /usr/bin/awk '{print $NF}'
+    if [ -f "${ZSDIR}/rconfig.${NIP}" ] ; then
+	/usr/bin/grep gateway: "${ZSDIR}/rconfig.${NIP}" | /usr/bin/awk '{print $NF}'
 	return
     fi
     NIP=$(get_short_net ${IIP}/8)
-    if [ -f ${ZSDIR}/rconfig.${NIP} ] ; then
-        /usr/bin/grep gateway: ${ZSDIR}/rconfig.${NIP} | /usr/bin/awk '{print $NF}'
+    if [ -f "${ZSDIR}/rconfig.${NIP}" ] ; then
+        /usr/bin/grep gateway: "${ZSDIR}/rconfig.${NIP}" | /usr/bin/awk '{print $NF}'
 	return
     fi
     /usr/sbin/route -n get default | /usr/bin/grep gateway: | /usr/bin/awk '{print $NF}'
@@ -1401,15 +1401,15 @@ echo "/bin/rm -f ${ZSDIR}/zconfig.${ZNAME}" >> "${ZSDIR}/destroy.${ZNAME}"
 echo "brand: $ZBRAND" >> "${ZSDIR}/zconfig.${ZNAME}"
 echo "zone: $ZNAME" >> "${ZSDIR}/zconfig.${ZNAME}"
 if [[ $ZBRAND = bhyve ]]; then
-    echo create -b
-    echo set brand=bhyve
+    echo "create -b"
+    echo "set brand=bhyve"
 else
-    echo create -t $ZBRAND
+    echo "create -t $ZBRAND"
 fi
-echo set autoboot=true
-echo set zonepath=${ZROOTBASE}/${ZNAME}
+echo "set autoboot=true"
+echo "set zonepath=${ZROOTBASE}/${ZNAME}"
 if [[ -n $XIP4 ]]; then
-    echo set ip-type=exclusive
+    echo "set ip-type=exclusive"
     echo "ip-type: exclusive" >> "${ZSDIR}/zconfig.${ZNAME}"
 else
     echo "ip-type: shared" >> "${ZSDIR}/zconfig.${ZNAME}"
@@ -1421,15 +1421,15 @@ for IP in $ZIP4
 do
 	echo "address: $IP" >> "${ZSDIR}/zconfig.${ZNAME}"
 	get_net_details shared $IP | read ZIFACE ZCIDR
-	echo add net
-	echo set physical=$ZIFACE
-	echo set address=${IP}/${ZCIDR}
-	echo end
+	echo "add net"
+	echo "set physical=$ZIFACE"
+	echo "set address=${IP}/${ZCIDR}"
+	echo "end"
 	if [[ -n $DOIP6 ]]; then
-	    echo add net
-	    echo set physical=$ZIFACE
-	    echo set address=$(get_link_local $IP)
-	    echo end
+	    echo "add net"
+	    echo "set physical=$ZIFACE"
+	    echo "set address=$(get_link_local $IP)"
+	    echo "end"
 	fi
 	#
 	# if on a routed subnet, record the name of our router zone
@@ -1474,19 +1474,19 @@ do
 	echo "/usr/sbin/dladm delete-vnic znic$ZENUM" >> "${ZSDIR}/destroy.${ZNAME}"
 	ifipmap[znic$ZENUM]=$IP/$ZCIDR
 	xifipmap[znic$ZENUM]=$IP/$ZCIDR
-	echo add net
-	echo set physical=znic$ZENUM
+	echo "add net"
+	echo "set physical=znic$ZENUM"
 	#
 	# we can't use allowed-address with IPv6, see below
 	# we can't use allowed-address for a router zone, as the anti-spoofing
 	# protection it brings prohibits IP forwarding and NAT
 	#
 	if [[ -z $DOIP6 && -z $RIP4 ]]; then
-	    echo set allowed-address=$IP/$ZCIDR
+	    echo "set allowed-address=$IP/$ZCIDR"
 	    # defrouter populates the gateway4 value in cloud-init
 	    ZGW=$(get_gateway $XIP4)
 	    if [[ -n $ZGW ]]; then
-		echo set defrouter=$ZGW
+		echo "set defrouter=$ZGW"
 	    fi
 	fi
 	echo end
@@ -1601,9 +1601,9 @@ do
 	#
 	echo "/usr/sbin/dladm delete-etherstub $ZIFACE" >> "${ZSDIR}/destroy.${ZNAME}"
 	ifipmap[znic$ZENUM]=$IP
-	echo add net
-	echo set physical=znic$ZENUM
-	echo end
+	echo "add net"
+	echo "set physical=znic$ZENUM"
+	echo "end"
 	# save the configuration here
 	ZNETNAME=$(get_short_net $IP)
 	touch "${ZSDIR}/rconfig.${ZNETNAME}"
@@ -1622,12 +1622,12 @@ if [[ $ZBRAND = TRIBsparse || $ZBRAND = TRIBwhole ]]; then
 	if [ ! -d /var/zap/cache ]; then
 	    /usr/bin/mkdir -p /var/zap/cache
 	fi
-	echo add fs
-	echo set dir=/var/zap/global-cache
-	echo set special=/var/zap/cache
-	echo set type=lofs
-	echo add options [ro,nodevices]
-	echo end
+	echo "add fs"
+	echo "set dir=/var/zap/global-cache"
+	echo "set special=/var/zap/cache"
+	echo "set type=lofs"
+	echo "add options [ro,nodevices]"
+	echo "end"
 fi
 #
 # for any items shared with the zone, add them
@@ -1635,37 +1635,37 @@ fi
 #
 for DSET in $ZDATASETS
 do
-	echo add dataset
-	echo set name=${DSET}
-	echo end
+	echo "add dataset"
+	echo "set name=${DSET}"
+	echo "end"
 done
 for DIR in $ZDIRS
 do
 	/usr/bin/mkdir -p "${ZFSBASE}/${ZNAME}${DIR}"
-	echo add fs
-	echo set dir=${DIR}
-	echo set special=${ZFSBASE}/${ZNAME}${DIR}
-	echo set type=lofs
-	echo add options [nodevices]
-	echo end
+	echo "add fs"
+	echo "set dir=${DIR}"
+	echo "set special=${ZFSBASE}/${ZNAME}${DIR}"
+	echo "set type=lofs"
+	echo "add options [nodevices]"
+	echo "end"
 done
 for DIR in $ZSHARED
 do
-	echo add fs
-	echo set dir=${DIR}
-	echo set special=${DIR}
-	echo set type=lofs
-	echo add options [nodevices]
-	echo end
+	echo "add fs"
+	echo "set dir=${DIR}"
+	echo "set special=${DIR}"
+	echo "set type=lofs"
+	echo "add options [nodevices]"
+	echo "end"
 done
 for DIR in $ZROSHARED
 do
-	echo add fs
-	echo set dir=${DIR}
-	echo set special=${DIR}
-	echo set type=lofs
-	echo add options [ro,nodevices]
-	echo end
+	echo "add fs"
+	echo "set dir=${DIR}"
+	echo "set special=${DIR}"
+	echo "set type=lofs"
+	echo "add options [ro,nodevices]"
+	echo "end"
 done
 #
 # for users, share the home directory, and give the user the
@@ -1677,17 +1677,17 @@ done
 #
 for TUSER in $ZUSERS
 do
-	echo add fs
+	echo "add fs"
 	DIR=$(/usr/bin/grep "^${TUSER}:" /etc/passwd | /usr/bin/awk -F: '{print $6}')
-	echo set dir=${DIR}
-	echo set special=${DIR}
-	echo set type=lofs
-	echo add options [nodevices]
-	echo end
-	echo add admin
-	echo set user=${TUSER}
-	echo set auths=manage
-	echo end
+	echo "set dir=${DIR}"
+	echo "set special=${DIR}"
+	echo "set type=lofs"
+	echo "add options [nodevices]"
+	echo "end"
+	echo "add admin"
+	echo "set user=${TUSER}"
+	echo "set auths=manage"
+	echo "end"
 done
 #
 # for lx, need to set the kernel version; ideally this would match the
@@ -1696,11 +1696,11 @@ done
 # default
 #
 if [[ $ZBRAND = SUNWlx ]]; then
-	echo add attr
-	echo set name=kernel-version
-	echo set type=string
-	echo set value=4.4.15
-	echo end
+	echo "add attr"
+	echo "set name=kernel-version"
+	echo "set type=string"
+	echo "set value=4.4.15"
+	echo "end"
 fi
 #
 # memory and cpu settings, for bhyve these are passed as string attributes
@@ -1708,15 +1708,15 @@ fi
 #
 if [[ $ZBRAND != bhyve ]]; then
     if [[ -n $RAMSPEC ]]; then
-	echo add capped-memory
-	echo set physical=$RAMSPEC
-	echo end
+	echo "add capped-memory"
+	echo "set physical=$RAMSPEC"
+	echo "end"
 	echo "memory: $RAMSPEC" >> "${ZSDIR}/zconfig.${ZNAME}"
     fi
     if [[ -n $CPUSPEC ]]; then
-	echo add capped-cpu
-	echo set ncpus=$CPUSPEC
-	echo end
+	echo "add capped-cpu"
+	echo "set ncpus=$CPUSPEC"
+	echo "end"
 	echo "cpus: $CPUSPEC" >> "${ZSDIR}/zconfig.${ZNAME}"
     fi
 fi
@@ -1734,77 +1734,77 @@ if [[ $ZBRAND = bhyve ]]; then
     VOLSTR="bootdisk"
     for BHVOL in $BHYVEVOLS $BHYVEVOL
     do
-	echo add device
-	echo set match=/dev/zvol/rdsk/${BHVOL}
-	echo end
-	echo add attr
-	echo set name=${VOLSTR}
-	echo set type=string
-	echo set value=${BHVOL}
-	echo end
+	echo "add device"
+	echo "set match=/dev/zvol/rdsk/${BHVOL}"
+	echo "end"
+	echo "add attr"
+	echo "set name=${VOLSTR}"
+	echo "set type=string"
+	echo "set value=${BHVOL}"
+	echo "end"
 	VOLSTR=disk${VOLNUM}
 	VOLNUM=$(($VOLNUM+1))
     done
     if [[ -n $ZISOFILE ]]; then
-	echo add fs
-	echo set dir=${ZISOFILE}
-	echo set special=${ZISOFILE}
-	echo set type=lofs
-	echo add options ro
-	echo add options nodevices
-	echo end
-	echo add attr
-	echo set name=cdrom
-	echo set type=string
-	echo set value=${ZISOFILE}
-	echo end
+	echo "add fs"
+	echo "set dir=${ZISOFILE}"
+	echo "set special=${ZISOFILE}"
+	echo "set type=lofs"
+	echo "add options ro"
+	echo "add options nodevices"
+	echo "end"
+	echo "add attr"
+	echo "set name=cdrom"
+	echo "set type=string"
+	echo "set value=${ZISOFILE}"
+	echo "end"
     fi
-    echo add attr
-    echo set name=vnc
-    echo set type=string
-    echo set value=on
-    echo end
-    echo add attr
-    echo set name=bootrom
-    echo set type=string
-    echo set value=${BHYVEFW}
-    echo end
-    echo add attr
-    echo set name=acpi
-    echo set type=string
-    echo set value=off
-    echo end
+    echo "add attr"
+    echo "set name=vnc"
+    echo "set type=string"
+    echo "set value=on"
+    echo "end"
+    echo "add attr"
+    echo "set name=bootrom"
+    echo "set type=string"
+    echo "set value=${BHYVEFW}"
+    echo "end"
+    echo "add attr"
+    echo "set name=acpi"
+    echo "set type=string"
+    echo "set value=off"
+    echo "end"
     case $ZISOFILE in
 	*omnios*|*tribblix*|*hipster*|XStream*)
-    echo add attr
-    echo set name=xhci
-    echo set type=string
-    echo set value=off
-    echo end
+    echo "add attr"
+    echo "set name=xhci"
+    echo "set type=string"
+    echo "set value=off"
+    echo "end"
 	;;
     esac
     case $ZISOFILE in
 	*S11-CBE*)
-    echo add attr
-    echo set name=hostbridge
-    echo set type=string
-    echo set value=none
-    echo end
-    echo add attr
-    echo set name=rng
-    echo set type=string
-    echo set value=off
-    echo end
-    echo add attr
-    echo set name=type
-    echo set type=string
-    echo set value=windows
-    echo end
-    echo add attr
-    echo set name=xhci
-    echo set type=string
-    echo set value=off
-    echo end
+    echo "add attr"
+    echo "set name=hostbridge"
+    echo "set type=string"
+    echo "set value=none"
+    echo "end"
+    echo "add attr"
+    echo "set name=rng"
+    echo "set type=string"
+    echo "set value=off"
+    echo "end"
+    echo "add attr"
+    echo "set name=type"
+    echo "set type=string"
+    echo "set value=windows"
+    echo "end"
+    echo "add attr"
+    echo "set name=xhci"
+    echo "set type=string"
+    echo "set value=off"
+    echo "end"
         ;;
     esac
     # share directories over virtfs
@@ -1817,68 +1817,68 @@ if [[ $ZBRAND = bhyve ]]; then
     VFSNUM=0
     for DIR in $ZSHARED
     do
-	echo add attr
-	echo set name=virtfs${VFSNUM}
-	echo set type=string
-	echo set value=bhyvefs${VFSNUM},${DIR}
-	echo end
+	echo "add attr"
+	echo "set name=virtfs${VFSNUM}"
+	echo "set type=string"
+	echo "set value=bhyvefs${VFSNUM},${DIR}"
+	echo "end"
 	VFSNUM=$(($VFSNUM+1))
     done
     for DIR in $ZROSHARED
     do
-	echo add attr
-	echo set name=virtfs${VFSNUM}
-	echo set type=string
-	echo set value=bhyvefs${VFSNUM},${DIR},ro
-	echo end
+	echo "add attr"
+	echo "set name=virtfs${VFSNUM}"
+	echo "set type=string"
+	echo "set value=bhyvefs${VFSNUM},${DIR},ro"
+	echo "end"
 	VFSNUM=$(($VFSNUM+1))
     done
     if [[ -n $RAMSPEC ]]; then
-	echo add attr
-	echo set name=ram
-	echo set type=string
-	echo set value=$RAMSPEC
-	echo end
+	echo "add attr"
+	echo "set name=ram"
+	echo "set type=string"
+	echo "set value=$RAMSPEC"
+	echo "end"
 	echo "memory: $RAMSPEC" >> "${ZSDIR}/zconfig.${ZNAME}"
     fi
     if [[ -n $CPUSPEC ]]; then
-	echo add attr
-	echo set name=vcpus
-	echo set type=string
-	echo set value=$CPUSPEC
-	echo end
+	echo "add attr"
+	echo "set name=vcpus"
+	echo "set type=string"
+	echo "set value=$CPUSPEC"
+	echo "end"
 	echo "cpus: $CPUSPEC" >> "${ZSDIR}/zconfig.${ZNAME}"
     fi
     if [[ -n $CLOUDINIT ]]; then
-	echo add attr
-	echo set name=cloud-init
-	echo set type=string
-	echo set value=on
-	echo end
+	echo "add attr"
+	echo "set name=cloud-init"
+	echo "set type=string"
+	echo "set value=on"
+	echo "end"
 	# try and get resolvers from resolv.conf
 	if [ -f /etc/resolv.conf ]; then
 	    RESOLVERS=$(grep nameserver /etc/resolv.conf | awk '{printf $2","}' | sed 's:,$::')
 	    if [[ -n $RESOLVERS ]]; then
-		echo add attr
-		echo set name=resolvers
-		echo set type=string
-		echo set value=$RESOLVERS
-		echo end
+		echo "add attr"
+		echo "set name=resolvers"
+		echo "set type=string"
+		echo "set value=$RESOLVERS"
+		echo "end"
 	    fi
 	fi
 	# the file specified here is copied later into the zone at the fixed
 	# location we give here, as cloud-init runs in the zone context
 	if [[ -n $SSHKEYFILE ]]; then
-	    echo add attr
-	    echo set name=sshkey
-	    echo set type=string
-	    echo set value=/sshkey.pub
-	    echo end
+	    echo "add attr"
+	    echo "set name=sshkey"
+	    echo "set type=string"
+	    echo "set value=/sshkey.pub"
+	    echo "end"
 	fi
     fi
 fi
-echo verify
-echo commit
+echo "verify"
+echo "commit"
 }
 
 #
@@ -1897,17 +1897,17 @@ create_sysidcfg() {
 	ZGW=$(get_gateway $XIP4)
 	echo "default_route=$ZGW"
 	if [[ -n $DOIP6 ]]; then
-	    echo protocol_ipv6=yes
+	    echo "protocol_ipv6=yes"
 	else
-	    echo protocol_ipv6=no
+	    echo "protocol_ipv6=no"
 	fi
     fi
     echo "}"
-    echo security_policy=NONE
+    echo "security_policy=NONE"
     # we manually configure dns, so don't let sysidcfg mess it up
     echo "name_service=NONE"
-    echo nfs4_domain=dynamic
-    echo timezone=${TZ:=UTC}
+    echo "nfs4_domain=dynamic"
+    echo "timezone=${TZ:=UTC}"
     echo "root_password=jhDYXBAnWJKr2"
 }
 
@@ -2019,7 +2019,7 @@ fi
 #
 if [[ -n ${ZDIRS} ]]; then
    ZPARENT=${ZFSBASE%/*}
-   ZDPARENT=$(/usr/sbin/zfs list -H ${ZPARENT} | /usr/bin/awk '{print $1}')
+   ZDPARENT=$(/usr/sbin/zfs list -H "${ZPARENT}" | /usr/bin/awk '{print $1}')
    ZREALNAME=$(echo $ZFSBASE | /usr/bin/sed s:${ZPARENT}:${ZDPARENT}:)
    if [[ ! -d "${ZFSBASE}" ]]; then
       /usr/sbin/zfs create "${ZREALNAME}"
@@ -2030,7 +2030,7 @@ if [[ -n ${ZDIRS} ]]; then
 fi
 if [[ ! -d "${ZROOTBASE}" ]]; then
    ZPARENT=${ZROOTBASE%/*}
-   ZDPARENT=$(/usr/sbin/zfs list -H ${ZPARENT} | /usr/bin/awk '{print $1}')
+   ZDPARENT=$(/usr/sbin/zfs list -H "${ZPARENT}" | /usr/bin/awk '{print $1}')
    ZREALNAME=$(echo $ZROOTBASE | /usr/bin/sed s:${ZPARENT}:${ZDPARENT}:)
    /usr/sbin/zfs create "${ZREALNAME}"
 fi
@@ -2067,16 +2067,16 @@ if [[ $ZBRAND = bhyve ]]; then
 		esac
 		VOLENUM=0
 		BVOLNAME=${ZNAME}_bhvol${VOLENUM}
-		/usr/sbin/zfs get type ${BHYVEPOOL}/${BVOLNAME} > /dev/null 2>&1
+		/usr/sbin/zfs get type "${BHYVEPOOL}/${BVOLNAME}" > /dev/null 2>&1
 		ZESTATUS=$?
 		while [ $ZESTATUS -eq 0 ]
 		do
 		    VOLENUM=$(($VOLENUM+1))
 		    BVOLNAME=${ZNAME}_bhvol${VOLENUM}
-		    /usr/sbin/zfs get type ${BHYVEPOOL}/${BVOLNAME} > /dev/null 2>&1
+		    /usr/sbin/zfs get type "${BHYVEPOOL}/${BVOLNAME}" > /dev/null 2>&1
 		    ZESTATUS=$?
 		done
-		/usr/sbin/zfs create -V $BHYVEVOLSIZE ${BHYVEPOOL}/${BVOLNAME}
+		/usr/sbin/zfs create -V "$BHYVEVOLSIZE" "${BHYVEPOOL}/${BVOLNAME}"
 		BHYVEVOLS="${BHYVEVOLS} ${BHYVEPOOL}/${BVOLNAME}"
 		if [ ! -f "${ZSDIR}/destroy.${ZNAME}" ]; then
 		    echo "#!/bin/sh" > "${ZSDIR}/destroy.${ZNAME}"
@@ -2141,7 +2141,7 @@ if [[ $ZBRAND != SUNWlx ]]; then
     done
     if [[ -n $XIP4 ]]; then
 	ZGW=$(get_gateway $XIP4)
-	echo $ZGW > "${ZROOTBASE}/${ZNAME}/root/etc/defaultrouter"
+	echo "$ZGW" > "${ZROOTBASE}/${ZNAME}/root/etc/defaultrouter"
     fi
 fi
 

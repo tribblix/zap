@@ -1,5 +1,7 @@
 #!/bin/ksh
 #
+# SPDX-License-Identifier: CDDL-1.0
+#
 # {{{ CDDL HEADER
 #
 # This file and its contents are supplied under the terms of the
@@ -55,26 +57,26 @@ if [ $# -lt 7 ]; then
 #
 # the old path, simply read through the catalogs for each package
 #
-for PKG in $*
+for PKG in "$@"
 do
     PFOUND=""
     for repo in $repolist
     do
-	if [ -f ${CFGDIR}/repositories/${repo}.catalog ]; then
+	if [ -f "${CFGDIR}/repositories/${repo}.catalog" ]; then
 	    IFS='|'
-	    while read npkg nver line
+	    while read -r npkg nver line
 	    do
 		if [ "$npkg" = "$PKG" ]; then
 		    echo "${npkg}.${nver} ${repo}"
 		    PFOUND="y"
 		    break 2
 		fi
-	    done < ${CFGDIR}/repositories/${repo}.catalog
+	    done < "${CFGDIR}/repositories/${repo}.catalog"
 	fi
     done
     unset IFS
     if [ -z "$PFOUND" ]; then
-	echo $PKG
+	echo "$PKG"
     fi
 done
 
@@ -88,26 +90,26 @@ typeset -A map_repo
 
 for repo in $repolist
 do
-    if [ -f ${CFGDIR}/repositories/${repo}.catalog ]; then
+    if [ -f "${CFGDIR}/repositories/${repo}.catalog" ]; then
 	IFS='|'
-	while read npkg nver line
+	while read -r npkg nver line
 	do
 	    if [ -z "${map_ver[$npkg]}" ]; then
 		# remember this if we've not seen it before
 		map_ver[$npkg]=$nver
 		map_repo[$npkg]=$repo
 	    fi
-	done < ${CFGDIR}/repositories/${repo}.catalog
+	done < "${CFGDIR}/repositories/${repo}.catalog"
     fi
     unset IFS
 done
 
-for PKG in $*
+for PKG in "$@"
 do
     if [ -n "${map_ver[$PKG]}" ]; then
-	echo ${PKG}.${map_ver[$PKG]} ${map_repo[$PKG]}
+	echo "${PKG}.${map_ver[$PKG]}" "${map_repo[$PKG]}"
     else
-	echo $PKG
+	echo "$PKG"
     fi
 done
 
