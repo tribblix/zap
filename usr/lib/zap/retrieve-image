@@ -252,7 +252,7 @@ case $SCHEME in
 		DLNAME="proxmox-almalinux-8.tar.xz"
 		;;
 	    alma|almalinux|almalinux9)
-		DLFILE="almalinux-9-default_20221108_amd64.tar.xz"
+		DLFILE="almalinux-9-default_20240911_amd64.tar.xz"
 		DLNAME="proxmox-almalinux-9.tar.xz"
 		;;
 	    alpine-3.6)
@@ -311,8 +311,12 @@ case $SCHEME in
 		DLFILE="alpine-3.19-default_20240207_amd64.tar.xz"
 		DLNAME="proxmox-alpine-3.19.tar.xz"
 		;;
+	    alpine-3.20)
+		DLFILE="alpine-3.20-default_20240908_amd64.tar.xz"
+		DLNAME="proxmox-alpine-3.20.tar.xz"
+		;;
 	    arch|archlinux)
-		DLFILE="archlinux-base_20230608-1_amd64.tar.zst"
+		DLFILE="archlinux-base_20240911-1_amd64.tar.zst"
 		DLNAME="proxmox-archlinux.tar.zst"
 		echo "WARN: arch is not supported by the LX brand"
 		;;
@@ -329,7 +333,7 @@ case $SCHEME in
 		DLNAME="proxmox-centos-8.tar.xz"
 		;;
 	    centos-9|centos-9-stream)
-		DLFILE="centos-9-stream-default_20221109_amd64.tar.xz"
+		DLFILE="centos-9-stream-default_20240828_amd64.tar.xz"
 		DLNAME="proxmox-centos-9.tar.xz"
 		;;
 	    debian-6)
@@ -357,7 +361,7 @@ case $SCHEME in
 		DLNAME="proxmox-debian-11.tar.zst"
 		;;
 	    debian-12)
-		DLFILE="debian-12-standard_12.2-1_amd64.tar.zst"
+		DLFILE="debian-12-standard_12.7-1_amd64.tar.zst"
 		DLNAME="proxmox-debian-12.tar.zst"
 		;;
 	    devuan-3)
@@ -428,6 +432,14 @@ case $SCHEME in
 		DLFILE="fedora-38-default_20230607_amd64.tar.xz"
 		DLNAME="proxmox-fedora-38.tar.xz"
 		;;
+	    fedora-39)
+		DLFILE="fedora-39-default_20231118_amd64.tar.xz"
+		DLNAME="proxmox-fedora-39.tar.xz"
+		;;
+	    fedora-40)
+		DLFILE="fedora-40-default_20240909_amd64.tar.xz"
+		DLNAME="proxmox-fedora-40.tar.xz"
+		;;
 	    gentoo)
 		DLFILE="gentoo-current-default_20200310_amd64.tar.xz"
 		DLNAME="proxmox-gentoo.tar.xz"
@@ -438,7 +450,7 @@ case $SCHEME in
 		DLNAME="proxmox-opensuse-42.tar.xz"
 		;;
 	    opensuse-15|opensuse)
-		DLFILE="opensuse-15.4-default_20221109_amd64.tar.xz"
+		DLFILE="opensuse-15.6-default_20240910_amd64.tar.xz"
 		DLNAME="proxmox-opensuse-15.tar.xz"
 		;;
 	    rocky8|rockylinux8)
@@ -446,7 +458,7 @@ case $SCHEME in
 		DLNAME="proxmox-rockylinux-8.tar.xz"
 		;;
 	    rocky|rockylinux|rocky9|rockylinux9)
-		DLFILE="rockylinux-9-default_20221109_amd64.tar.xz"
+		DLFILE="rockylinux-9-default_20240912_amd64.tar.xz"
 		DLNAME="proxmox-rockylinux-9.tar.xz"
 		;;
 	    ubuntu-*)
