@@ -1,5 +1,7 @@
 #!/bin/ksh
 #
+# SPDX-License-Identifier: CDDL-1.0
+#
 # {{{ CDDL HEADER
 #
 # This file and its contents are supplied under the terms of the
@@ -13,7 +15,7 @@
 #
 # }}}
 #
-# Copyright 2023 Peter Tribble
+# Copyright 2024 Peter Tribble
 #
 
 #
@@ -95,10 +97,10 @@ get_repo_priority() {
     fi
     case $REPOTYPE in
 	package)
-	    /usr/bin/awk -v p=$REPONAME '{if ($2 == p) print $1}' ${PKGREPOLIST}
+	    /usr/bin/awk -v p="$REPONAME" '{if ($2 == p) print $1}' "${PKGREPOLIST}"
 	    ;;
 	overlay)
-	    /usr/bin/awk -v p=$REPONAME '{if ($2 == p) print $1}' ${OVLREPOLIST}
+	    /usr/bin/awk -v p="$REPONAME" '{if ($2 == p) print $1}' "${OVLREPOLIST}"
 	    ;;
 	*)
 	    echo "ERROR: unrecognized repo type $REPOTYPE"
@@ -119,10 +121,10 @@ get_priority_repo() {
     fi
     case $REPOTYPE in
 	package)
-	    /usr/bin/awk -v p=$REPOPRI '{if ($1 == p) print $2}' ${PKGREPOLIST}
+	    /usr/bin/awk -v p="$REPOPRI" '{if ($1 == p) print $2}' "${PKGREPOLIST}"
 	    ;;
 	overlay)
-	    /usr/bin/awk -v p=$REPOPRI '{if ($1 == p) print $2}' ${OVLREPOLIST}
+	    /usr/bin/awk -v p="$REPOPRI" '{if ($1 == p) print $2}' "${OVLREPOLIST}"
 	    ;;
 	*)
 	    echo "ERROR: unrecognized repo type $REPOTYPE"
@@ -242,7 +244,7 @@ add_repo() {
 	echo "ERROR: priority is not numeric"
 	exit 1
     fi
-    if [ $REPOPRI -lt $MINPRI ]; then
+    if [ "$REPOPRI" -lt $MINPRI ]; then
 	echo "ERROR: invalid priority $REPOPRI (minimum $MINPRI)"
 	exit 1
     fi
@@ -256,7 +258,7 @@ add_repo() {
     #
     # check priority isn't in use
     #
-    USEPRI=$(get_priority_repo $REPOTYPE $REPOPRI)
+    USEPRI=$(get_priority_repo "$REPOTYPE" "$REPOPRI")
     if [ -n "${USEPRI}" ]; then
 	echo "ERROR: priority $REPOPRI is already in use by $USEPRI"
 	exit 1
@@ -289,20 +291,20 @@ add_repo() {
     fi
     #
     echo "Creating ${REPODATA}"
-    echo "NAME=$REPONAME" > ${REPODATA}
-    echo "DESC=$REPODESC" >> ${REPODATA}
-    echo "URL=$REPOURL" >> ${REPODATA}
+    echo "NAME=$REPONAME" > "${REPODATA}"
+    echo "DESC=$REPODESC" >> "${REPODATA}"
+    echo "URL=$REPOURL" >> "${REPODATA}"
     if [ -n "${REPOSIGN}" ]; then
-	echo "SIGNED=$REPOSIGN" >> ${REPODATA}
+	echo "SIGNED=$REPOSIGN" >> "${REPODATA}"
     fi
     echo "Registering ${REPONAME} in ${REPOLIST}"
-    echo "$REPOPRI $REPONAME" >> ${REPOLIST}
+    echo "$REPOPRI $REPONAME" >> "${REPOLIST}"
     #
     # now we need to refresh the metadata so the new repo's
     # metadata gets populated
     #
     echo "Refreshing metadata"
-    exec ${ALTROOT}/usr/bin/zap ${CTXARGS} refresh
+    exec "${ALTROOT}"/usr/bin/zap ${CTXARGS} refresh
 }
 
 #
@@ -335,7 +337,7 @@ remove_repo() {
     # get the priority of the repo we're going to remove
     # something is amiss if we don't get a value back
     #
-    REPOPRI=$(get_repo_priority ${REPOTYPE} ${REPONAME})
+    REPOPRI=$(get_repo_priority "${REPOTYPE}" "${REPONAME}")
     if [ -z "${REPOPRI}" ]; then
 	echo "ERROR: repo $REPONAME is not registered in ${REPOLIST}"
 	exit 1
@@ -355,10 +357,10 @@ remove_repo() {
 	    rm -f "${CFGDIR}/repositories/${REPONAME}.filelist.bz2"
 	    rm -f "${CFGDIR}/repositories/${REPONAME}.aliases.bak"
 	    rm -f "${CFGDIR}/repositories/${REPONAME}.aliases"
-	    rm -f ${REPODATA}
+	    rm -f "${REPODATA}"
 	    ;;
 	overlay)
-	    for OVL in $(/usr/bin/awk -F'|' '{print $1}' ${CFGDIR}/repositories/${REPONAME}.overlays)
+	    for OVL in $(/usr/bin/awk -F'|' '{print $1}' "${CFGDIR}/repositories/${REPONAME}.overlays")
 	    do
 		rm -f "${ALTROOT}/var/sadm/overlays/installed/${OVL}"
 		rm -f "${ALTROOT}/var/sadm/overlays/${OVL}.ovl"
@@ -366,21 +368,21 @@ remove_repo() {
 	    done
 	    rm -f "${CFGDIR}/repositories/${REPONAME}.overlays.bak"
 	    rm -f "${CFGDIR}/repositories/${REPONAME}.overlays"
-	    rm -f ${REPODATA}
+	    rm -f "${REPODATA}"
 	    ;;
     esac
     #
     # and remove it from the list
     #
-    /usr/bin/awk -v p=$REPOPRI -v n=$REPONAME '{if ($1 != p && $2 != n) print}' ${REPOLIST} > ${REPOLIST}.tmp
-    mv ${REPOLIST}.tmp ${REPOLIST}
+    /usr/bin/awk -v p="$REPOPRI" -v n="$REPONAME" '{if ($1 != p && $2 != n) print}' "${REPOLIST}" > "${REPOLIST}.tmp"
+    mv "${REPOLIST}.tmp" "${REPOLIST}"
     #
     # now we need to refresh the metadata so that any old repo
     # metadata gets properly refreshed, especially if the removed
     # repo masked any metadata in other repos
     #
     echo "Refreshing metadata"
-    exec ${ALTROOT}/usr/bin/zap ${CTXARGS} refresh
+    exec "${ALTROOT}"/usr/bin/zap ${CTXARGS} refresh
 }
 
 #
@@ -449,7 +451,7 @@ modify_repo() {
     # note that we can't use any value that might appear in the URL as
     # a sed separator
     #
-    sed -i "s#URL=.*#URL=${REPOURL}#" $REPODATA
+    sed -i "s#URL=.*#URL=${REPOURL}#" "$REPODATA"
     #
     # now we need to refresh the metadata
     #
@@ -472,7 +474,7 @@ case $1 in
     describe-package-repo)
 	shift
 	if [ -f "${CFGDIR}/repositories/${1}.repo" ]; then
-	    REPOPRI=$(get_repo_priority package $1)
+	    REPOPRI=$(get_repo_priority package "$1")
 	    echo "The $1 repo has priority $REPOPRI"
 	    cat "${CFGDIR}/repositories/${1}.repo"
 	else
@@ -482,7 +484,7 @@ case $1 in
     describe-overlay-repo)
 	shift
 	if [ -f "${CFGDIR}/repositories/${1}.ovl" ]; then
-	    REPOPRI=$(get_repo_priority overlay $1)
+	    REPOPRI=$(get_repo_priority overlay "$1")
 	    echo "The $1 repo has priority $REPOPRI"
 	    cat "${CFGDIR}/repositories/${1}.ovl"
 	else
