@@ -1,5 +1,7 @@
 #!/bin/ksh
 #
+# SPDX-License-Identifier: CDDL-1.0
+#
 # a delegated image retrieval script
 # this understands the media available from
 #
@@ -72,10 +74,10 @@ case $BRAND in
 esac
 
 ZAPLIBDIR="/usr/lib/zap"
-IMG_DIR=$(${ZAPLIBDIR}/zap-cfg ${CTXARGS} image-dir)
+IMG_DIR=$(${ZAPLIBDIR}/zap-cfg image-dir)
 IMG_DIR=/tmp
 USER_AGENT="zap"/$(${ZAPLIBDIR}/zap-cfg pkgversion)
-ZAP_PROXY=$(${ZAPLIBDIR}/zap-cfg ${CTXARGS} proxy)
+ZAP_PROXY=$(${ZAPLIBDIR}/zap-cfg proxy)
 
 
 if [ -n "$ZAP_PROXY" ]; then
@@ -87,6 +89,10 @@ WCLIENT=/usr/bin/curl
 WARGS="-A ${USER_AGENT} -f -s -o"
 if [ ! -x $WCLIENT ]; then
     WCLIENT=/usr/bin/wget
+    WARGS="-U ${USER_AGENT} -q -O"
+fi
+if [ ! -x $WCLIENT ]; then
+    WCLIENT=/usr/bin/wget2
     WARGS="-U ${USER_AGENT} -q -O"
 fi
 
@@ -103,9 +109,9 @@ if [ ! -f "${META_JSON}" ]; then
     echo "ERROR: download of metadata failed"
     exit 1
 fi
-if [ ! -s ${META_JSON} ]; then
+if [ ! -s "${META_JSON}" ]; then
     echo "ERROR: download metadata is empty"
-    /usr/bin/rm -f ${META_JSON}
+    /usr/bin/rm -f "${META_JSON}"
     exit 1
 fi
 
@@ -206,28 +212,27 @@ case $SUBCMD in
 	# check if we already have it and the checksum matches
 	# if mismatched, delete it and download again
 	#
-	if [ -f ${FDLNAME} ]; then
-	    DLVAL=$(/usr/bin/digest -a sha256 $FDLNAME)
+	if [ -f "${FDLNAME}" ]; then
+	    DLVAL=$(/usr/bin/digest -a sha256 "$FDLNAME")
 	    if [ "${DLVAL}" != "${CKVAL}" ]; then
-		rm -f $FDLNAME
+		rm -f "$FDLNAME"
 	    else
 		echo "$FDLNAME"
 		exit 0
 	    fi
 	fi
-	#echo "Downloading image ${DLFILE}"
-	echo ${WCLIENT} ${WARGS} ${FDLNAME} ${DLPREFIX}${DLNAME}
-	exit 0
-	if [ ! -f ${FDLNAME} ]; then
+	echo "Downloading image ${DLFILE}"
+	${WCLIENT} ${WARGS} "${FDLNAME}" "${DLPREFIX}${DLNAME}"
+	if [ ! -f "${FDLNAME}" ]; then
 	    echo "ERROR: download failed"
 	    exit 1
 	fi
-	if [ ! -s ${FDLNAME} ]; then
+	if [ ! -s "${FDLNAME}" ]; then
 	    echo "ERROR: download file is empty"
-	    /usr/bin/rm -f ${FDLNAME}
+	    /usr/bin/rm -f "${FDLNAME}"
 	    exit 1
 	fi
-	DLVAL=$(/usr/bin/digest -a sha256 $FDLNAME)
+	DLVAL=$(/usr/bin/digest -a sha256 "$FDLNAME")
 	if [ "${DLVAL}" != "${CKVAL}" ]; then
 	    echo "ERROR: checksum mismatch"
 	    exit 1
