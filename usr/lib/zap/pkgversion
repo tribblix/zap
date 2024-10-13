@@ -1,5 +1,7 @@
 #!/bin/ksh
 #
+# SPDX-License-Identifier: CDDL-1.0
+#
 # {{{ CDDL HEADER
 #
 # This file and its contents are supplied under the terms of the
@@ -13,7 +15,7 @@
 #
 # }}}
 #
-# Copyright 2023 Peter Tribble
+# Copyright 2024 Peter Tribble
 #
 
 #
@@ -42,28 +44,29 @@ esac
 
 case $pkgname in
 *.zap)
-	if [ -f ${pkgname} ]; then
-	   thispkg=${pkgname##*/}
-	   /usr/bin/zipgrep VERSION= ${pkgname} ${thispkg%%.*}/pkginfo | /usr/bin/awk -F= '{gsub("\"","",$2);print $2}'
-	   exit 0
+	if [ -f "${pkgname}" ]; then
+	    thispkg=${pkgname##*/}
+	    inthispkg=${thispkg%%.*}
+	    /usr/bin/zipgrep VERSION= "${pkgname}" "${inthispkg}/pkginfo" | /usr/bin/awk -F= '{gsub("\"","",$2);print $2}'
+	    exit 0
 	else
-	   echo "Error: unable to find package file $pkgname"
-	   exit 1
+	    echo "Error: unable to find package file $pkgname"
+	    exit 1
 	fi
 	;;
 *.pkg)
-	if [ -f ${pkgname} ]; then
-	   /usr/bin/pkginfo -l -d ${pkgname} | /usr/bin/grep VERSION: | /usr/bin/awk '{gsub("\"","",$NF);print $NF}'
-	   exit 0
+	if [ -f "${pkgname}" ]; then
+	    /usr/bin/pkginfo -l -d "${pkgname}" | /usr/bin/grep VERSION: | /usr/bin/awk '{gsub("\"","",$NF);print $NF}'
+	    exit 0
 	else
-	   echo "Error: unable to find package file $pkgname"
-	   exit 1
+	    echo "Error: unable to find package file $pkgname"
+	    exit 1
 	fi
 	;;
 *)
-	if [ -f ${ALTROOT}/var/sadm/pkg/${pkgname}/pkginfo ]; then
+	if [ -f "${ALTROOT}/var/sadm/pkg/${pkgname}/pkginfo" ]; then
 	    IVERSION=""
-	    while read line
+	    while read -r line
 	    do
 		case $line in
 		    VERSION*)
@@ -71,8 +74,8 @@ case $pkgname in
 			break
 			;;
 		esac
-	    done<${ALTROOT}/var/sadm/pkg/${pkgname}/pkginfo
-	    echo $IVERSION
+	    done<"${ALTROOT}/var/sadm/pkg/${pkgname}/pkginfo"
+	    echo "$IVERSION"
 	    exit 0
 	else
 	   echo "Error: unable to find package $pkgname"
