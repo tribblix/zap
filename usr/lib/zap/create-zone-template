@@ -130,15 +130,15 @@ case $ZBRAND in
 	    #
 	    # check validity of the name
 	    #
-	    DLFILE=$(${ZAPLIBDIR}/retrieve-image -n $ZISOFILE)
+	    DLFILE=$(${ZAPLIBDIR}/retrieve-image -n "$ZISOFILE")
 	    if [[ $DLFILE = /* ]]; then
-		if [ -f $DLFILE ]; then
+		if [ -f "$DLFILE" ]; then
 		    echo "Using cached image $DLFILE for $ZISOFILE"
 		    ZISOFILE="$DLFILE"
 		else
 		    echo "Downloading $ZISOFILE"
-		    DLFILE=$(${ZAPLIBDIR}/retrieve-image $ZISOFILE)
-		    if [ -f $DLFILE ]; then
+		    DLFILE=$(${ZAPLIBDIR}/retrieve-image "$ZISOFILE")
+		    if [ -f "$DLFILE" ]; then
 			echo "Using downloaded image $DLFILE for $ZISOFILE"
 			ZISOFILE="$DLFILE"
 		    fi
@@ -149,7 +149,7 @@ case $ZBRAND in
 	    echo "ERROR: image name must be absolute or specify a valid download"
 	    usage
 	fi
-	if [ ! -f $ZISOFILE ]; then
+	if [ ! -f "$ZISOFILE" ]; then
 	    echo "ERROR: specified image not found"
 	    usage
 	fi
@@ -189,7 +189,7 @@ done
 #
 for APKG in $ZPACKAGE
 do
-    NPKG=$(/usr/lib/zap/resolve-alias $APKG)
+    NPKG=$(/usr/lib/zap/resolve-alias "$APKG")
     if [ ! -f "/var/sadm/pkg/${NPKG}/pkginfo" ]; then
 	echo "ERROR: unrecognized package ${APKG}"
 	exit 1
