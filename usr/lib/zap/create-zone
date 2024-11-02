@@ -1059,7 +1059,7 @@ done
 #
 for APKG in $ZPACKAGE
 do
-    NPKG=$(/usr/lib/zap/resolve-alias $APKG)
+    NPKG=$(/usr/lib/zap/resolve-alias "$APKG")
     if [ ! -f "/var/sadm/pkg/${NPKG}/pkginfo" ]; then
 	echo "ERROR: unrecognized package ${APKG}"
 	exit 1
@@ -1122,14 +1122,14 @@ bhyve)
 		#
 		# check validity of the name
 		#
-		DLFILE=$(${ZAPLIBDIR}/retrieve-image -n $ZISOFILE)
+		DLFILE=$(${ZAPLIBDIR}/retrieve-image -n "$ZISOFILE")
 		if [[ $DLFILE = /* ]]; then
 		    if [ -f "$DLFILE" ]; then
 			echo "Using cached image $DLFILE for $ZISOFILE"
 			ZISOFILE="$DLFILE"
 		    else
 			echo "Downloading $ZISOFILE"
-			DLFILE=$(${ZAPLIBDIR}/retrieve-image $ZISOFILE)
+			DLFILE=$(${ZAPLIBDIR}/retrieve-image "$ZISOFILE")
 			if [ -f "$DLFILE" ]; then
 			    echo "Using downloaded image $DLFILE for $ZISOFILE"
 			    ZISOFILE="$DLFILE"
@@ -1420,7 +1420,7 @@ fi
 for IP in $ZIP4
 do
 	echo "address: $IP" >> "${ZSDIR}/zconfig.${ZNAME}"
-	get_net_details shared $IP | read ZIFACE ZCIDR
+	get_net_details shared "$IP" | read ZIFACE ZCIDR
 	echo "add net"
 	echo "set physical=$ZIFACE"
 	echo "set address=${IP}/${ZCIDR}"
@@ -1434,7 +1434,7 @@ do
 	#
 	# if on a routed subnet, record the name of our router zone
 	#
-	ZROUTER=$(get_parent_zone $IP)
+	ZROUTER=$(get_parent_zone "$IP")
 	if [[ -n $ZROUTER ]]; then
 	    echo "parent_zone: $ZROUTER" >> "${ZSDIR}/zconfig.${ZNAME}"
 	fi
@@ -1454,7 +1454,7 @@ ZENUM=0
 for IP in $XIP4
 do
 	echo "address: $IP" >> "${ZSDIR}/zconfig.${ZNAME}"
-	get_net_details exclusive $IP | read ZIFACE ZCIDR
+	get_net_details exclusive "$IP" | read ZIFACE ZCIDR
 	/usr/sbin/dladm show-vnic "znic$ZENUM" > /dev/null 2>&1
 	ZESTATUS=$?
 	while [ $ZESTATUS -eq 0 ]
@@ -1466,7 +1466,7 @@ do
 	/usr/sbin/dladm create-vnic -l "$ZIFACE" "znic$ZENUM"
 	# if flow-properties are specified, create a flow here
 	if [[ -n $FLOWPROPS ]]; then
-	    /usr/sbin/flowadm add-flow -l "znic$ZENUM" -a local_ip=$IP -p $FLOWPROPS "znic${ZENUM}flow"
+	    /usr/sbin/flowadm add-flow -l "znic$ZENUM" -a "local_ip=$IP" -p $FLOWPROPS "znic${ZENUM}flow"
 	    # don't be cute, remove all flows associated with this vnic
 	    echo "/usr/sbin/flowadm remove-flow -l znic$ZENUM" >> "${ZSDIR}/destroy.${ZNAME}"
 	fi
@@ -1503,7 +1503,7 @@ do
 	#
 	# if on a routed subnet, record the name of our router zone
 	#
-	ZROUTER=$(get_parent_zone $IP)
+	ZROUTER=$(get_parent_zone "$IP")
 	if [[ -n $ZROUTER ]]; then
 	    echo "parent_zone: $ZROUTER" >> "${ZSDIR}/zconfig.${ZNAME}"
 	    #
@@ -1605,7 +1605,7 @@ do
 	echo "set physical=znic$ZENUM"
 	echo "end"
 	# save the configuration here
-	ZNETNAME=$(get_short_net $IP)
+	ZNETNAME=$(get_short_net "$IP")
 	touch "${ZSDIR}/rconfig.${ZNETNAME}"
 	echo "interface: $ZIFACE" >> "${ZSDIR}/rconfig.${ZNETNAME}"
 	echo "shared-interface: snic$ZSNUM" >> "${ZSDIR}/rconfig.${ZNETNAME}"

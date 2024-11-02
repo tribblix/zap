@@ -208,7 +208,7 @@ if [ ! -f /etc/zones/TRIBsparse.xml ]; then
     echo "  (something appears to be corrupt)"
     exit 1
 fi
-if [ ! -f /usr/lib/brand/${ZBRAND}-root/pkgcreatezone ]; then
+if [ ! -f "/usr/lib/brand/${ZBRAND}-root/pkgcreatezone" ]; then
     echo "ERROR: the ${ZBRAND} brand cannot be found"
     echo "  (something appears to be corrupt)"
     exit 1
