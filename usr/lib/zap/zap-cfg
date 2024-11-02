@@ -1,5 +1,7 @@
 #!/bin/ksh
 #
+# SPDX-License-Identifier: CDDL-1.0
+#
 # {{{ CDDL HEADER
 #
 # This file and its contents are supplied under the terms of the
@@ -13,7 +15,7 @@
 #
 # }}}
 #
-# Copyright 2023 Peter Tribble
+# Copyright 2024 Peter Tribble
 #
 
 #
@@ -57,16 +59,16 @@ esac
 
 case $1 in
 list-pkg-repos)
-	if [ -f ${CFGDIR}/repo.list ]; then
+	if [ -f "${CFGDIR}/repo.list" ]; then
 	    #
 	    # this is performance sensitive as so many things call it
 	    # inline is 30% quicker than sort|awk
 	    #
 	    typeset -A repos
-	    while read n p
+	    while read -r n p
 	    do
 		repos[$p]=$n
-	    done < ${CFGDIR}/repo.list
+	    done < "${CFGDIR}/repo.list"
 	    while [[ ${#repos[@]} -gt 0 ]]
 	    do
 		k=(${!repos[@]})
@@ -76,22 +78,22 @@ list-pkg-repos)
 			k=$j
 		    fi
 		done
-		echo $k
+		echo "$k"
 		unset repos[$k]
 	    done
 	fi
 	;;
 list-overlay-repos)
-	if [ -f ${CFGDIR}/overlays.list ]; then
+	if [ -f "${CFGDIR}/overlays.list" ]; then
 	    #
 	    # not quite so performance sensitive
 	    # but use the same algorithm anyway
 	    #
 	    typeset -A repos
-	    while read n p
+	    while read -r n p
 	    do
 		repos[$p]=$n
-	    done < ${CFGDIR}/overlays.list
+	    done < "${CFGDIR}/overlays.list"
 	    while [[ ${#repos[@]} -gt 0 ]]
 	    do
 		k=(${!repos[@]})
@@ -101,30 +103,30 @@ list-overlay-repos)
 			k=$j
 		    fi
 		done
-		echo $k
+		echo "$k"
 		unset repos[$k]
 	    done
 	fi
 	;;
 repo-url)
-	RURL=$(/usr/bin/grep '^URL=' ${CFGDIR}/repositories/${2}.repo)
-	echo ${RURL/URL=/}
+	RURL=$(/usr/bin/grep '^URL=' "${CFGDIR}/repositories/${2}.repo")
+	echo "${RURL/URL=/}"
 	;;
 repo-signer)
-	SIGNER=$(/usr/bin/grep '^SIGNED=' ${CFGDIR}/repositories/${2}.repo)
+	SIGNER=$(/usr/bin/grep '^SIGNED=' "${CFGDIR}/repositories/${2}.repo")
 	if [[ -n $SIGNER ]]; then
-	    echo ${SIGNER/SIGNED=/}
+	    echo "${SIGNER/SIGNED=/}"
 	else
 	    echo "no"
 	fi
 	;;
 overlay-url)
-	RURL=$(/usr/bin/grep '^URL=' ${CFGDIR}/repositories/${2}.ovl)
-	echo ${RURL/URL=/}
+	RURL=$(/usr/bin/grep '^URL=' "${CFGDIR}/repositories/${2}.ovl")
+	echo "${RURL/URL=/}"
 	;;
 cache-dir)
 	if [ -f "${CACHE_CFG}" ]; then
-	    CACHE_DIR=${ALTROOT}/$(<${CACHE_CFG})
+	    CACHE_DIR=${ALTROOT}/$(<"${CACHE_CFG}")
 	fi
 	if [ ! -d "${CACHE_DIR}" ]; then
 	    /usr/bin/mkdir -p "${CACHE_DIR}" 2> /dev/null
@@ -137,7 +139,7 @@ cache-dir)
 	;;
 image-dir)
 	if [ -f "${IMAGE_CFG}" ]; then
-	    IMAGE_DIR=${ALTROOT}/$(<${IMAGE_CFG})
+	    IMAGE_DIR=${ALTROOT}/$(<"${IMAGE_CFG}")
 	fi
 	if [ ! -d "${IMAGE_DIR}" ]; then
 	    /usr/bin/mkdir -p "${IMAGE_DIR}" 2> /dev/null
@@ -150,7 +152,7 @@ image-dir)
 	;;
 docker-dir)
 	if [ -f "${DOCKER_CFG}" ]; then
-	    DOCKER_DIR=${ALTROOT}/$(<${DOCKER_CFG})
+	    DOCKER_DIR=${ALTROOT}/$(<"${DOCKER_CFG}")
 	fi
 	if [ ! -d "${DOCKER_DIR}" ]; then
 	    /usr/bin/mkdir -p "${DOCKER_DIR}" 2> /dev/null
@@ -169,7 +171,7 @@ proxy)
 pkgversion)
 	if [ -f /var/sadm/pkg/TRIBzap/pkginfo ]; then
 	    IVERSION=""
-	    while read line
+	    while read -r line
 	    do
 		case $line in
 		    VERSION*)
@@ -178,7 +180,7 @@ pkgversion)
 			;;
 		esac
 	    done</var/sadm/pkg/TRIBzap/pkginfo
-	    echo $IVERSION
+	    echo "$IVERSION"
 	    exit 0
 	else
 	   echo "standalone"
