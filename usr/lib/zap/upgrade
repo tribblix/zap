@@ -96,7 +96,7 @@ bail() {
 case $# in
 0)
   echo "Usage: zap upgrade [-B] new_version | list | current"
-  exit 1
+  exit 2
   ;;
 esac
 

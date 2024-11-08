@@ -29,7 +29,7 @@
 IFACE=$(/usr/sbin/route -n get default | /usr/bin/grep interface: | /usr/bin/awk '{print $NF}')
 if [ -z "$IFACE" ]; then
     echo "ERROR: unable to infer primary interface"
-    exit 2
+    exit 1
 fi
 #
 # check for legacy static config
@@ -70,15 +70,15 @@ IP1A=${IP1%%/*}
 IP2=$(/usr/sbin/ifconfig "${IFACE}" | grep -w inet | tail -1 | awk '{print $2}')
 if [ -z "$IP1" ]; then
     echo "ERROR: unable to get address from ipadm"
-    exit 2
+    exit 1
 fi
 if [ -z "$IP2" ]; then
     echo "ERROR: unable to get address from ifconfig"
-    exit 2
+    exit 1
 fi
 if [ "$IP1A" != "$IP2" ]; then
     echo "ERROR: ipadm and ifconfig mismatch"
-    exit 2
+    exit 1
 fi
 
 #
@@ -93,7 +93,7 @@ if [ -x /usr/bin/ec2-metadata ]; then
     else
 	if [ "$IP3" != "$IP2" ]; then
 	    echo "ERROR: AWS metadata mismatch"
-	    exit 2
+	    exit 1
 	fi
     fi
 fi
@@ -104,7 +104,7 @@ fi
 IPROUTE=$(/usr/sbin/route -n get default | /usr/bin/grep gateway: | /usr/bin/awk '{print $NF}')
 if [ -z "$IPROUTE" ]; then
     echo "ERROR: unable to get router address"
-    exit 2
+    exit 1
 fi
 
 #

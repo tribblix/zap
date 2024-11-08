@@ -50,7 +50,7 @@ if [ ! -d "${CACHE_DIR}" ]; then
     exit 1
 fi
 
-cd "${CACHE_DIR}" || exit
+cd "${CACHE_DIR}" || exit 1
 
 case $1 in
     -a)
@@ -95,6 +95,10 @@ do
 	fi
     fi
 done
+;;
+
+    *)
+exit 2
 ;;
 
 esac

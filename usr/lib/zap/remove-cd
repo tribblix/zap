@@ -1,5 +1,7 @@
 #!/bin/ksh
 #
+# SPDX-License-Identifier: CDDL-1.0
+#
 # {{{ CDDL HEADER
 #
 # This file and its contents are supplied under the terms of the
@@ -13,7 +15,7 @@
 #
 # }}}
 #
-# Copyright 2023 Peter Tribble
+# Copyright 2024 Peter Tribble
 #
 
 #
@@ -23,7 +25,7 @@
 
 usage() {
     echo "Usage: $0 -z zone_name [-r]"
-    exit 1
+    exit 2
 }
 
 ZONEADM="/usr/sbin/zoneadm"
@@ -85,7 +87,7 @@ CDFILE=$($ZONECFG -z "$ZNAME" info attr name=cdrom | /usr/bin/grep value: | awk 
 
 if [ -z "${CDFILE}" ]; then
     echo "The $ZNAME zone does not appear to have a cdrom attached"
-    exit 2
+    exit 1
 fi
 
 $ZONECFG -z "$ZNAME" remove attr name=cdrom

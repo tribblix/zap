@@ -1,5 +1,7 @@
 #!/bin/ksh
 #
+# SPDX-License-Identifier: CDDL-1.0
+#
 # {{{ CDDL HEADER
 #
 # This file and its contents are supplied under the terms of the
@@ -37,7 +39,7 @@ case $# in
 	;;
 *)
 	echo "Usage: zap search [ -R altroot] search_term"
-	exit 1
+	exit 2
 	;;
 esac
 

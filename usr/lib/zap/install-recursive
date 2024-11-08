@@ -99,7 +99,7 @@ esac
 case $# in
 0)
 	echo "Usage: $0 [-R alt-root] [ -s source] package [package...]"
-	exit 1
+	exit 2
 	;;
 esac
 

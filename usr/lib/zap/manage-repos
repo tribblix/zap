@@ -207,7 +207,7 @@ add_repo() {
 		;;
 	    *)
 		echo "ERROR: unrecognized flag $opt"
-		exit 1
+		exit 2
 		;;
 	esac
     done
@@ -224,36 +224,36 @@ add_repo() {
 	    REPOLIST="${OVLREPOLIST}"
 	    if [ -n "${REPOSIGN}" ]; then
 		echo "ERROR: cannot sign overlay repos"
-		exit 1
+		exit 2
 	    fi
 	    ;;
 	*)
 	    echo "ERROR: unrecognized repo type $REPOTYPE"
-	    exit 1
+	    exit 2
 	    ;;
     esac
     if [ -z "${REPODESC}" ]; then
 	echo "ERROR: missing description (-d)"
-	exit 1
+	exit 2
     fi
     if [ -z "${REPOURL}" ]; then
 	echo "ERROR: missing url (-u)"
-	exit 1
+	exit 2
     fi
     if [[ ! $REPOPRI == +(([[:digit:]])) ]]; then
 	echo "ERROR: priority is not numeric"
-	exit 1
+	exit 2
     fi
     if [ "$REPOPRI" -lt $MINPRI ]; then
 	echo "ERROR: invalid priority $REPOPRI (minimum $MINPRI)"
-	exit 1
+	exit 2
     fi
     #
     # check name isn't in use
     #
     if [ -f "${REPODATA}" ]; then
 	echo "ERROR: repo ${REPONAME} already exists"
-	exit 1
+	exit 2
     fi
     #
     # check priority isn't in use
@@ -261,7 +261,7 @@ add_repo() {
     USEPRI=$(get_priority_repo "$REPOTYPE" "$REPOPRI")
     if [ -n "${USEPRI}" ]; then
 	echo "ERROR: priority $REPOPRI is already in use by $USEPRI"
-	exit 1
+	exit 2
     fi
     #
     # verify url syntax
@@ -269,14 +269,14 @@ add_repo() {
     case $REPOURL in
 	*[[:blank:]]*)
 	    echo "ERROR: url contains spaces"
-	    exit 1
+	    exit 2
 	    ;;
 	http://*|https://*)
 	    :
 	    ;;
 	*)
 	    echo "ERROR: invalid url, expecting http or https"
-	    exit 1
+	    exit 2
 	    ;;
     esac
     #
@@ -286,7 +286,7 @@ add_repo() {
     if [ -n "${REPOSIGN}" ]; then
 	if [ ! -d "${CFGDIR}/sign/${REPOSIGN}" ]; then
 	    echo "ERROR: unknown signer $REPOSIGN"
-	    exit 1
+	    exit 2
 	fi
     fi
     #
@@ -330,7 +330,7 @@ remove_repo() {
 	    ;;
 	*)
 	    echo "ERROR: unrecognized repo type $REPOTYPE"
-	    exit 1
+	    exit 2
 	    ;;
     esac
     #
@@ -408,7 +408,7 @@ modify_repo() {
 	    ;;
 	*)
 	    echo "ERROR: unrecognized repo type $REPOTYPE"
-	    exit 1
+	    exit 2
 	    ;;
     esac
     if [ ! -f "${REPODATA}" ]; then
@@ -422,13 +422,13 @@ modify_repo() {
 		;;
 	    *)
 		echo "ERROR: unrecognized flag $opt"
-		exit 1
+		exit 2
 		;;
 	esac
     done
     if [ -z "${REPOURL}" ]; then
 	echo "ERROR: missing url (-u)"
-	exit 1
+	exit 2
     fi
     #
     # verify url syntax
@@ -436,14 +436,14 @@ modify_repo() {
     case $REPOURL in
 	*[[:blank:]]*)
 	    echo "ERROR: url contains spaces"
-	    exit 1
+	    exit 2
 	    ;;
 	http://*|https://*)
 	    :
 	    ;;
 	*)
 	    echo "ERROR: invalid url, expecting http or https"
-	    exit 1
+	    exit 2
 	    ;;
     esac
     #
@@ -521,6 +521,6 @@ case $1 in
 	;;
     *)
 	echo "ERROR: unrecognized subcommand"
-	exit 1
+	exit 2
 	;;
 esac

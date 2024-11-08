@@ -47,7 +47,7 @@ ZADDPACKAGE=""
 usage() {
   echo "Usage: $0 [-t whole|alien] -T template_name"
   echo "  [-I image_file] [-o overlay] [-O overlay] [-p package] [-P package]"
-  exit 1
+  exit 2
 }
 
 while getopts "T:t:I:o:O:p:P:" opt; do

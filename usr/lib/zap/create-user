@@ -24,7 +24,7 @@
 
 usage() {
     echo "Usage: $0 [-c comment] [-d homedir] [-g gid] [-u uid] [-s shell] [-P profile] name"
-    exit 1
+    exit 2
 }
 
 #
@@ -105,11 +105,11 @@ fi
 #
 if [ ${#USER_NAME} -lt $USER_MINLENGTH ]; then
     echo "ERROR: username too short"
-    exit 1
+    exit 2
 fi
 if [ ${#USER_NAME} -gt $USER_MAXLENGTH ]; then
     echo "ERROR: username too long"
-    exit 1
+    exit 2
 fi
 #
 # is username already present?
@@ -149,7 +149,7 @@ fi
 #
 if [ ! -x "${USER_SHELL}" ]; then
     if [ "X${USER_SHELL}" != "X/sbin/nologin" ]; then
-	echo "ERROR: Specified shell ${USER_SHELL} does not exit"
+	echo "ERROR: Specified shell ${USER_SHELL} does not exist"
 	exit 1
     fi
 fi

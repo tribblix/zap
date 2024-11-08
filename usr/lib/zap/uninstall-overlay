@@ -1,5 +1,7 @@
 #!/bin/ksh
 #
+# SPDX-License-Identifier: CDDL-1.0
+#
 # {{{ CDDL HEADER
 #
 # This file and its contents are supplied under the terms of the
@@ -41,7 +43,7 @@ case $# in
 	;;
 *)
 	echo "Usage: $0 [-R alt-root] overlay"
-	exit 1
+	exit 2
 	;;
 esac
 

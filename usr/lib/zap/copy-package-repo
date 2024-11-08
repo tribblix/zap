@@ -53,7 +53,7 @@ WARGS="-U ${USER_AGENT} -q -O"
 #
 usage() {
 	echo "Usage: $0 repo destination"
-	exit 1
+	exit 2
 }
 
 case $# in

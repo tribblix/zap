@@ -51,7 +51,7 @@ CARGS="-A ${USER_AGENT} -f -s -o"
 #
 usage() {
 	echo "Usage: $0 repo destination"
-	exit 1
+	exit 2
 }
 
 case $# in

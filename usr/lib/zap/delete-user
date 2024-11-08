@@ -24,7 +24,7 @@
 
 usage() {
     echo "Usage: $0 [-r] name"
-    exit 1
+    exit 2
 }
 
 #

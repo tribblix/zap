@@ -1,5 +1,7 @@
 #!/bin/ksh
 #
+# SPDX-License-Identifier: CDDL-1.0
+#
 # {{{ CDDL HEADER
 #
 # This file and its contents are supplied under the terms of the
@@ -13,7 +15,7 @@
 #
 # }}}
 #
-# Copyright 2023 Peter Tribble
+# Copyright 2024 Peter Tribble
 #
 
 #
@@ -61,7 +63,7 @@ case $1 in
     shift
     if [ $# -eq 0 ]; then
 	echo "Need to supply the hostname with -m"
-	exit 1
+	exit 2
     fi
     if [ ! -f "${DESTROOT}/var/sadm/pkg/TRIBsvc-net-dns-mdns/pkginfo" ]; then
 	${ZAPLIBDIR}/install-pkg ${CTXARGS} TRIBsvc-net-dns-mdns
@@ -81,7 +83,7 @@ case $# in
 *)
     echo "Usage: set-hostname [-m] hostname"
     echo "       set-hostname -d domainname"
-    exit 1
+    exit 2
     ;;
 esac
 

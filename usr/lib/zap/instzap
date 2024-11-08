@@ -55,7 +55,7 @@ case $# in
     ;;
 *)
     echo "Usage: instzap [-R alt-root] source [package]"
-    exit 1
+    exit 2
     ;;
 esac
 

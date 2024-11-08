@@ -46,7 +46,7 @@ typeset -A ifipmap
 
 usage() {
     echo "Usage: $0 -R ip_network/prefix"
-    exit 1
+    exit 2
 }
 
 while getopts "R:" opt; do

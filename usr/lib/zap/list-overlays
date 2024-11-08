@@ -61,7 +61,7 @@ shift $((OPTIND - 1))
 #
 if [[ -n "$INST" && -n "$UNINST" ]]; then
     echo "ERROR: both -i and -u supplied"
-    exit 1
+    exit 2
 fi
 
 #

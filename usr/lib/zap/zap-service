@@ -1,5 +1,7 @@
 #!/bin/ksh
 #
+# SPDX-License-Identifier: CDDL-1.0
+#
 # {{{ CDDL HEADER
 #
 # This file and its contents are supplied under the terms of the
@@ -13,7 +15,7 @@
 #
 # }}}
 #
-# Copyright 2023 Peter Tribble
+# Copyright 2024 Peter Tribble
 #
 
 #
@@ -30,6 +32,11 @@
 # The two query forms are silent if given an invalid overlay
 # The two action forms error out if given an invalid overlay
 #
+
+usage() {
+    echo "Usage: $0 -list|-show|-enable|-disable overlay_name"
+    exit 2
+}
 
 list_services() {
     IOVL=/var/sadm/overlays/installed/$1
@@ -104,10 +111,12 @@ case $# in
 	    -disable)
 		disable_services "$2"
 		;;
+	    *)
+		usage
+		;;
 	esac
 	;;
     *)
-	echo "Usage: $0 -list|-show|-enable|-disable overlay_name"
-	exit 1
+	usage
 	;;
 esac

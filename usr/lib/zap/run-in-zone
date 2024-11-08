@@ -1,5 +1,7 @@
 #!/bin/ksh
 #
+# SPDX-License-Identifier: CDDL-1.0
+#
 # {{{ CDDL HEADER
 #
 # This file and its contents are supplied under the terms of the
@@ -13,7 +15,7 @@
 #
 # }}}
 #
-# Copyright 2023 Peter Tribble
+# Copyright 2024 Peter Tribble
 #
 
 #
@@ -35,7 +37,7 @@
 if [ $# -lt 3 ]; then
    echo "ERROR: insufficient arguments"
    echo "Usage: $0 -z zonename subcommand [args]"
-   exit 1
+   exit 2
 fi
 case $1 in
 -z)
@@ -47,7 +49,7 @@ case $1 in
 	;;
 *)
 	echo "Usage: $0 -z zonename subcommand [args]"
-	exit 1
+	exit 2
 	;;
 esac
 

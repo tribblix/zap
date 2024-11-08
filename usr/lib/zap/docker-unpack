@@ -39,7 +39,7 @@ fi
 
 usage() {
     echo "Usage: $0 directory image [tag]"
-    exit 1
+    exit 2
 }
 
 case $# in

@@ -56,8 +56,8 @@ case $1 in
 esac
 
 if [ $# -ne 1 ]; then
-    echo "ERROR: Usage: $0 [-n | -q] image_specifier"
-    exit 1
+    echo "Usage: $0 [-n | -q] image_specifier"
+    exit 2
 fi
 
 IMAGE_DIR=$(${ZAPLIBDIR}/zap-cfg image-dir)

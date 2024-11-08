@@ -128,7 +128,7 @@ usage() {
     echo "  [-B] [-n number_of_zones] [-F flow_props]${MEMUSAGE}"
     echo "  [-c cpu_spec] [-C] [-k sshkey_file]"
     #echo "  [-K action=arg[=arg...]]"
-    exit 1
+    exit 2
 }
 
 while getopts "6Bc:Cd:D:f:F:i:I:k:K:m:n:o:O:p:P:R:s:S:t:T:U:v:V:x:z:" opt; do
@@ -797,7 +797,7 @@ fi
 if [[ -n $NZONES ]]; then
     if [ $NZONES -le 1 ]; then
 	echo "ERROR: number of zones must be greater than 1"
-	exit 1
+	exit 2
     fi
     #
     # the address given is the address of the first zone, subsequent
@@ -812,7 +812,7 @@ if [[ -n $NZONES ]]; then
 	#
 	if [ $NBEGIN -le 1 ]; then
 	    echo "ERROR: base address $NIP must be at least .2"
-	    exit 1
+	    exit 2
 	fi
 	NMAX=$(($NBEGIN+$NZONES))
 	#
@@ -821,7 +821,7 @@ if [[ -n $NZONES ]]; then
 	#
 	if [ $NMAX -gt 255 ]; then
 	    echo "ERROR: that many zones won't fit after $NIP"
-	    exit 1
+	    exit 2
 	fi
     done
     #

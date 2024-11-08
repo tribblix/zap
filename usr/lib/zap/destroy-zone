@@ -40,7 +40,7 @@ fi
 
 if [[ -z $ZNAME ]]; then
     echo "ERROR: zone name must be specified"
-    exit 1
+    exit 2
 fi
 
 #
