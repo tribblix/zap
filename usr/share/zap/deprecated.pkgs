@@ -166,7 +166,7 @@ TRIBliboil
 TRIBblix-citus13
 TRIBblix-repmgr13
 TRIBblix-slony13
-TRIBblix-postgres13 
+TRIBblix-postgres13
 TRIBx11-libdga
 TRIBsys-net-mailwrapper
 TRIBdhcp-server

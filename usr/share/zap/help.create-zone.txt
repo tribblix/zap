@@ -148,7 +148,7 @@ path to an image file or a logical image to be downloaded. For an
 alien zone, the image can be an iso image, or a zfs send stream, that
 will be used to install the zone. For an lx zone, the image should be
 a tarball containing a Linux file system. Some examples of logical
-image names are  
+image names are
   omnios:r151026
   proxmox:alpine
   ubuntu
