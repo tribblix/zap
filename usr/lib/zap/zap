@@ -52,8 +52,11 @@ case $1 in
 	ZNAME=$2
 	shift
 	shift
+	#
+	# note the match for *-zone*, which doesn't catch set-timezone
+	#
 	case $1 in
-	    *zone*)
+	    *-zone*)
 		echo "ERROR: cannot run zone commands inside zones"
 		exit 1
 		;;
