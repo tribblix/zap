@@ -61,7 +61,7 @@ case $1 in
 		exit 1
 		;;
 	esac
-	exec ${ZAPLIBDIR}/run-in-zone -z $ZNAME "$@"
+	exec ${ZAPLIBDIR}/run-in-zone -z "$ZNAME" "$@"
 	;;
 esac
 
