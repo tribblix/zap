@@ -173,6 +173,14 @@ zssh|ssh-zone)
 	shift
 	exec ${ZAPLIBDIR}/zssh "$@"
 	;;
+list-zones)
+	shift
+	exec ${ZAPLIBDIR}/list-zones "$@"
+	;;
+describe-zone)
+	shift
+	exec ${ZAPLIBDIR}/describe-zone "$@"
+	;;
 create-zone-template)
 	shift
 	exec ${ZAPLIBDIR}/create-zone-template "$@"

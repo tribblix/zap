@@ -1,0 +1,70 @@
+#!/bin/ksh
+#
+# {{{ CDDL HEADER
+#
+# This file and its contents are supplied under the terms of the
+# Common Development and Distribution License ("CDDL"), version 1.0.
+# You may only use this file in accordance with the terms of version
+# 1.0 of the CDDL.
+#
+# A full copy of the text of the CDDL should have accompanied this
+# source. A copy of the CDDL is also available via the Internet at
+# http://www.illumos.org/license/CDDL.
+#
+# }}}
+#
+# Copyright 2024 Peter Tribble
+#
+
+#
+# describe a zone
+#
+
+usage() {
+    echo "Usage: $0 -z zone_name"
+    exit 2
+}
+
+ZNAME=""
+case $# in
+    0)
+	usage
+	;;
+    1)
+	ZNAME="$1"
+	;;
+    2)
+	case $1 in
+	    '-z')
+		ZNAME="$2"
+		;;
+	    *)
+		usage
+		;;
+	esac
+	;;
+    *)
+	usage
+	;;
+esac
+
+#
+# presently, just a wrapper round zonecfg info
+#
+case $(/usr/bin/zonename) in
+    'global')
+	if [ ! -f "/etc/zones/${ZNAME}.xml" ]; then
+	    echo "No such zone ${ZNAME}"
+	    exit 1
+	fi
+	ZSTATE=$(/usr/sbin/zoneadm -z "${ZNAME}" list -p | /usr/bin/awk -F: '{print $3}')
+	echo "Zone ${ZNAME} is ${ZSTATE}"
+	echo "Configuration follows:"
+	echo "======================"
+	/usr/sbin/zonecfg -z "${ZNAME}" info
+	;;
+    *)
+	echo "Zones can only be described in the global zone"
+	echo "You are in zone $(/usr/bin/zonename)"
+	;;
+esac

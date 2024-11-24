@@ -125,6 +125,14 @@ destroy-zone -z zone_name
 
   This subcommand destroys the given zone.
 
+list-zones
+
+  This subcommand shows a list of zones present on the system.
+
+describe-zone -z zone_name
+
+  This subcommand shows the configuration details of the given zone.
+
 remove-cd -z zone_name [-r]
 
   This subcommand detaches the CD from the given bhyve zone, so that
