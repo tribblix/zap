@@ -571,3 +571,6 @@ TRIBzstandard-python-311
 TRIBzile
 TRIBlibpng-compat
 TRIBlibtiff-compat
+TRIBv-python-311-tests
+TRIBv-python-311-tkinter
+TRIBv-python-311
