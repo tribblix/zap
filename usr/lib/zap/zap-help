@@ -1,5 +1,7 @@
 #!/bin/ksh
 #
+# SPDX-License-Identifier: CDDL-1.0
+#
 # {{{ CDDL HEADER
 #
 # This file and its contents are supplied under the terms of the
@@ -62,10 +64,13 @@ case $# in
     ssh-zone)
       HELP_FILE=${HELP_DIR}/help.zssh.txt
       ;;
+    *license*)
+      HELP_FILE=${HELP_DIR}/help.licenses.txt
+      ;;
     *)
       HELP_FILE=${HELP_DIR}/help.${1}.txt
       ;;
-    esac
+  esac
   if [ ! -f "${HELP_FILE}" ]; then
     echo "No specific help for ${1}, showing general help"
     HELP_FILE=${HELP_DIR}/help.txt

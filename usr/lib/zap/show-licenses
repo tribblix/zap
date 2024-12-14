@@ -1,0 +1,85 @@
+#!/bin/ksh
+#
+# SPDX-License-Identifier: CDDL-1.0
+#
+# {{{ CDDL HEADER
+#
+# This file and its contents are supplied under the terms of the
+# Common Development and Distribution License ("CDDL"), version 1.0.
+# You may only use this file in accordance with the terms of version
+# 1.0 of the CDDL.
+#
+# A full copy of the text of the CDDL should have accompanied this
+# source. A copy of the CDDL is also available via the Internet at
+# http://www.illumos.org/license/CDDL.
+#
+# }}}
+#
+# Copyright 2024 Peter Tribble
+#
+
+#
+# display the licenses for a given package
+#
+
+#
+# assume any aliases have been resolved by the zap wrapper
+#
+
+usage() {
+    echo "Usage: $0 pkg_name"
+    exit 2
+}
+
+bail() {
+    echo "ERROR: $1"
+    exit 1
+}
+
+case $# in
+    1)
+	PKG=$1
+	;;
+    *)
+	usage
+	;;
+esac
+
+MORE="more"
+if [ -x /usr/bin/less ]; then
+    MORE="/usr/bin/less -ins"
+fi
+
+if [ ! -d "/var/sadm/pkg/${PKG}" ]; then
+    bail "no such package ${PKG}"
+fi
+
+#
+# new scheme, used for illumos packages and might be used for some others
+#
+if [ -d "/var/sadm/license/${PKG}" ]; then
+    cd "/var/sadm/license/${PKG}" || bail "cd failed"
+    cat -- * | $MORE
+    exit 0
+fi
+
+#
+# if it's not a packaged license, just look for likely looking
+# files shipped by the package
+#
+GREP=" $PKG( |\$)"
+LFILES=$(grep -E "$GREP" /var/sadm/install/contents | grep ' f ' | awk '{print $1}' | grep LICENSE)
+if [ -n "${LFILES}" ]; then
+    cat -- $LFILES | $MORE
+    exit 0
+fi
+
+#
+# say we can't find anything
+#
+echo "Unable to find any installed licence files for ${PKG}"
+ZURL=$(grep ^ZAP_URL "/var/sadm/pkg/${PKG}"/pkginfo|awk -F= '{print $2}')
+if [ -n "${ZURL}" ]; then
+    echo "More information may be available at the project's web site"
+    echo "  ${ZURL}"
+fi

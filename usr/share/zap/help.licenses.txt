@@ -1,0 +1,15 @@
+ZAP and software licenses
+=========================
+
+Most software is distributed under some form of license. For an open
+source distribution like Tribblix, this will usually be some form of
+open source license.
+
+To display the license(s) associated with a given software package,
+the syntax is
+
+  zap show-licenses package-name
+
+In many cases, no license files corresponding to the software are
+installed, in which case you may be given a pointer to the project's
+web site.
