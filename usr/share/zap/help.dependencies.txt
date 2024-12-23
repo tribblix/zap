@@ -1,0 +1,19 @@
+Checking package dependencies
+=============================
+
+Unlike other package systems, Tribblix uses overlays to manage
+collections of software, rather than attempting to use dependencies
+declared by packages.
+
+It is sometimes useful to be able to query and show dependencies, so
+the command
+
+    zap dependencies pkg_name
+
+will list the packages that the given package depends on. With the -c
+(check) flag, only dependencies that are missing will be listed:
+
+    zap dependencies -c pkg_name
+
+For compatibility with the latest release of Solaris 10, using pkgdep
+as the subcommand name is also accepted.

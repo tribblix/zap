@@ -129,6 +129,10 @@ check-package|pkgchk)
 	shift
 	exec ${ZAPLIBDIR}/check-package $(${ZAPLIBDIR}/resolve-alias "$@" | sort -u)
 	;;
+dependencies|pkgdep)
+	shift
+	exec ${ZAPLIBDIR}/get-dependencies $(${ZAPLIBDIR}/resolve-alias "$@" | sort -u)
+	;;
 refresh|refresh-overlays|refresh-catalog)
 	shift
 	exec ${ZAPLIBDIR}/refresh-overlays ${CTXARGS}

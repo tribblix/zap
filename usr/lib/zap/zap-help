@@ -64,6 +64,9 @@ case $# in
     ssh-zone)
       HELP_FILE=${HELP_DIR}/help.zssh.txt
       ;;
+    dependencies|pkgdep)
+      HELP_FILE=${HELP_DIR}/help.dependencies.txt
+      ;;
     *license*)
       HELP_FILE=${HELP_DIR}/help.licenses.txt
       ;;

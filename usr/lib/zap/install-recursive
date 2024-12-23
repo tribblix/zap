@@ -180,7 +180,7 @@ do
     for inpkg in $npkglist
     do
 	if [ -z "${depmap[$inpkg]}" ]; then
-	    fpkg=$(${ZAPLIBDIR}/get-dependencies ${CTXARGS} "$inpkg")
+	    fpkg=$(${ZAPLIBDIR}/get-dependencies ${CTXARGS} -c "$inpkg")
 	    depmap[$inpkg]=$fpkg
 	else
 	    fpkg=${depmap[$inpkg]}

@@ -36,6 +36,19 @@ case $1 in
 esac
 
 #
+# this script is also the back end for a pkgdep emulator
+# by default, list all dependencies, with -c just print the
+# uninstalled dependencies
+#
+DOALL="y"
+case $1 in
+    -c)
+	DOALL=""
+	shift
+	;;
+esac
+
+#
 # assume aliases have been resolved by the caller
 #
 case $# in
@@ -48,15 +61,21 @@ case $# in
 esac
 
 #
-# given a package, return the uninstalled dependencies present in the catalog
+# given a package, return the dependencies present in the catalog
 #
 repo=$(${ZAPLIBDIR}/get-version ${CTXARGS} "${PKG}")
 repo=${repo#* }
 if [ -f "${CFGDIR}/repositories/${repo}.catalog" ]; then
     for npkg in $(/usr/bin/awk -F'|' '{if ($1 == npkg) print $3}' npkg="${PKG}" "${CFGDIR}/repositories/${repo}.catalog")
     do
-	if [ ! -f "${DESTROOT}/var/sadm/pkg/${npkg}/pkginfo" ]; then
+	if [ -n "${DOALL}" ]; then
 	    echo "${npkg}"
+	else
+	    if [ ! -f "${DESTROOT}/var/sadm/pkg/${npkg}/pkginfo" ]; then
+		echo "${npkg}"
+	    fi
 	fi
     done
+else
+    exit 1
 fi
