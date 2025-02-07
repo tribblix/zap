@@ -2,6 +2,8 @@
 #
 # SPDX-License-Identifier: CDDL-1.0
 #
+# Copyright 2025 Peter Tribble
+#
 # wrapper around ssh that allows you to connect to a zone by name,
 # extracts the IP address for the zone from its configuration
 #
