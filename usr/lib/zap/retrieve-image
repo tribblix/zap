@@ -440,6 +440,10 @@ case $SCHEME in
 		DLFILE="fedora-40-default_20240909_amd64.tar.xz"
 		DLNAME="proxmox-fedora-40.tar.xz"
 		;;
+	    fedora-41)
+		DLFILE="fedora-41-default_20241118_amd64.tar.xz"
+		DLNAME="proxmox-fedora-41.tar.xz"
+		;;
 	    gentoo)
 		DLFILE="gentoo-current-default_20200310_amd64.tar.xz"
 		DLNAME="proxmox-gentoo.tar.xz"
@@ -482,7 +486,7 @@ case $SCHEME in
 		    18.10)
 			UUREL="2"
 			;;
-		    21.10|22.04|22.10|23.04|23.10)
+		    21.10|22.04|22.10|23.04|23.10|24.10)
 			EXT="zst"
 			;;
 		    24.04)
