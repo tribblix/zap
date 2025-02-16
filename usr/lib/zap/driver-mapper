@@ -1,0 +1,161 @@
+#!/bin/sh
+#
+# SPDX-License-Identifier: CDDL-1.0
+#
+# {{{ CDDL HEADER
+#
+# This file and its contents are supplied under the terms of the
+# Common Development and Distribution License ("CDDL"), version 1.0.
+# You may only use this file in accordance with the terms of version
+# 1.0 of the CDDL.
+#
+# A full copy of the text of the CDDL should have accompanied this
+# source. A copy of the CDDL is also available via the Internet at
+# http://www.illumos.org/license/CDDL.
+#
+# }}}
+#
+# Copyright 2025 Peter Tribble
+#
+
+#
+# takes the list of device ids for hardware installed in the system, and
+# tries to find a matching device driver and package
+#
+# note that the intention here is to ensure that we have installed
+# all the drivers that are appropriate for the current hardware; any
+# device that we don't have a driver for at all will be ignored here
+#
+
+DRIVERMAP=/usr/share/zap/driver-map.txt
+
+bail() {
+    echo "ERROR: $1"
+    exit 1
+}
+
+if [ ! -f "${DRIVERMAP}" ]; then
+    bail "Driver map file not found"
+fi
+
+#
+# with -i, install missing driver packages
+# with -u, just show uninstalled
+# with -R, act on alternate root
+#
+# note that -R is not a public interface, as it is really designed for
+# use in the installer where we know that the current and alternate roots
+# are the same version, and we check for that equality later
+#
+DOINSTALL=""
+DOALL="yes"
+ALTROOT=""
+while getopts "iuR:" opt; do
+    case $opt in
+	i)
+	    DOINSTALL="yes"
+	    ;;
+	u)
+	    DOALL=""
+	    ;;
+	R)
+	    ALTROOT="$OPTARG"
+	    ;;
+	*)
+	    bail "Unrecognized option"
+	    ;;
+    esac
+done
+shift $((OPTIND-1))
+
+#
+# if we have an alternate root, check it looks valid
+#
+if [ -n "${ALTROOT}" ]; then
+    if [ ! -d "${ALTROOT}" ]; then
+	bail "alternate root doesn't exist"
+    fi
+    if [ ! -d "${ALTROOT}/var/sadm/pkg" ]; then
+	bail "alternate root doesn't look like an OS image"
+    fi
+    if [ ! -f /etc/zap/version.current ]; then
+	bail "are we running Tribblix?"
+    fi
+    if [ ! -f "${ALTROOT}/etc/zap/version.current" ]; then
+	bail "alternate root doesn't look like Tribblix"
+    fi
+    THISVER="$(</etc/zap/version.current)"
+    OTHERVER="$(<"${ALTROOT}"/etc/zap/version.current)"
+    if [ -z "${THISVER}" ]; then
+	bail "unable to find current Tribblix version"
+    fi
+    if [ -z "${OTHERVER}" ]; then
+	bail "unable to find current Tribblix version"
+    fi
+    if [ "${THISVER}" != "${OTHERVER}" ]; then
+	bail "cannot install drivers from ${THISVER} to ${OTHERVER}"
+    fi
+fi
+
+#
+# read and parse the driver map once, into 2 hashes, one mapping device ids
+# to drivers, and a second mapping drivers to packages
+#
+# one my desktop machine, reading the map once and using it results in a
+# runtime for this script of of ~0.04s, while a dumb grep every time is
+# ~0.2s; this difference will likely be more pronounced on larger systems
+#
+# about half of the 0.04s is parsing into the map, and half is prtconf
+#
+typeset -A map_driver
+typeset -A map_package
+/usr/bin/awk -F'|' '{print $1,$2,$4}' "${DRIVERMAP}" | while read -r id driver pkg
+do
+    map_driver[$id]=$driver
+    map_package[$driver]=$pkg
+done
+
+domap() {
+/usr/sbin/prtconf -pv | /usr/bin/grep -e ' compatible:' -e ' name:' | while read -r line
+do
+    #echo $line
+    for word in $line
+    do
+	#echo $word
+	case $word in
+	    +|name:|compatible:)
+		:
+		;;
+	    *)
+		word=${word//\'}
+		driver=${map_driver[$word]}
+		#
+		# if we have a match, emulate the input format of the driver
+		# map file, just as if we used grep to select the line
+		#
+		if [ -n "$driver" ]; then
+		    echo "${word}|${driver}||${map_package[$driver]}"
+		fi
+		;;
+	esac
+    done
+done
+}
+
+domap | /usr/bin/sort -u | /usr/bin/awk -F'|' '{print $1,$2,$4}' | while read -r id driver pkg
+do
+    if [ -f "${ALTROOT}/var/sadm/pkg/${pkg}/pkginfo" ]; then
+	if [ -n "${DOALL}" ]; then
+	    echo "Device $id handled by $driver in $pkg [installed]"
+	fi
+    else
+	echo "Device $id handled by $driver in $pkg [uninstalled]"
+	if [ -n "${DOINSTALL}" ]; then
+	    if [ -n "${ALTROOT}" ]; then
+		echo "zap install -R ${ALTROOT} $pkg"
+	    else
+		echo "zap install $pkg"
+	    fi
+	fi
+    fi
+done

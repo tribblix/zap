@@ -15,7 +15,7 @@
 #
 # }}}
 #
-# Copyright 2024 Peter Tribble
+# Copyright 2025 Peter Tribble
 #
 
 #
@@ -247,6 +247,10 @@ userdel|delete-user)
 search)
 	shift
 	exec ${ZAPLIBDIR}/search "$@"
+	;;
+ddu)
+	shift
+	exec ${ZAPLIBDIR}/driver-mapper "$@"
 	;;
 whatprovides)
 	shift

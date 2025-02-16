@@ -1,0 +1,20 @@
+Finding the right driver
+========================
+
+The live environment has the most common drivers installed, but there
+may be additional drivers available that could be installed to make
+use of additional devices.
+
+To show the current state, mapping devices to drivers and the packages
+that contain them, run the command:
+
+zap ddu [-u] [-i]
+
+With the -u flag, only the drivers that are not currently installed
+are shown.
+
+With the -i flag, the command to install the missing drivers is shown.
+
+Note that this utility does not (yet) list devices for which there are
+no drivers available, it will only show devices that we have a driver
+for but where the driver is not yet installed.

@@ -99,6 +99,11 @@ verify-packages [-R dir]
   This subcommand checks that all installed packages are at the current
   version.
 
+ddu [-u] [-i]
+
+  This subcommand will identify which drivers and packages are
+  available for the hardware installed in the current system.
+
 clean-cache -a | -i | -o | -u
 
   This subcommand will clean up the cached downloaded zap files. With
