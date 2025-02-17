@@ -15,7 +15,7 @@
 #
 # }}}
 #
-# Copyright 2024 Peter Tribble
+# Copyright 2025 Peter Tribble
 #
 
 #
@@ -77,7 +77,7 @@ fi
 #
 # say we can't find anything
 #
-echo "Unable to find any installed licence files for ${PKG}"
+echo "Unable to find any installed license files for ${PKG}"
 ZURL=$(grep ^ZAP_URL "/var/sadm/pkg/${PKG}"/pkginfo|awk -F= '{print $2}')
 if [ -n "${ZURL}" ]; then
     echo "More information may be available at the project's web site"
