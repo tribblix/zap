@@ -46,10 +46,28 @@ ZNAME=$1
 shift
 
 #
+# check we're in the global zone
+#
+THISZONE=$(/usr/bin/zonename)
+case $THISZONE in
+    global)
+	:
+	;;
+    *)
+	echo "ERROR: $0 can only be used in the global zone"
+	exit 1
+esac
+	
+#
 # handle user@zone
+# catch attempts to access the global zone
 #
 ZUSER=""
 case $ZNAME in
+    *global)
+	echo "ERROR: cannot use zssh to access the global zone"
+	exit 2
+	;;
     *@*)
 	# Split user off
 	ZUSER=${ZNAME%@*}@
