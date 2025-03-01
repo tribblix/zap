@@ -563,3 +563,8 @@ TRIBdask-expr-python-312
 TRIBpdfminer2-python-312
 TRIBjanet
 TRIBblix-slony15
+TRIBblix-citus16
+TRIBblix-postgis16
+TRIBblix-postgres16
+TRIBblix-repmgr16
+TRIBblix-wal2json16
