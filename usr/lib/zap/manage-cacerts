@@ -1,0 +1,262 @@
+#!/bin/ksh
+#
+# SPDX-License-Identifier: CDDL-1.0
+#
+# {{{ CDDL HEADER
+#
+# This file and its contents are supplied under the terms of the
+# Common Development and Distribution License ("CDDL"), version 1.0.
+# You may only use this file in accordance with the terms of version
+# 1.0 of the CDDL.
+#
+# A full copy of the text of the CDDL should have accompanied this
+# source. A copy of the CDDL is also available via the Internet at
+# http://www.illumos.org/license/CDDL.
+#
+# }}}
+#
+# Copyright 2025 Peter Tribble
+#
+
+#
+# manage the central certificate store
+#
+
+#
+# set locations
+#
+CADIR="/etc/openssl"
+CERTDIR="${CADIR}/certs"
+CACERT="${CADIR}/cacert.pem"
+LOCALCERTDIR="${CADIR}/certs.local"
+OPENSSL="/usr/bin/openssl"
+
+#
+# functions
+#
+
+#
+# exit with error
+#
+bail() {
+    echo "ERROR: $1"
+    exit 1
+}
+
+#
+# exit with usage
+#
+usage() {
+    echo "Usage: $0 command [certificate]"
+    echo "possible commands are:"
+    echo "  start|refresh - regenerate the certificate store"
+    echo "  add certificate - add the certificate in the given file"
+    echo "  remove certificate - remove the certificate in the given file"
+    echo "  describe certificate - show the subject of the given certificate"
+    echo "  list - show all non-default certificates"
+    echo "  listall - show all certificates"
+    exit 2
+}
+
+#
+# recreate the cacert.pem
+#
+refresh() {
+    #FIXME
+    echo "Refresh currently unimplemented"
+}
+
+#
+# add a new certificate
+#
+addcert() {
+    if [ -z "$1" ]; then
+	bail "no certificate file supplied"
+    fi
+    if [ -d "$1" ]; then
+	bail "cannot add a directory"
+    fi
+    if [ ! -f "$1" ]; then
+	bail "file $1 does not exist"
+    fi
+    if [ ! -r "$1" ]; then
+	bail "file $1 is not readable"
+    fi
+    if [ ! -s "$1" ]; then
+	bail "file $1 is empty"
+    fi
+    echo "Adding $1"
+    CHASH=$($OPENSSL x509 -noout -hash -in "$1" 2>/dev/null)
+    if [ -z "${CHASH}" ]; then
+	bail "$1 does not look like a certificate"
+    fi
+    CSUBJ=$($OPENSSL x509 -noout -subject -in "$1" 2>/dev/null)
+    echo "Hash $CHASH"
+    echo "Subject $CSUBJ"
+    FHASH="${CHASH}.0"
+    if [ -f "${LOCALCERTDIR}/${FHASH}" ]; then
+	bail "certificate is already present in store"
+    fi
+    if [ -f "${CERTDIR}/${FHASH}" ]; then
+	bail "certificate is already present by default"
+    fi
+    if [ ! -d "${LOCALCERTDIR}" ]; then
+	/usr/bin/mkdir -m 0755 "${LOCALCERTDIR}"
+    fi
+    /usr/bin/cp "$1" "${LOCALCERTDIR}/${FHASH}"
+    /usr/bin/cp "${LOCALCERTDIR}/${FHASH}" "${CERTDIR}/${FHASH}"
+    refresh
+}
+
+#
+# remove an existing certificate
+# the argument may be just the unqualified name, or a fully qualified file
+# name in either the main or the local store
+# we need to remove both copies
+#
+removecert() {
+    if [ -z "$1" ]; then
+	bail "no certificate file supplied"
+    fi
+    case $1 in
+	${CERTDIR}/*)
+	    CERTFILE="${1##*/}"
+	    ;;
+	${LOCALCERTDIR}/*)
+	    CERTFILE="${1##*/}"
+	    ;;
+	*/*)
+	    bail "cannot remove a file outside the certificate store"
+	    ;;
+	*)
+	    CERTFILE="$1"
+	    ;;
+    esac
+    FULLCERT="${CERTDIR}/${CERTFILE}"
+    LFULLCERT="${LOCALCERTDIR}/${CERTFILE}"
+    #
+    # if the local cert file does not exist then that's a fatal error
+    # and we exit immediately, if that exists but isn't in the main
+    # certs directory then we carry on and clean up
+    #
+    if [ ! -f "${LFULLCERT}" ]; then
+	if [ -f "${FULLCERT}" ]; then
+	    bail "$CERTFILE isn't a locally managed certificate"
+	else
+	    bail "$CERTFILE not found"
+	fi
+    fi
+    echo "Removing $CERTFILE as $FULLCERT and $LFULLCERT"
+    if [ -f "${FULLCERT}" ]; then
+	/usr/bin/rm -f "${FULLCERT}"
+    fi
+    /usr/bin/rm -f "${LFULLCERT}"
+    refresh
+}
+
+#
+# list additional certificates, if any exist
+#
+listcerts() {
+    if [ -d "${LOCALCERTDIR}" ]; then
+	cd "${LOCALCERTDIR}" || bail "cannot cd to ${LOCALCERTDIR}"
+	for file in *
+	do
+	    CHASH=$($OPENSSL x509 -noout -subject -in "$file" 2>/dev/null)
+	    echo "${file}: $CHASH"
+	done
+    fi
+}
+
+#
+# clean - remove all additional certificates
+#
+cleancerts() {
+    if [ -d "${LOCALCERTDIR}" ]; then
+	cd "${LOCALCERTDIR}" || bail "cannot cd to ${LOCALCERTDIR}"
+	for file in *
+	do
+	    removecert "${file}"
+	done
+	refresh
+    fi
+}
+
+#
+# list all certificates
+#
+listallcerts() {
+    if [ -d "${CERTDIR}" ]; then
+	cd "${CERTDIR}" || bail "cannot cd to ${CERTDIR}"
+	for file in *
+	do
+	    CHASH=$($OPENSSL x509 -noout -subject -in "$file" 2>/dev/null)
+	    echo "${file}: $CHASH"
+	done
+    fi
+}
+
+#
+# describe a certificate
+#
+describecert() {
+    file="$1"
+    if [ ! -f "${file}" ]; then
+	file="${CERTDIR}/${file}"
+    fi
+    if [ ! -f "${file}" ]; then
+	bail "cannot find $1"
+    fi
+    CHASH=$($OPENSSL x509 -noout -subject -in "$file" 2>/dev/null)
+    echo "${file}: $CHASH"
+}
+
+#
+# sanity check
+#
+if [ ! -d "${CADIR}" ]; then
+    bail "$CADIR does not exist"
+fi
+if [ ! -d "${CERTDIR}" ]; then
+    bail "$CERTDIR does not exist"
+fi
+
+#
+# select function based on argument
+#
+case $1 in
+    refresh|start)
+	refresh
+	;;
+    stop)
+	exit 0
+	;;
+    add)
+	addcert "$2"
+	;;
+    remove)
+	removecert "$2"
+	;;
+    clean)
+	cleancerts
+	;;
+    list)
+	listcerts
+	;;
+    listall)
+	listallcerts
+	;;
+    describe)
+	describecert "$2"
+	;;
+    *)
+	usage
+	;;
+esac
+
+#
+# at this point, if the main pem file doesn't exist, force a refresh
+#
+if [ ! -f "${CACERT}" ]; then
+    refresh
+fi
