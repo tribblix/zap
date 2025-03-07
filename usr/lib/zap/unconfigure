@@ -123,6 +123,10 @@ rm -f $(find /var/cores -type f)
 rm -f $(find /var/mail -type f)
 rm -f $(find /var/spool/mqueue -type f)
 rm -f $(find /var/spool/clientmqueue -type f)
+# any customized CA certificates
+if [ -x /usr/lib/zap/manage-cacerts ]; then
+    /usr/lib/zap/manage-cacerts clean
+fi
 
 # clean up any customizations
 # this will only work in the global zone
