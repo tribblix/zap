@@ -283,6 +283,9 @@ h|help)
 	shift
 	exec ${ZAPLIBDIR}/zap-help "$@"
 	;;
+version)
+	exec /usr/bin/uname -v
+	;;
 *)
 	echo "Unrecognized subcommand $1"
 	exit 2
