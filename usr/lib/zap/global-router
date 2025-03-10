@@ -15,7 +15,7 @@
 #
 # }}}
 #
-# Copyright 2024 Peter Tribble
+# Copyright 2025 Peter Tribble
 #
 
 #
@@ -61,6 +61,13 @@ esac
 done
 
 #
+# we must be given the network to route
+#
+if [ -z "$RIP4" ]; then
+    usage
+fi
+
+#
 # for any routing/proxy, verify we're being given sensible information
 # It must look like a.b.c.d/n, and d must be zero
 # rewrite addresses from the network address to the host address of .1
@@ -83,59 +90,59 @@ if [[ -n $RIP4 ]]; then
 	    *.*.*.*/*)
 		RPREFIX=${RIP##*/}
 		RSUBNET=${RIP%/*}
-		echo $RSUBNET | tr '.' ' '|read OCT1 OCT2 OCT3 OCT4
-		if [ $OCT1 -lt 1 -o $OCT1 -gt 223 ]; then
+		echo "$RSUBNET" | tr '.' ' '|read -r OCT1 OCT2 OCT3 OCT4
+		if [ "$OCT1" -lt 1 -o "$OCT1" -gt 223 ]; then
 		    echo "Invalid proxy network $RIP"
 		    echo "  first octet $OCT1 out of range"
 		    exit 2
 		fi
-		if [ $OCT2 -lt 0 -o $OCT2 -gt 255 ]; then
+		if [ "$OCT2" -lt 0 -o "$OCT2" -gt 255 ]; then
 		    echo "Invalid proxy network $RIP"
 		    echo "  second octet $OCT2 out of range"
 		    exit 2
 		fi
-		if [ $OCT3 -lt 0 -o $OCT3 -gt 255 ]; then
+		if [ "$OCT3" -lt 0 -o "$OCT3" -gt 255 ]; then
 		    echo "Invalid proxy network $RIP"
 		    echo "  third octet $OCT3 out of range"
 		    exit 2
 		fi
-		if [ $OCT4 -ne 0 ]; then
+		if [ "$OCT4" -ne 0 ]; then
 		    echo "Invalid proxy network $RIP"
 		    echo "  fourth octet $OCT4 out of range, must be 0"
 		    exit 2
 		fi
 		case $RPREFIX in
 		    8)
-			if [ $OCT2 -ne 0 ]; then
+			if [ "$OCT2" -ne 0 ]; then
 			    echo "Invalid proxy network $RIP"
 			    echo "  second octet $OCT2 out of range, must be zero for /8"
 			    exit 2
 			fi
-			if [ $OCT3 -ne 0 ]; then
+			if [ "$OCT3" -ne 0 ]; then
 			    echo "Invalid proxy address $RIP"
 			    echo "  third octet $OCT3 out of range, must be zero for /8"
 			    exit 2
 			fi
 			if [ -f "${ZSDIR}/rconfig.${OCT1}" ]; then
-			    ZOWNER=$(/usr/bin/grep zone: ${ZSDIR}/rconfig.${OCT1} | /usr/bin/awk '{print $NF}')
+			    ZOWNER=$(/usr/bin/grep zone: "${ZSDIR}/rconfig.${OCT1}" | /usr/bin/awk '{print $NF}')
 			    echo "ERROR: network $RIP is already in use by zone $ZOWNER"
 			    exit 2
 			fi
 			NRIP4="$NRIP4 ${OCT1}.${OCT2}.${OCT3}.1/${RPREFIX}"
 			;;
 		    16)
-			if [ $OCT3 -ne 0 ]; then
+			if [ "$OCT3" -ne 0 ]; then
 			    echo "Invalid proxy address $RIP"
 			    echo "  third octet $OCT3 out of range, must be zero for /16"
 			    exit 2
 			fi
 			if [ -f "${ZSDIR}/rconfig.${OCT1}" ]; then
-			    ZOWNER=$(/usr/bin/grep zone: ${ZSDIR}/rconfig.${OCT1} | /usr/bin/awk '{print $NF}')
+			    ZOWNER=$(/usr/bin/grep zone: "${ZSDIR}/rconfig.${OCT1}" | /usr/bin/awk '{print $NF}')
 			    echo "ERROR: parent network ${OCT1}.0.0.0/8 for $RIP is already in use by zone $ZOWNER"
 			    exit 2
 			fi
 			if [ -f "${ZSDIR}/rconfig.${OCT1}.${OCT2}" ]; then
-			    ZOWNER=$(/usr/bin/grep zone: ${ZSDIR}/rconfig.${OCT1}.${OCT2} | /usr/bin/awk '{print $NF}')
+			    ZOWNER=$(/usr/bin/grep zone: "${ZSDIR}/rconfig.${OCT1}.${OCT2}" | /usr/bin/awk '{print $NF}')
 			    echo "ERROR: network $RIP is already in use by zone $ZOWNER"
 			    exit 2
 			fi
@@ -143,17 +150,17 @@ if [[ -n $RIP4 ]]; then
 			;;
 		    24)
 			if [ -f "${ZSDIR}/rconfig.${OCT1}" ]; then
-			    ZOWNER=$(/usr/bin/grep zone: ${ZSDIR}/rconfig.${OCT1} | /usr/bin/awk '{print $NF}')
+			    ZOWNER=$(/usr/bin/grep zone: "${ZSDIR}/rconfig.${OCT1}" | /usr/bin/awk '{print $NF}')
 			    echo "ERROR: parent network ${OCT1}.0.0.0/8 for $RIP is already in use by zone $ZOWNER"
 			    exit 2
 			fi
 			if [ -f "${ZSDIR}/rconfig.${OCT1}.${OCT2}" ]; then
-			    ZOWNER=$(/usr/bin/grep zone: ${ZSDIR}/rconfig.${OCT1}.${OCT2} | /usr/bin/awk '{print $NF}')
+			    ZOWNER=$(/usr/bin/grep zone: "${ZSDIR}/rconfig.${OCT1}.${OCT2}" | /usr/bin/awk '{print $NF}')
 			    echo "ERROR: parent network ${OCT1}.${OCT2}.0.0/16 for $RIP is already in use by zone $ZOWNER"
 			    exit 2
 			fi
 			if [ -f "${ZSDIR}/rconfig.${OCT1}.${OCT2}.${OCT3}" ]; then
-			    ZOWNER=$(/usr/bin/grep zone: ${ZSDIR}/rconfig.${OCT1}.${OCT2}.${OCT3} | /usr/bin/awk '{print $NF}')
+			    ZOWNER=$(/usr/bin/grep zone: "${ZSDIR}/rconfig.${OCT1}.${OCT2}.${OCT3}" | /usr/bin/awk '{print $NF}')
 			    echo "ERROR: network $RIP is already in use by zone $ZOWNER"
 			    exit 2
 			fi
@@ -185,7 +192,7 @@ get_short_net() {
     IIP=$1
     SRPREFIX=${IIP##*/}
     SRSUBNET=${IIP%/*}
-    echo $SRSUBNET | tr '.' ' '|read OCT1 OCT2 OCT3 OCT4
+    echo "$SRSUBNET" | tr '.' ' '|read -r OCT1 OCT2 OCT3 OCT4
     case $SRPREFIX in
 	8)
 	    echo "${OCT1}"
@@ -268,7 +275,7 @@ do
 	echo "/usr/sbin/dladm delete-etherstub $ZIFACE" >> "${ZSDIR}/destroy.${ZNAME}"
 	ifipmap[znic$ZENUM]=$IP
 	# save the configuration here
-	ZNETNAME=$(get_short_net $IP)
+	ZNETNAME=$(get_short_net "$IP")
 	touch "${ZSDIR}/rconfig.${ZNETNAME}"
 	echo "interface: $ZIFACE" >> "${ZSDIR}/rconfig.${ZNETNAME}"
 	echo "shared-interface: snic$ZSNUM" >> "${ZSDIR}/rconfig.${ZNETNAME}"
@@ -356,6 +363,6 @@ if [[ -n $ISROUTER ]]; then
     do
 	echo "dhcp-range=${subnet%/*},static" >> "/etc/dnsmasq.conf"
     done
-    echp "Starting dnsmasq"
+    echo "Starting dnsmasq"
     /usr/sbin/svcadm enable network/dnsmasq
 fi

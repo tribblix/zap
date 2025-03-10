@@ -872,35 +872,35 @@ if [[ -n $RIP4 ]]; then
 	    *.*.*.*/*)
 		RPREFIX=${RIP##*/}
 		RSUBNET=${RIP%/*}
-		echo $RSUBNET | tr '.' ' '|read OCT1 OCT2 OCT3 OCT4
-		if [ $OCT1 -lt 1 -o $OCT1 -gt 223 ]; then
+		echo "$RSUBNET" | tr '.' ' '|read -r OCT1 OCT2 OCT3 OCT4
+		if [ "$OCT1" -lt 1 -o "$OCT1" -gt 223 ]; then
 		    echo "Invalid proxy network $RIP"
 		    echo "  first octet $OCT1 out of range"
 		    exit 2
 		fi
-		if [ $OCT2 -lt 0 -o $OCT2 -gt 255 ]; then
+		if [ "$OCT2" -lt 0 -o "$OCT2" -gt 255 ]; then
 		    echo "Invalid proxy network $RIP"
 		    echo "  second octet $OCT2 out of range"
 		    exit 2
 		fi
-		if [ $OCT3 -lt 0 -o $OCT3 -gt 255 ]; then
+		if [ "$OCT3" -lt 0 -o "$OCT3" -gt 255 ]; then
 		    echo "Invalid proxy network $RIP"
 		    echo "  third octet $OCT3 out of range"
 		    exit 2
 		fi
-		if [ $OCT4 -ne 0 ]; then
+		if [ "$OCT4" -ne 0 ]; then
 		    echo "Invalid proxy network $RIP"
 		    echo "  fourth octet $OCT4 out of range, must be 0"
 		    exit 2
 		fi
 		case $RPREFIX in
 		    8)
-			if [ $OCT2 -ne 0 ]; then
+			if [ "$OCT2" -ne 0 ]; then
 			    echo "Invalid proxy network $RIP"
 			    echo "  second octet $OCT2 out of range, must be zero for /8"
 			    exit 2
 			fi
-			if [ $OCT3 -ne 0 ]; then
+			if [ "$OCT3" -ne 0 ]; then
 			    echo "Invalid proxy address $RIP"
 			    echo "  third octet $OCT3 out of range, must be zero for /8"
 			    exit 2
@@ -913,7 +913,7 @@ if [[ -n $RIP4 ]]; then
 			NRIP4="$NRIP4 ${OCT1}.${OCT2}.${OCT3}.1/${RPREFIX}"
 			;;
 		    16)
-			if [ $OCT3 -ne 0 ]; then
+			if [ "$OCT3" -ne 0 ]; then
 			    echo "Invalid proxy address $RIP"
 			    echo "  third octet $OCT3 out of range, must be zero for /16"
 			    exit 2
@@ -1235,21 +1235,21 @@ get_net_details() {
 	    SRCHIFACE="nosuchterm"
 	    ;;
     esac
-    NIP=$(get_short_net ${IIP}/24)
+    NIP=$(get_short_net "${IIP}/24")
     if [ -f "${ZSDIR}/rconfig.${NIP}" ] ; then
 	IFACE=$(/usr/bin/grep "${SRCHIFACE}" "${ZSDIR}/rconfig.${NIP}" | /usr/bin/awk '{print $NF}')
 	ICIDR=24
 	echo "$IFACE $ICIDR"
 	return
     fi
-    NIP=$(get_short_net ${IIP}/16)
+    NIP=$(get_short_net "${IIP}/16")
     if [ -f "${ZSDIR}/rconfig.${NIP}" ] ; then
 	IFACE=$(/usr/bin/grep "${SRCHIFACE}" "${ZSDIR}/rconfig.${NIP}" | /usr/bin/awk '{print $NF}')
 	ICIDR=16
 	echo "$IFACE $ICIDR"
 	return
     fi
-    NIP=$(get_short_net ${IIP}/8)
+    NIP=$(get_short_net "${IIP}/8")
     if [ -f "${ZSDIR}/rconfig.${NIP}" ] ; then
 	IFACE=$(/usr/bin/grep "${SRCHIFACE}" "${ZSDIR}/rconfig.${NIP}" | /usr/bin/awk '{print $NF}')
 	ICIDR=8
@@ -1296,17 +1296,17 @@ get_parent_zone() {
 #
 get_gateway() {
     IIP=$1
-    NIP=$(get_short_net ${IIP}/24)
+    NIP=$(get_short_net "${IIP}/24")
     if [ -f "${ZSDIR}/rconfig.${NIP}" ] ; then
 	/usr/bin/grep gateway: "${ZSDIR}/rconfig.${NIP}" | /usr/bin/awk '{print $NF}'
 	return
     fi
-    NIP=$(get_short_net ${IIP}/16)
+    NIP=$(get_short_net "${IIP}/16")
     if [ -f "${ZSDIR}/rconfig.${NIP}" ] ; then
 	/usr/bin/grep gateway: "${ZSDIR}/rconfig.${NIP}" | /usr/bin/awk '{print $NF}'
 	return
     fi
-    NIP=$(get_short_net ${IIP}/8)
+    NIP=$(get_short_net "${IIP}/8")
     if [ -f "${ZSDIR}/rconfig.${NIP}" ] ; then
         /usr/bin/grep gateway: "${ZSDIR}/rconfig.${NIP}" | /usr/bin/awk '{print $NF}'
 	return
@@ -1322,7 +1322,7 @@ get_short_net() {
     IIP=$1
     SRPREFIX=${IIP##*/}
     SRSUBNET=${IIP%/*}
-    echo $SRSUBNET | tr '.' ' '|read OCT1 OCT2 OCT3 OCT4
+    echo "$SRSUBNET" | tr '.' ' '|read -r OCT1 OCT2 OCT3 OCT4
     case $SRPREFIX in
 	8)
 	    echo "${OCT1}"
