@@ -15,7 +15,7 @@
 #
 # }}}
 #
-# Copyright 2024 Peter Tribble
+# Copyright 2025 Peter Tribble
 #
 
 ONAME=""
@@ -85,10 +85,10 @@ esac
 #
 case $ONAME in
 -a)
-	cd ${INSTODIR}/installed
+	cd "${INSTODIR}/installed" || exit 0
 	for novl in *
 	do
-	    ${ZAPLIBDIR}/update-overlay ${CTXARGS} ${PKGARGS} ${SRCARGS} ${novl}
+	    ${ZAPLIBDIR}/update-overlay ${CTXARGS} ${PKGARGS} ${SRCARGS} "${novl}"
 	done
 	exit 0
 	;;
@@ -98,7 +98,7 @@ esac
 # if not installed, just exit
 # if someone has messed with packages behind our back, they suffer
 #
-if [ ! -f ${INSTODIR}/installed/${ONAME} ]; then
+if [ ! -f "${INSTODIR}/installed/${ONAME}" ]; then
     exit 0
 fi
 
@@ -112,11 +112,11 @@ fi
 # install any new dependent overlays
 #
 OVL="${CFGODIR}/${ONAME}.ovl"
-for novl in $(/usr/bin/awk -F= '{if ($1=="REQUIRES") print $2}' ${OVL})
+for novl in $(/usr/bin/awk -F= '{if ($1=="REQUIRES") print $2}' "${OVL}")
 do
-    if [ ! -f ${INSTODIR}/installed/${novl} ]; then
-	${ZAPLIBDIR}/install-overlay ${CTXARGS} ${PKGARGS} ${SRCARGS} ${novl}
+    if [ ! -f "${INSTODIR}/installed/${novl}" ]; then
+	${ZAPLIBDIR}/install-overlay ${CTXARGS} ${PKGARGS} ${SRCARGS} "${novl}"
     fi
 done
 
-${ZAPLIBDIR}/update-package ${CTXARGS} ${PKGARGS} ${SRCARGS} $(<${PLIST})
+${ZAPLIBDIR}/update-package ${CTXARGS} ${PKGARGS} ${SRCARGS} $(<"${PLIST}")
