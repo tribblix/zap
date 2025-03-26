@@ -315,6 +315,10 @@ case $SCHEME in
 		DLFILE="alpine-3.20-default_20240908_amd64.tar.xz"
 		DLNAME="proxmox-alpine-3.20.tar.xz"
 		;;
+	    alpine-3.21)
+		DLFILE="alpine-3.21-default_20241217_amd64.tar.xz"
+		DLNAME="proxmox-alpine-3.21.tar.xz"
+		;;
 	    arch|archlinux)
 		DLFILE="archlinux-base_20240911-1_amd64.tar.zst"
 		DLNAME="proxmox-archlinux.tar.zst"
@@ -368,9 +372,13 @@ case $SCHEME in
 		DLFILE="devuan-3.0-standard_3.0_amd64.tar.gz"
 		DLNAME="proxmox-devuan-3.tar.gz"
 		;;
-	    devuan|devuan-4)
+	    devuan-4)
 		DLFILE="devuan-4.0-standard_4.0_amd64.tar.gz"
 		DLNAME="proxmox-devuan-4.tar.gz"
+		;;
+	    devuan|devuan-5)
+		DLFILE="devuan-5.0-standard_5.0_amd64.tar.gz"
+		DLNAME="proxmox-devuan-5.tar.gz"
 		;;
 	    fedora-24)
 		DLFILE="fedora-24-default_20161207_amd64.tar.xz"
