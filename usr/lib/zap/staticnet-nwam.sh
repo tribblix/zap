@@ -15,7 +15,7 @@
 #
 # }}}
 #
-# Copyright 2024 Peter Tribble
+# Copyright 2025 Peter Tribble
 #
 
 #
@@ -47,7 +47,7 @@ fi
 # with -y, do it; otherwise dry run
 #
 DRYRUN="yes"
-if [ "x$1" = "x-y" ]; then
+if [ "$1" = "-y" ]; then
     DRYRUN=""
 fi
 
