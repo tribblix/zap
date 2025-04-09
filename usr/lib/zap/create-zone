@@ -78,6 +78,7 @@ ZDATASETS=""
 ZSHARED=""
 ZROSHARED=""
 ZUSERS=""
+BZUSERS=""
 ZTEMPLATE=""
 ZTEMPLATEPATH=""
 ZBLANK=""
@@ -584,9 +585,15 @@ bhyve)
 	    echo "ERROR: bhyve zones cannot be blank"
 	    usage
 	fi
+	#
+	# assigning users to bhyve zones is slightly different
+	# the user is not shared with the zone, or the guest running
+	# under bhyve, but should have administrative access, so
+	# pass the list under a different name
+	#
 	if [[ -n $ZUSERS ]]; then
-	    echo "ERROR: cannot assign users for bhyve zones"
-	    usage
+	    BZUSERS="${ZUSERS}"
+	    ZUSERS=""
 	fi
 	if [[ -n $ZDIRS ]]; then
 	    echo "ERROR: cannot create directories for bhyve zones"
@@ -1630,6 +1637,37 @@ if [[ $ZBRAND = TRIBsparse || $ZBRAND = TRIBwhole ]]; then
 	echo "end"
 fi
 #
+# for bhyve zones, share a directory into the zone into which we can
+# drop the vnc socket, so it can be accessed directly from the global
+# zone without mucking around with socat
+#
+# the vnc attribute will be rewritten later so it drops the socket into
+# this directory, rather than using the default /tmp/vm.vnc
+#
+# set an ACL on that directory so that the named user(s) can see the
+# socket, and add inheritance so they can open the socket r/w
+#
+if [[ $ZBRAND = bhyve ]]; then
+	if [ ! -d /var/zap/bhyve ]; then
+	    /usr/bin/mkdir -p /var/zap/bhyve
+	fi
+	/usr/bin/mkdir "/var/zap/bhyve/${ZNAME}"
+	/usr/bin/chmod 755 /var/zap/bhyve
+	/usr/bin/chmod 500 "/var/zap/bhyve/${ZNAME}"
+	echo "/bin/rm -fr /var/zap/bhyve/${ZNAME}" >> "${ZSDIR}/destroy.${ZNAME}"
+	for TUSER in $BZUSERS
+	do
+	    /usr/bin/chmod "A+user:${TUSER}:list_directory/execute:allow" "/var/zap/bhyve/${ZNAME}"
+	    /usr/bin/chmod "A+user:${TUSER}:read_data/write_data/execute:file_inherit:allow" "/var/zap/bhyve/${ZNAME}"
+	done
+	echo "add fs"
+	echo "set dir=/var/bhyve"
+	echo "set special=/var/zap/bhyve/${ZNAME}"
+	echo "set type=lofs"
+	echo "add options [nodevices]"
+	echo "end"
+fi
+#
 # for any items shared with the zone, add them
 # existence was checked earlier
 #
@@ -1684,6 +1722,16 @@ do
 	echo "set type=lofs"
 	echo "add options [nodevices]"
 	echo "end"
+	echo "add admin"
+	echo "set user=${TUSER}"
+	echo "set auths=manage"
+	echo "end"
+done
+#
+# for bhyve zones, no sharing, just admin access
+#
+for TUSER in $BZUSERS
+do
 	echo "add admin"
 	echo "set user=${TUSER}"
 	echo "set auths=manage"
@@ -1762,7 +1810,15 @@ if [[ $ZBRAND = bhyve ]]; then
     echo "add attr"
     echo "set name=vnc"
     echo "set type=string"
-    echo "set value=on"
+    #
+    # with bhyve users, relocate the vnc socket
+    # this is a Tribblix extension to the bhyve brand
+    #
+    if [ -n "${BZUSERS}" ]; then
+	echo "set value=\"unix=/var/bhyve/vm.vnc\""
+    else
+	echo "set value=on"
+    fi
     echo "end"
     echo "add attr"
     echo "set name=bootrom"

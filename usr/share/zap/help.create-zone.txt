@@ -111,6 +111,11 @@ zlogin to connect to the zone. Note that this mechanism gives the
 delegated user full root access to the zone, and potentially full root
 access to the global zone via shared file systems.
 
+For bhyve zones, the -U flag does not share the user with either the
+zone or the guest running in it, but does give the named user the
+ability to administer the zone, including the ability to connect to
+the console via VNC.
+
 The -T flag allows you to use a template to provide the file systems to
 a sparse-root zone instead of the default inheritance from the global
 zone. Use the zap create-zone-template subcommand to construct such a
