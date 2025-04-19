@@ -15,7 +15,7 @@
 #
 # }}}
 #
-# Copyright 2024 Peter Tribble
+# Copyright 2025 Peter Tribble
 #
 
 #
@@ -1726,6 +1726,7 @@ do
 	echo "set user=${TUSER}"
 	echo "set auths=manage"
 	echo "end"
+	echo "admin_user: ${TUSER}" >> "${ZSDIR}/zconfig.${ZNAME}"
 done
 #
 # for bhyve zones, no sharing, just admin access
@@ -1736,6 +1737,7 @@ do
 	echo "set user=${TUSER}"
 	echo "set auths=manage"
 	echo "end"
+	echo "admin_user: ${TUSER}" >> "${ZSDIR}/zconfig.${ZNAME}"
 done
 #
 # for lx, need to set the kernel version; ideally this would match the
