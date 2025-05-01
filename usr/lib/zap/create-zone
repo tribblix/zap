@@ -97,6 +97,7 @@ CLOUDINIT=""
 SSHKEYFILE=""
 ISROUTER=""
 CPUSPEC=""
+LXKVER="4.4.15"
 
 #
 # these associative arrays track the interface to address mapping
@@ -1749,7 +1750,7 @@ if [[ $ZBRAND = SUNWlx ]]; then
 	echo "add attr"
 	echo "set name=kernel-version"
 	echo "set type=string"
-	echo "set value=4.4.15"
+	echo "set value=$LXKVER"
 	echo "end"
 fi
 #
