@@ -1,0 +1,283 @@
+#!/bin/ksh
+#
+# SPDX-License-Identifier: CDDL-1.0
+#
+# {{{ CDDL HEADER
+#
+# This file and its contents are supplied under the terms of the
+# Common Development and Distribution License ("CDDL"), version 1.0.
+# You may only use this file in accordance with the terms of version
+# 1.0 of the CDDL.
+#
+# A full copy of the text of the CDDL should have accompanied this
+# source. A copy of the CDDL is also available via the Internet at
+# http://www.illumos.org/license/CDDL.
+#
+# }}}
+#
+# Copyright 2025 Peter Tribble
+#
+
+#
+# this is a script to take a Solaris 10 ISO image and generate an
+# artefact that can be used to build a solaris10 zone
+#
+# it can either populate a directory or create a tarball
+#
+# it can be used either standalone, or as a helper to create-zone
+#
+
+#
+# Usage:
+#  -I ISO file to install from
+#  -d name of directory to populate
+#  -x name of tarball to export to
+#
+# TODO: extra packages?
+#
+
+ZAPLIBDIR="/usr/lib/zap"
+#ZAPSHAREDIR="/usr/share/zap"
+ZAPSHAREDIR="/packages/localsrc/Tribblix/zap/usr/share/zap"
+ZDIRECTORY=""
+ZISOFILE=""
+ZTARBALL=""
+ZPRODUCT=""
+TDIR=""
+LNUM=1
+
+usage() {
+    if [ -n "$1" ]; then
+	echo "ERROR: $1"
+    fi
+    echo "Usage: $0 -I iso_image -d directory_name [-x tarball_name]"
+    exit 2
+}
+
+bail() {
+    echo "ERROR: $1"
+    cleanup
+    exit 1
+}
+
+#
+# unmount and delete the lofi device
+#
+cleanup() {
+    if [ -n "${TDIR}" ]; then
+	/usr/sbin/umount "${TDIR}"
+	if [ -d "${TDIR}" ]; then
+	    rmdir "${TDIR}"
+	fi
+	/usr/sbin/lofiadm -d "${ZISOFILE}"
+	/usr/bin/pkgadm sync -R "${ZDIRECTORY}" -q
+    fi
+}
+
+while getopts "d:I:x:" opt; do
+    case $opt in
+	d)
+	    ZDIRECTORY="$OPTARG"
+	    ;;
+	I)
+	    ZISOFILE="$OPTARG"
+	    ;;
+	x)
+	    ZTARBALL="$OPTARG"
+	    ;;
+	*)
+	    usage
+	    ;;
+    esac
+done
+
+#
+# the -I and -d flags are mandatory
+# the ISO image must exist, and the directory must not
+#
+if [ -z "${ZDIRECTORY}" ]; then
+    usage "directory must be given with -d"
+fi
+if [ -z "${ZISOFILE}" ]; then
+    usage "iso image must be given with -I"
+fi
+if [ -d "${ZDIRECTORY}" ]; then
+    usage "directory must not exist"
+fi
+if [ ! -f "${ZISOFILE}" ]; then
+    usage "iso image not found"
+fi
+
+#
+# any failure from now on is a fatal error
+#
+
+install_package() {
+    PKG="$1"
+    echo "Installing package ${PKG}"
+    /usr/sbin/pkgadd -n -a ${ZAPLIBDIR}/pkg.force -d "${ZPRODUCT}" -R "${ZDIRECTORY}" "${PKG}" > /dev/null
+}
+
+#
+# the first thing we do is check the ISO is valid
+# it must follow the normal naming convention and be the ISO for the
+# current platform
+#
+ISONAME="${ZISOFILE##*/}"
+echo "$ISONAME"
+case $ISONAME in
+    sol-10*.iso)
+	:
+	;;
+    *)
+	bail "expecting an ISO named sol-10-XXX.iso"
+	;;
+esac
+
+case $(uname -p) in
+    sparc)
+	case $ISONAME in
+	    *sparc*)
+		:
+		;;
+	    *)
+		bail "need a sparc ISO"
+		;;
+	esac
+	ZPKGLIST="${ZAPSHAREDIR}/s10-sparc.pkgs"
+	;;
+    i386)
+	case $ISONAME in
+	    *x86*)
+		:
+		;;
+	    *)
+		bail "need an x86 ISO"
+		;;
+	esac
+	ZPKGLIST="${ZAPSHAREDIR}/s10-x86.pkgs"
+	;;
+    *)
+	bail "unrecognized platform"
+	;;
+esac
+
+if [ ! -f "${ZPKGLIST}" ]; then
+    bail "cannot find package list"
+fi
+
+#
+# as it looks legitimate, mount it up
+#
+TDIR="/tmp/mnt-s10-$$"
+while [ $LNUM -lt 100 ]
+do
+    if [ -f /dev/lofi/${LNUM} ]; then
+	 LNUM=$((LNUM+1))
+    else
+	break
+    fi
+done
+if [ "${LNUM}" -ge 100 ]; then
+    bail "no lofi devices available"
+fi
+mkdir "${TDIR}"
+if [ ! -d "${TDIR}" ]; then
+    bail "cannot create mountpoint"
+fi
+/usr/sbin/lofiadm -a "${ZISOFILE}" /dev/lofi/"${LNUM}"
+/usr/sbin/mount -F hsfs -o ro /dev/lofi/"${LNUM}" "${TDIR}"
+#
+# if it's mounted, does this look like a Solaris image inside?
+#
+ZPRODUCT="${TDIR}/Solaris_10/Product"
+if [ ! -d "${ZPRODUCT}" ]; then
+    bail "this is not a Solaris image"
+fi
+
+#
+# it looks like a Solaris image, install to the desired directory
+#
+mkdir -p "${ZDIRECTORY}"
+if [ ! -d "${ZDIRECTORY}" ]; then
+    bail "cannot create output directory"
+fi
+#
+# the packages are listed separately, make sure we remove any comments
+#
+for pkg in $(grep -v '^#' "${ZPKGLIST}")
+do
+    install_package "${pkg}"
+done
+echo "Image has been created at ${ZDIRECTORY}"
+
+#
+# there are a few fixes we need to make the image functional
+#
+echo "Applying post install fixes"
+cat > "${ZDIRECTORY}"/var/sadm/system/admin/INST_RELEASE <<EOF
+OS=Solaris
+VERSION=10
+REV=0
+EOF
+#
+# the jdk build wants headers in certain places
+#
+if [ -d "${ZDIRECTORY}"/usr/openwin/share/include/X11/extensions ]; then
+    if [ -d "${ZDIRECTORY}"/usr/X11/include/X11/extensions ]; then
+	(cd "${ZDIRECTORY}"/usr/openwin/share/include/X11/extensions ; ln -s ../../../../../X11/include/X11/extensions/* . 2>/dev/null)
+    fi
+fi
+case $(uname -p) in
+    i386)
+	if [ -f "${ZDIRECTORY}"/usr/openwin/sfw/lib/amd64/libXrender.so ]; then
+	    (cd "${ZDIRECTORY}"/usr/lib ; ln -s ../openwin/sfw/lib/libXrender.so* .)
+	    (cd "${ZDIRECTORY}"/usr/lib/amd64 ; ln -s ../../openwin/sfw/lib/amd64/libXrender.so* .)
+	fi
+	;;
+    sparc)
+	if [ -f "${ZDIRECTORY}"/usr/openwin/sfw/lib/sparcv9/libXrender.so ]; then
+	    (cd "${ZDIRECTORY}"/usr/lib ; ln -s ../openwin/sfw/lib/libXrender.so* .)
+	    (cd "${ZDIRECTORY}"/usr/lib/sparcv9 ; ln -s ../../openwin/sfw/lib/sparcv9/libXrender.so* .)
+	fi
+	;;
+esac
+#
+# copy this from the host
+#
+if [ -f /usr/include/X11/HPkeysym.h ]; then
+    cp -p /usr/include/X11/HPkeysym.h "${ZDIRECTORY}"/usr/openwin/share/include/X11/HPkeysym.h
+fi
+#
+# #include <X11/X.h> in  /usr/include/X11/extensions/render.h
+#
+cd "${ZDIRECTORY}" || bail "cd to ${ZDIRECTORY} failed"
+cat <<EOF | /usr/bin/gpatch -p1
+--- a/usr/include/X11/extensions/render.h	Tue Apr  6 01:00:34 2010
++++ b/usr/include/X11/extensions/render.h	Mon May 12 19:38:20 2025
+@@ -26,6 +26,8 @@
+ #ifndef _RENDER_H_
+ #define _RENDER_H_
+ 
++#include <X11/X.h>
++
+ typedef XID		Glyph;
+ typedef XID		GlyphSet;
+ typedef XID		Picture;
+EOF
+
+#
+# if we were given an output tarball, create that
+# the zone installer doesn't understand compressed tarballs, so don't
+# compress here
+#
+if [ -n "${ZTARBALL}" ]; then
+    echo "TODO create tarball"
+    cd "${ZDIRECTORY}" || bail "cd to ${ZDIRECTORY} failed"
+    tar cf "${ZTARBALL}" .
+fi
+
+#
+# always cleanup
+#
+cleanup

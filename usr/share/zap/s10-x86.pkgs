@@ -1,0 +1,103 @@
+#
+# SPDX-License-Identifier: CDDL-1.0
+#
+# the following packages are necessary for a successful solaris10 zone
+#
+# SUNWCcs SUNWcar SUNWcakr SUNWkvm
+SUNWcsr
+SUNWckr
+SUNWcnetr
+SUNWcsd
+SUNWcsl
+SUNWcsu
+SUNWcar.i
+SUNWcakr.i
+SUNWkvm.i
+SUNWcslr
+# SUNWCfmd
+SUNWfmdr
+SUNWfmd
+# SUNWClexpt
+SUNWlexpt
+# SUNWCpicl
+SUNWpiclr
+SUNWpiclu
+# SUNWCopenssl SUNWhea (but not man)
+SUNWopensslr
+SUNWopenssl-libraries
+SUNWhea
+SUNWopenssl-include
+SUNWopenssl-commands
+# SUNWCpkgcmds SUNWwbsup
+SUNWproduct-registry-root
+SUNWwsr2
+SUNWpkgcmdsr
+SUNWwbsup
+SUNWpkgcmdsu
+# SUNWCpr SUNWCtls
+SUNWpr
+SUNWtls
+SUNWjss
+# SUNWCfwshl
+SUNWbash
+SUNWtcsh
+SUNWzsh
+# perl
+SUNWperl584core
+SUNWperl584usr
+# SUNWCptoo SUNWtecla SUNWesu SUNWtoo
+SUNWtecla
+SUNWbtool
+SUNWesu
+SUNWcpp
+SUNWtoo
+SUNWlibmr
+SUNWlibm
+SUNWlibmsr
+SUNWlibms
+SUNWsprot
+# SUNWCfwcmp SUNWlibC
+SUNWlibC
+SUNWbzip
+SUNWgzip
+SUNWzip
+SUNWzlib
+# release and sys-unconfig
+SUNWsolnm
+SUNWadmr
+SUNWadmlib-sysid
+SUNWadmap
+# autofs is needed for validation
+SUNWatfsr
+SUNWatfsu
+# ditto zfs
+SUNWlxml
+SUNWsmapi
+SUNWzfskr
+SUNWzfsr
+SUNWzfsu
+# ditto ipf
+SUNWipfr
+SUNWipfu
+# extras for openjdk build
+SUNWarc
+SUNWloc
+SUNWgcmn
+SUNWggrp
+SUNWgmake
+SUNWinstall-patch-utils-root
+SUNWswmt
+SUNWxwrtl
+SUNWxwplt
+SUNWxwinc
+SUNWxwhl
+SUNWaudh
+SUNWfreetype2
+SUNWfontconfig-root
+SUNWfontconfig
+SUNWxorg-headers
+SUNWxorg-clientlibs
+# missing dependencies
+SUNWzoneu
+SUNWpool
+SUNWlibsasl
