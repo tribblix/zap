@@ -33,12 +33,11 @@
 #  -d name of directory to populate
 #  -x name of tarball to export to
 #
-# TODO: extra packages?
+# TODO: extra packages
 #
 
 ZAPLIBDIR="/usr/lib/zap"
-#ZAPSHAREDIR="/usr/share/zap"
-ZAPSHAREDIR="/packages/localsrc/Tribblix/zap/usr/share/zap"
+ZAPSHAREDIR="/usr/share/zap"
 ZDIRECTORY=""
 ZISOFILE=""
 ZTARBALL=""
