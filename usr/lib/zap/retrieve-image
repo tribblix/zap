@@ -15,7 +15,7 @@
 #
 # }}}
 #
-# Copyright 2024 Peter Tribble
+# Copyright 2025 Peter Tribble
 #
 
 #
@@ -255,34 +255,6 @@ case $SCHEME in
 		DLFILE="almalinux-9-default_20240911_amd64.tar.xz"
 		DLNAME="proxmox-almalinux-9.tar.xz"
 		;;
-	    alpine-3.6)
-		DLFILE="alpine-3.6-default_20180913_amd64.tar.xz"
-		DLNAME="proxmox-alpine-3.6.tar.xz"
-		;;
-	    alpine-3.7)
-		DLFILE="alpine-3.7-default_20180913_amd64.tar.xz"
-		DLNAME="proxmox-alpine-3.7.tar.xz"
-		;;
-	    alpine-3.8|alpine)
-		DLFILE="alpine-3.8-default_20180913_amd64.tar.xz"
-		DLNAME="proxmox-alpine-3.8.tar.xz"
-		;;
-	    alpine-3.9)
-		DLFILE="alpine-3.9-default_20190224_amd64.tar.xz"
-		DLNAME="proxmox-alpine-3.9.tar.xz"
-		;;
-	    alpine-3.10)
-		DLFILE="alpine-3.10-default_20190626_amd64.tar.xz"
-		DLNAME="proxmox-alpine-3.10.tar.xz"
-		;;
-	    alpine-3.11)
-		DLFILE="alpine-3.11-default_20200425_amd64.tar.xz"
-		DLNAME="proxmox-alpine-3.11.tar.xz"
-		;;
-	    alpine-3.12)
-		DLFILE="alpine-3.12-default_20200823_amd64.tar.xz"
-		DLNAME="proxmox-alpine-3.12.tar.xz"
-		;;
 	    alpine-3.13)
 		DLFILE="alpine-3.13-default_20210419_amd64.tar.xz"
 		DLNAME="proxmox-alpine-3.13.tar.xz"
@@ -303,7 +275,7 @@ case $SCHEME in
 		DLFILE="alpine-3.17-default_20221129_amd64.tar.xz"
 		DLNAME="proxmox-alpine-3.17.tar.xz"
 		;;
-	    alpine-3.18)
+	    alpine-3.18|alpine)
 		DLFILE="alpine-3.18-default_20230607_amd64.tar.xz"
 		DLNAME="proxmox-alpine-3.18.tar.xz"
 		;;
@@ -324,10 +296,6 @@ case $SCHEME in
 		DLNAME="proxmox-archlinux.tar.zst"
 		echo "WARN: arch is not supported by the LX brand"
 		;;
-	    centos-6)
-		DLFILE="centos-6-default_20191016_amd64.tar.xz"
-		DLNAME="proxmox-centos-6.tar.xz"
-		;;
 	    centos-7|centos)
 		DLFILE="centos-7-default_20190926_amd64.tar.xz"
 		DLNAME="proxmox-centos-7.tar.xz"
@@ -340,22 +308,6 @@ case $SCHEME in
 		DLFILE="centos-9-stream-default_20240828_amd64.tar.xz"
 		DLNAME="proxmox-centos-9.tar.xz"
 		;;
-	    debian-6)
-		DLFILE="debian-6.0-standard_6.0-7_amd64.tar.gz"
-		DLNAME="proxmox-debian-6.tar.gz"
-		;;
-	    debian-7)
-		DLFILE="debian-7.0-standard_7.11-1_amd64.tar.gz"
-		DLNAME="proxmox-debian-7.tar.gz"
-		;;
-	    debian-8)
-		DLFILE="debian-8.0-standard_8.11-1_amd64.tar.gz"
-		DLNAME="proxmox-debian-8.tar.gz"
-		;;
-	    debian-9|debian)
-		DLFILE="debian-9.0-standard_9.7-1_amd64.tar.gz"
-		DLNAME="proxmox-debian-9.tar.gz"
-		;;
 	    debian-10)
 		DLFILE="debian-10-standard_10.7-1_amd64.tar.gz"
 		DLNAME="proxmox-debian-10.tar.gz"
@@ -364,7 +316,7 @@ case $SCHEME in
 		DLFILE="debian-11-standard_11.7-1_amd64.tar.zst"
 		DLNAME="proxmox-debian-11.tar.zst"
 		;;
-	    debian-12)
+	    debian-12|debian)
 		DLFILE="debian-12-standard_12.7-1_amd64.tar.zst"
 		DLNAME="proxmox-debian-12.tar.zst"
 		;;
@@ -380,42 +332,6 @@ case $SCHEME in
 		DLFILE="devuan-5.0-standard_5.0_amd64.tar.gz"
 		DLNAME="proxmox-devuan-5.tar.gz"
 		;;
-	    fedora-24)
-		DLFILE="fedora-24-default_20161207_amd64.tar.xz"
-		DLNAME="proxmox-fedora-24.tar.xz"
-		;;
-	    fedora-25)
-		DLFILE="fedora-25-default_20170316_amd64.tar.xz"
-		DLNAME="proxmox-fedora-25.tar.xz"
-		;;
-	    fedora-26)
-		DLFILE="fedora-26-default_20171212_amd64.tar.xz"
-		DLNAME="proxmox-fedora-26.tar.xz"
-		;;
-	    fedora-27)
-		DLFILE="fedora-27-default_20171212_amd64.tar.xz"
-		DLNAME="proxmox-fedora-27.tar.xz"
-		;;
-	    fedora-28)
-		DLFILE="fedora-28-default_20180907_amd64.tar.xz"
-		DLNAME="proxmox-fedora-28.tar.xz"
-		;;
-	    fedora-29|fedora)
-		DLFILE="fedora-29-default_20181126_amd64.tar.xz"
-		DLNAME="proxmox-fedora-29.tar.xz"
-		;;
-	    fedora-30)
-		DLFILE="fedora-30-default_20190718_amd64.tar.xz"
-		DLNAME="proxmox-fedora-30.tar.xz"
-		;;
-	    fedora-31)
-		DLFILE="fedora-31-default_20191029_amd64.tar.xz"
-		DLNAME="proxmox-fedora-31.tar.xz"
-		;;
-	    fedora-32)
-		DLFILE="fedora-32-default_20200430_amd64.tar.xz"
-		DLNAME="proxmox-fedora-32.tar.xz"
-		;;
 	    fedora-33)
 		DLFILE="fedora-33-default_20201115_amd64.tar.xz"
 		DLNAME="proxmox-fedora-33.tar.xz"
@@ -424,19 +340,7 @@ case $SCHEME in
 		DLFILE="fedora-34-default_20210427_amd64.tar.xz"
 		DLNAME="proxmox-fedora-34.tar.xz"
 		;;
-	    fedora-35)
-		DLFILE="fedora-35-default_20211111_amd64.tar.xz"
-		DLNAME="proxmox-fedora-35.tar.xz"
-		;;
-	    fedora-36)
-		DLFILE="fedora-36-default_20220622_amd64.tar.xz"
-		DLNAME="proxmox-fedora-36.tar.xz"
-		;;
-	    fedora-37)
-		DLFILE="fedora-37-default_20221119_amd64.tar.xz"
-		DLNAME="proxmox-fedora-37.tar.xz"
-		;;
-	    fedora-38)
+	    fedora-38|fedora)
 		DLFILE="fedora-38-default_20230607_amd64.tar.xz"
 		DLNAME="proxmox-fedora-38.tar.xz"
 		;;
@@ -452,14 +356,14 @@ case $SCHEME in
 		DLFILE="fedora-41-default_20241118_amd64.tar.xz"
 		DLNAME="proxmox-fedora-41.tar.xz"
 		;;
+	    fedora-42)
+		DLFILE="fedora-42-default_20250428_amd64.tar.xz"
+		DLNAME="proxmox-fedora-42.tar.xz"
+		;;
 	    gentoo)
 		DLFILE="gentoo-current-default_20200310_amd64.tar.xz"
 		DLNAME="proxmox-gentoo.tar.xz"
 		echo "WARN: gentoo is not supported by the LX brand"
-		;;
-	    opensuse-42)
-		DLFILE="opensuse-42.3-default_20171214_amd64.tar.xz"
-		DLNAME="proxmox-opensuse-42.tar.xz"
 		;;
 	    opensuse-15|opensuse)
 		DLFILE="opensuse-15.6-default_20240910_amd64.tar.xz"
@@ -482,24 +386,22 @@ case $SCHEME in
 		UUVER=""
 		UUREL="1"
 		case $UVER in
-		    14.04)
-			UUVER=".5"
-			;;
 		    16.04)
 			UUVER=".5"
 			;;
 		    18.04)
 			UUVER=".1"
 			;;
-		    18.10)
-			UUREL="2"
-			;;
-		    21.10|22.04|22.10|23.04|23.10|24.10)
+		    22.04|23.10|24.10)
 			EXT="zst"
 			;;
 		    24.04)
 			EXT="zst"
 			UUREL="2"
+			;;
+		    25.04)
+			EXT="zst"
+			UUVER=".1"
 			;;
 		esac
 		DLFILE="ubuntu-${UVER}-standard_${UVER}${UUVER}-${UUREL}_amd64.tar.${EXT}"
