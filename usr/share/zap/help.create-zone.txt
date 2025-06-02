@@ -13,7 +13,7 @@ create-zone -z zone_name [-t whole|sparse|alien|bhyve|lx|s10|router]
     [-d extra_dir] [-o overlay] [-O overlay] [-p package] [-P package]
     [-S|-s shared_dir] [-D dataset] [-v volume | -V volsize]
     [-B] [-n number] [-F flow_props] [-m ram_size] [-f firmware]
-    [-c cpu_spec] [-C] [-k sshkey_file]
+    [-c cpu_spec] [-C] [-k sshkey_file] [-L linux_version]
 
 Supplying the zone_name is mandatory; all other arguments are
 optional. Not all arguments are relevant to all zone types, and not
@@ -157,6 +157,11 @@ image names are
   omnios:r151026
   proxmox:alpine
   ubuntu
+
+For lx zones, the -L flag allows the version of the linux kernel that
+the zone reports to be specified. The default of 4.4.15 is good for
+most cases, but there are some applications that look for a specific
+kernel version.
 
 The -C flag will build a cloud-init configuration for the zone. This
 is currently only supported for bhyve zones.

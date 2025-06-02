@@ -34,6 +34,7 @@
 #  -I image file to install for alien, s10, bhyve, or lx zone
 #  -k ssh public key, enables cloud-init
 #  -K konfigurator arguments
+#  -L linux kernel version for LX zones
 #  -m ram allocation (size for bhyve, limit for others)
 #  -n create this many zones, all the same
 #  -o overlay for partial root [can be multiple, passed to install]
@@ -107,12 +108,14 @@ typeset -A xifipmap
 
 usage() {
     LXUSAGE=""
+    LXKUSAGE=""
     S10USAGE=""
     BHYVEUSAGE=""
     VOLUSAGE=""
     MEMUSAGE=" [-m ram_size]"
     if [ -f /etc/zones/SUNWlx.xml ]; then
 	LXUSAGE="|lx"
+	LXKUSAGE=" [-L linux_version]"
     fi
     if [ -f /etc/zones/SUNWsolaris10.xml ]; then
 	S10USAGE="|s10"
@@ -128,12 +131,12 @@ usage() {
     echo "  [-o overlay] [-O overlay] [-p package] [-P package]"
     echo "  [-d extra_dir] [-s|-S shared_dir] [-D dataset]${VOLUSAGE}"
     echo "  [-B] [-n number_of_zones] [-F flow_props]${MEMUSAGE}"
-    echo "  [-c cpu_spec] [-C] [-k sshkey_file]"
+    echo "  [-c cpu_spec] [-C] [-k sshkey_file]${LXKUSAGE}"
     #echo "  [-K action=arg[=arg...]]"
     exit 2
 }
 
-while getopts "6Bc:Cd:D:f:F:i:I:k:K:m:n:o:O:p:P:R:s:S:t:T:U:v:V:x:z:" opt; do
+while getopts "6Bc:Cd:D:f:F:i:I:k:K:L:m:n:o:O:p:P:R:s:S:t:T:U:v:V:x:z:" opt; do
 case $opt in
 6)
 	DOIP6="Y"
@@ -207,6 +210,9 @@ S)
 U)
 	ZUSERS="${ZUSERS} $OPTARG"
 	NCMDLINE="${NCMDLINE} -U $OPTARG"
+	;;
+L)
+	LXKVER="$OPTARG"
 	;;
 n)
 	NZONES="$OPTARG"
