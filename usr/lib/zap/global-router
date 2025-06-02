@@ -222,14 +222,14 @@ get_short_net() {
 #
 ZRNUM=0
 ZSNUM=0
-ZENUM=$(($ZENUM+1))
+ZENUM=$((ZENUM+1))
 for IP in $RIP4
 do
 	/usr/sbin/dladm show-etherstub "zrstub$ZRNUM" > /dev/null 2>&1
 	ZRSTATUS=$?
 	while [ $ZRSTATUS -eq 0 ]
 	do
-	    ZRNUM=$(($ZRNUM+1))
+	    ZRNUM=$((ZRNUM+1))
 	    /usr/sbin/dladm show-etherstub "zrstub$ZRNUM" > /dev/null 2>&1
 	    ZRSTATUS=$?
 	done
@@ -243,7 +243,7 @@ do
 	ZESTATUS=$?
 	while [ $ZESTATUS -eq 0 ]
 	do
-	    ZENUM=$(($ZENUM+1))
+	    ZENUM=$((ZENUM+1))
 	    /usr/sbin/dladm show-vnic "znic$ZENUM" > /dev/null 2>&1
 	    ZESTATUS=$?
 	done
@@ -261,7 +261,7 @@ do
 	ZSSTATUS=$?
 	while [ $ZSSTATUS -eq 0 ]
 	do
-	    ZSNUM=$(($ZSNUM+1))
+	    ZSNUM=$((ZSNUM+1))
 	    /usr/sbin/dladm show-vnic "snic$ZSNUM" > /dev/null 2>&1
 	    ZSSTATUS=$?
 	done

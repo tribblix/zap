@@ -828,7 +828,7 @@ if [[ -n $NZONES ]]; then
 	    echo "ERROR: base address $NIP must be at least .2"
 	    exit 2
 	fi
-	NMAX=$(($NBEGIN+$NZONES))
+	NMAX=$((NBEGIN+NZONES))
 	#
 	# the largest valid address is 254, as 255 is broadcast
 	# but the first zone adds zero to the base so we're off by one
@@ -852,7 +852,7 @@ if [[ -n $NZONES ]]; then
 	    echo "ERROR: zone $NZNAME already exists"
 	    exit 1
 	fi
-	NTHIS=$(($NTHIS+1))
+	NTHIS=$((NTHIS+1))
     done
 else
     /usr/sbin/zoneadm -z "$ZNAME" list > /dev/null 2>&1
@@ -1197,21 +1197,21 @@ for octet in $(echo $1 | /usr/bin/sed 's:\.: :g')
 do
 case $octet in
 255)
-	CIDR=$(($CIDR+8)) ;;
+	CIDR=$((CIDR+8)) ;;
 254)
-	CIDR=$(($CIDR+7)) ; break ;;
+	CIDR=$((CIDR+7)) ; break ;;
 252)
-	CIDR=$(($CIDR+6)) ; break ;;
+	CIDR=$((CIDR+6)) ; break ;;
 248)
-	CIDR=$(($CIDR+5)) ; break ;;
+	CIDR=$((CIDR+5)) ; break ;;
 240)
-	CIDR=$(($CIDR+4)) ; break ;;
+	CIDR=$((CIDR+4)) ; break ;;
 224)
-	CIDR=$(($CIDR+3)) ; break ;;
+	CIDR=$((CIDR+3)) ; break ;;
 192)
-	CIDR=$(($CIDR+2)) ; break ;;
+	CIDR=$((CIDR+2)) ; break ;;
 128)
-	CIDR=$(($CIDR+1)) ; break ;;
+	CIDR=$((CIDR+1)) ; break ;;
 *)
 	;;
 esac
@@ -1473,7 +1473,7 @@ do
 	ZESTATUS=$?
 	while [ $ZESTATUS -eq 0 ]
 	do
-	    ZENUM=$(($ZENUM+1))
+	    ZENUM=$((ZENUM+1))
 	    /usr/sbin/dladm show-vnic "znic$ZENUM" > /dev/null 2>&1
 	    ZESTATUS=$?
 	done
@@ -1563,14 +1563,14 @@ done
 #
 ZRNUM=0
 ZSNUM=0
-ZENUM=$(($ZENUM+1))
+ZENUM=$((ZENUM+1))
 for IP in $RIP4
 do
 	/usr/sbin/dladm show-etherstub "zrstub$ZRNUM" > /dev/null 2>&1
 	ZRSTATUS=$?
 	while [ $ZRSTATUS -eq 0 ]
 	do
-	    ZRNUM=$(($ZRNUM+1))
+	    ZRNUM=$((ZRNUM+1))
 	    /usr/sbin/dladm show-etherstub "zrstub$ZRNUM" > /dev/null 2>&1
 	    ZRSTATUS=$?
 	done
@@ -1584,7 +1584,7 @@ do
 	ZESTATUS=$?
 	while [ $ZESTATUS -eq 0 ]
 	do
-	    ZENUM=$(($ZENUM+1))
+	    ZENUM=$((ZENUM+1))
 	    /usr/sbin/dladm show-vnic "znic$ZENUM" > /dev/null 2>&1
 	    ZESTATUS=$?
 	done
@@ -1602,7 +1602,7 @@ do
 	ZSSTATUS=$?
 	while [ $ZSSTATUS -eq 0 ]
 	do
-	    ZSNUM=$(($ZSNUM+1))
+	    ZSNUM=$((ZSNUM+1))
 	    /usr/sbin/dladm show-vnic "snic$ZSNUM" > /dev/null 2>&1
 	    ZSSTATUS=$?
 	done
@@ -1800,7 +1800,7 @@ if [[ $ZBRAND = bhyve ]]; then
 	echo "set value=${BHVOL}"
 	echo "end"
 	VOLSTR=disk${VOLNUM}
-	VOLNUM=$(($VOLNUM+1))
+	VOLNUM=$((VOLNUM+1))
     done
     if [[ -n $ZISOFILE ]]; then
 	echo "add fs"
@@ -1887,7 +1887,7 @@ if [[ $ZBRAND = bhyve ]]; then
 	echo "set type=string"
 	echo "set value=bhyvefs${VFSNUM},${DIR}"
 	echo "end"
-	VFSNUM=$(($VFSNUM+1))
+	VFSNUM=$((VFSNUM+1))
     done
     for DIR in $ZROSHARED
     do
@@ -1896,7 +1896,7 @@ if [[ $ZBRAND = bhyve ]]; then
 	echo "set type=string"
 	echo "set value=bhyvefs${VFSNUM},${DIR},ro"
 	echo "end"
-	VFSNUM=$(($VFSNUM+1))
+	VFSNUM=$((VFSNUM+1))
     done
     if [[ -n $RAMSPEC ]]; then
 	echo "add attr"
@@ -2026,7 +2026,7 @@ if [[ -n $NZONES ]]; then
 	    echo "ERROR: base address $NIP must be at least .2"
 	    exit 1
 	fi
-	NMAX=$(($NBEGIN+$NZONES))
+	NMAX=$((NBEGIN+NZONES))
 	#
 	# the largest valid address is 254, as 255 is broadcast
 	# but the first zone adds zero to the base so we're off by one
@@ -2049,15 +2049,15 @@ if [[ -n $NZONES ]]; then
 	do
 	    NSUB=${NIP%.*}
 	    NBEGIN=${NIP##*.}
-	    NADDR="$NADDR -x ${NSUB}.$(($NBEGIN+$NTHIS))"
+	    NADDR="$NADDR -x ${NSUB}.$((NBEGIN+NTHIS))"
 	done
 	for NIP in $ZIP4
 	do
 	    NSUB=${NIP%.*}
 	    NBEGIN=${NIP##*.}
-	    NADDR="$NADDR -i ${NSUB}.$(($NBEGIN+$NTHIS))"
+	    NADDR="$NADDR -i ${NSUB}.$((NBEGIN+NTHIS))"
 	done
-	NTHIS=$(($NTHIS+1))
+	NTHIS=$((NTHIS+1))
 	NZNAME="${ZNAME}${NTHIS}"
 	#
 	# handle delegated datasets
@@ -2136,7 +2136,7 @@ if [[ $ZBRAND = bhyve ]]; then
 		ZESTATUS=$?
 		while [ $ZESTATUS -eq 0 ]
 		do
-		    VOLENUM=$(($VOLENUM+1))
+		    VOLENUM=$((VOLENUM+1))
 		    BVOLNAME=${ZNAME}_bhvol${VOLENUM}
 		    /usr/sbin/zfs get type "${BHYVEPOOL}/${BVOLNAME}" > /dev/null 2>&1
 		    ZESTATUS=$?
@@ -2158,6 +2158,20 @@ fi
 
 ZCFGFILE=/tmp/zap.zcfg.$(date '+%F-%T').$$
 create_configuration > "${ZCFGFILE}"
+
+#
+# save the zonecfg file, as it would be useful to know exactly how
+# the zone was built
+#
+if [ ! -d "${ZSDIR}" ]; then
+    /usr/bin/mkdir -p "$ZSDIR"
+fi
+/usr/bin/cp -p "${ZCFGFILE}" "${ZSDIR}/zonecfg.${ZNAME}"
+if [ ! -f "${ZSDIR}/destroy.${ZNAME}" ]; then
+    echo "#!/bin/sh" > "${ZSDIR}/destroy.${ZNAME}"
+    /usr/bin/chmod a+x "${ZSDIR}/destroy.${ZNAME}"
+fi
+echo "/usr/bin/rm -f ${ZSDIR}/zonecfg.${ZNAME}" >> "${ZSDIR}/destroy.${ZNAME}"
 
 /usr/sbin/zonecfg -z "${ZNAME}" -f "${ZCFGFILE}"
 

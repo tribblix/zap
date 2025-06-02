@@ -157,7 +157,7 @@ BESTATUS=$?
 BENUM=0
 while [ $BESTATUS -eq 0 ]
 do
-  BENUM=$(($BENUM+1))
+  BENUM=$((BENUM+1))
   BENAME="${NEWVER}-${BENUM}"
   $BEADM list "$BENAME" > /dev/null 2>&1
   BESTATUS=$?
@@ -196,7 +196,7 @@ ALTROOT="/a"
 BENUM=0
 while [ -d $ALTROOT ]
 do
-  BENUM=$(($BENUM+1))
+  BENUM=$((BENUM+1))
   ALTROOT="/a.${BENUM}"
 done
 
