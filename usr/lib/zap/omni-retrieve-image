@@ -15,7 +15,7 @@
 #
 # }}}
 #
-# Copyright 2024 Peter Tribble
+# Copyright 2025 Peter Tribble
 #
 
 #
@@ -91,8 +91,8 @@ case $BRAND in
 esac
 
 ZAPLIBDIR="/usr/lib/zap"
-IMG_DIR=$(${ZAPLIBDIR}/zap-cfg image-dir)
-IMG_DIR=/tmp
+IMG_DIR="/tmp"
+IMAGE_DIR=$(${ZAPLIBDIR}/zap-cfg image-dir)
 USER_AGENT="zap"/$(${ZAPLIBDIR}/zap-cfg pkgversion)
 ZAP_PROXY=$(${ZAPLIBDIR}/zap-cfg proxy)
 
@@ -145,8 +145,8 @@ fi
 #
 
 #
-# this script is a helper for retrieve-image, which is the retrieve subcommand
-# the others are more for debugging and discovery
+# this script is a helper for retrieve-image, but there are some useful
+# options here for debugging
 #
 case $SUBCMD in
     'list')
@@ -167,18 +167,23 @@ case $SUBCMD in
 		$JQ -r '.images[] | .version+"|"+.brand+"|"+.type+"|"+.description' ${META_JSON} | sort -u
 		;;
 	esac
+	exit 0
 	;;
     'types')
 	$JQ -r '.images[] | .type' ${META_JSON} | sort -u
+	exit 0
 	;;
     'brands')
 	$JQ -r '.images[] | .brand' ${META_JSON} | sort -u
+	exit 0
 	;;
     'types-brands')
 	$JQ -r '.images[] | .type+"|"+.brand' ${META_JSON} | sort -u
+	exit 0
 	;;
     'brands-types')
 	$JQ -r '.images[] | .brand+"|"+.type' ${META_JSON} | sort -u
+	exit 0
 	;;
     'describe')
 	IMGNAME=$1
@@ -186,45 +191,68 @@ case $SUBCMD in
 	    exit 1
 	fi
 	cat ${META_JSON} | $JQ ".images[] | select(.version == \"${IMGNAME}\") |.description"
+	exit 0
 	;;
-    'retrieve')
-	IMGNAME=$1
-	if [ -z "${IMGNAME}" ]; then
-	    exit 1
+esac
+
+#
+# now for the main helper, which requires an image specifier
+#
+IMGNAME=$1
+if [ -z "${IMGNAME}" ]; then
+    exit 1
+fi
+#
+# there may be multiple images, identified by date
+# assume that text sort gives the order we want
+#
+case $TYPE in
+    'lx'|'lx-image')
+	DLNAME=$($JQ -r ".images[] | select(.type == \"lx-image\")| select(.version == \"${IMGNAME}\") | .path" ${META_JSON} | sort -r | head -1)
+	CKVAL=$($JQ -r ".images[] | select(.type == \"lx-image\")| select(.path == \"${DLNAME}\") | .sha256" ${META_JSON})
+	;;
+    'disk'|'disk-image')
+	DLNAME=$($JQ -r ".images[] | select(.type == \"disk-image\")| select(.version == \"${IMGNAME}\") | .path" ${META_JSON} | sort -r | head -1)
+	CKVAL=$($JQ -r ".images[] | select(.type == \"disk-image\")| select(.path == \"${DLNAME}\") | .sha256" ${META_JSON})
+	;;
+    'bhyve'|'bhyve-image')
+	DLNAME=$($JQ -r ".images[] | select(.type == \"bhyve-image\") | select(.version == \"${IMGNAME}\") | .path" ${META_JSON} | sort -r | head -1)
+	CKVAL=$($JQ -r ".images[] | select(.type == \"bhyve-image\") | select(.path == \"${DLNAME}\") | .sha256" ${META_JSON})
+	;;
+    'alien'|'illumos'|'illumos-dataset')
+	DLNAME=$($JQ -r ".images[] | select(.type == \"illumos-dataset\") | select(.version == \"${IMGNAME}\") | .path" ${META_JSON} | sort -r | head -1)
+	CKVAL=$($JQ -r ".images[] | select(.type == \"illumos-dataset\") | select(.path == \"${DLNAME}\") | .sha256" ${META_JSON})
+	;;
+    *)
+	# type not specified or recognised
+	echo "ERROR: invalid type specified"
+	exit 1
+	;;
+esac
+if [ -z "${DLNAME}" ]; then
+    echo "ERROR: unrecognized image"
+    exit 1
+fi
+DLFILE=${DLNAME##*/}
+FDLNAME=${IMAGE_DIR}/${DLFILE}
+
+#
+# now we have the image properties
+#
+# these are the helper functions for retrieve-image, the first argument
+# we're called with is the MODE which can be mapname, query-download,
+# or download
+#
+case $SUBCMD in
+    'mapname')
+	echo "$FDLNAME"
+	;;
+    'query-download')
+	if [ -f "$FDLNAME" ]; then
+	    echo "$FDLNAME"
 	fi
-	#
-	# there may be multiple images, identified by date
-	# assume that text sort gives the order we want
-	#
-	case $TYPE in
-	    'lx'|'lx-image')
-		DLNAME=$($JQ -r ".images[] | select(.type == \"lx-image\")| select(.version == \"${IMGNAME}\") | .path" ${META_JSON} | sort -r | head -1)
-		CKVAL=$($JQ -r ".images[] | select(.type == \"lx-image\")| select(.path == \"${DLNAME}\") | .sha256" ${META_JSON})
-		;;
-	    'disk'|'disk-image')
-		DLNAME=$($JQ -r ".images[] | select(.type == \"disk-image\")| select(.version == \"${IMGNAME}\") | .path" ${META_JSON} | sort -r | head -1)
-		CKVAL=$($JQ -r ".images[] | select(.type == \"disk-image\")| select(.path == \"${DLNAME}\") | .sha256" ${META_JSON})
-		;;
-	    'bhyve'|'bhyve-image')
-		DLNAME=$($JQ -r ".images[] | select(.type == \"bhyve-image\") | select(.version == \"${IMGNAME}\") | .path" ${META_JSON} | sort -r | head -1)
-		CKVAL=$($JQ -r ".images[] | select(.type == \"bhyve-image\") | select(.path == \"${DLNAME}\") | .sha256" ${META_JSON})
-		;;
-	    'alien'|'illumos'|'illumos-dataset')
-		DLNAME=$($JQ -r ".images[] | select(.type == \"illumos-dataset\") | select(.version == \"${IMGNAME}\") | .path" ${META_JSON} | sort -r | head -1)
-		CKVAL=$($JQ -r ".images[] | select(.type == \"illumos-dataset\") | select(.path == \"${DLNAME}\") | .sha256" ${META_JSON})
-		;;
-	    *)
-		# type not specified or recognised
-		echo "ERROR: invalid type specified"
-		exit 1
-		;;
-	esac
-	if [ -z "${DLNAME}" ]; then
-	    echo "ERROR: unrecognized image"
-	    exit 1
-	fi
-	DLFILE=${DLNAME##*/}
-	FDLNAME=${IMG_DIR}/${DLFILE}
+	;;
+    'download')
 	#
 	# check if we already have it and the checksum matches
 	# if mismatched, delete it and download again
@@ -238,7 +266,6 @@ case $SUBCMD in
 		exit 0
 	    fi
 	fi
-	echo "Downloading image ${DLFILE}"
 	${WCLIENT} ${WARGS} "${FDLNAME}" "${DLPREFIX}${DLNAME}"
 	if [ ! -f "${FDLNAME}" ]; then
 	    echo "ERROR: download failed"

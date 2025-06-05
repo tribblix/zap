@@ -424,6 +424,12 @@ case $SCHEME in
 	URL="https://boot.netboot.xyz/ipxe/netboot.xyz.iso"
 	DLNAME="netboot.xyz.iso"
 	;;
+    lx)
+	#
+	# delegate to the omni-retrieve-image helper
+	#
+	exec ${ZAPLIBDIR}/omni-retrieve-image "${MODE}" -t lx "${1#*:}"
+	;;
     *)
 	echo "ERROR: Unrecognized scheme"
 	exit 2
