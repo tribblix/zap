@@ -110,12 +110,12 @@ case $SCHEME in
 		;;
 
 	    stable)
-		RELDIR="r151050"
-		RELVER="r151050"
+		RELDIR="r151054"
+		RELVER="r151054"
 		;;
 	    lts)
-		RELDIR="r151046"
-		RELVER="r151046"
+		RELDIR="r151054"
+		RELVER="r151054"
 		;;
 	    *)
 		RELDIR=${RELVER:0:7}
@@ -129,7 +129,7 @@ case $SCHEME in
     oi|openindiana)
 	DLPREFIX="https://dlc.openindiana.org/isos/hipster/"
 	DLSUFFIX=".iso"
-	RELVER="20240426"
+	RELVER="20241026"
 	RELDIR="${RELVER}"
 	#https://dlc.openindiana.org/isos/hipster/20230502/OI-hipster-gui-20230502.iso
 	# we expect a marker of the form gui|text|minimal|img
