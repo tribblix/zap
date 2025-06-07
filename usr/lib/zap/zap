@@ -256,6 +256,10 @@ ddu)
 	shift
 	exec ${ZAPLIBDIR}/driver-mapper "$@"
 	;;
+manage-cacerts)
+	shift
+	exec ${ZAPLIBDIR}/manage-cacerts "$@"
+	;;
 whatprovides)
 	shift
 	exec ${ZAPLIBDIR}/whatprovides "$@"

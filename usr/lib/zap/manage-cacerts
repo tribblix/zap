@@ -52,6 +52,7 @@ usage() {
     echo "  start|refresh - regenerate the certificate store"
     echo "  add certificate - add the certificate in the given file"
     echo "  remove certificate - remove the certificate in the given file"
+    echo "  clean - remove all non-default certificates"
     echo "  describe certificate - show the subject of the given certificate"
     echo "  list - show all non-default certificates"
     echo "  listall - show all certificates"
@@ -60,10 +61,30 @@ usage() {
 
 #
 # recreate the cacert.pem
+# this will only be effective if the TRIBca-bundle package ships
+# cacert.pem.dist, if not then we fail silently
+#
+# the logic here must match the TRIBca-bundle postinstall script
 #
 refresh() {
-    #FIXME
-    echo "Refresh currently unimplemented"
+    if [ ! -f "${CACERT}.dist" ]; then
+	exit 0
+    fi
+    #
+    # copy the dist file to a temporary file, then append any local certificates
+    #
+    /usr/bin/cp "${CACERT}.dist" "${CACERT}.tmp"
+    if [ -d "${LOCALCERTDIR}" ]; then
+	for file in "${LOCALCERTDIR}"/*
+	do
+	    cat "${file}" >> "${CACERT}.tmp"
+	done
+    fi
+    #
+    # and replace the main cacert.pem
+    #
+    /usr/bin/mv "${CACERT}.tmp" "${CACERT}"
+    /usr/bin/chmod 0644 "${CACERT}"
 }
 
 #

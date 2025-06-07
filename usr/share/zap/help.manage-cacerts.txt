@@ -1,0 +1,29 @@
+Managing SSL certificates
+=========================
+
+The central store of SSL CA certificates on Tribblix is located in
+/etc/openssl, where clients can either load the store as a single file
+(the cacert.pem file) or as a directory of certificates named by hash
+(in /etc/openssl/certs).
+
+If you need to manage additional CA certificate, use the command
+
+    zap manage-cacerts [subcommand ...]
+
+To add a certificate in a given file,
+
+    zap manage-cacerts add /path/to/certificate.pem
+
+To list all added certificates
+
+    zap manage-cacerts list
+
+To list all certificates, including the default certificates
+
+    zap manage-cacerts listall
+
+To remove a certificate that has previously been added,
+
+    zap manage-cacerts remove certificate-name
+
+The name to remove can be obtained from the list subcommand.
