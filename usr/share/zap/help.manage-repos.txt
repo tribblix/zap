@@ -38,5 +38,17 @@ zap remove-overlay-repo myoverlays
 
 respectively.
 
-The system repositories cannot be removed or modified, and will always
-take preference over user provided repositories.
+The system repositories cannot be removed, and will always be
+preferred over user provided repositories.
+
+To change the URL of a repository, the command would be
+
+zap modify-package-repo myrepo -u https://my.new.server/pkg-repo/
+
+and
+
+zap modify-overlay-repo myrepo -u https://my.new.server/overlay-repo/
+
+The system repositories can be updated in this way to point to a
+mirror, see the zap copy-package-repo and zap copy-overlay-repo
+commands.

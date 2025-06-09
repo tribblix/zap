@@ -15,7 +15,7 @@
 #
 # }}}
 #
-# Copyright 2024 Peter Tribble
+# Copyright 2025 Peter Tribble
 #
 
 #
@@ -49,7 +49,7 @@ case $# in
     remove-locale|installed-locales|list-locales)
       HELP_FILE=${HELP_DIR}/help.add-locale.txt
       ;;
-    list-*-repos|describe-*-repo|remove-*-repo|add-*-repo)
+    list-*-repos|describe-*-repo|remove-*-repo|add-*-repo|modify-*-repo)
       HELP_FILE=${HELP_DIR}/help.manage-repos.txt
       ;;
     delete-user)
