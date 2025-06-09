@@ -52,11 +52,14 @@ case $# in
     list-*-repos|describe-*-repo|remove-*-repo|add-*-repo|modify-*-repo)
       HELP_FILE=${HELP_DIR}/help.manage-repos.txt
       ;;
-    delete-user)
+    useradd|userdel|delete-user)
       HELP_FILE=${HELP_DIR}/help.create-user.txt
       ;;
     copy-package-repo|copy-overlay-repo)
       HELP_FILE=${HELP_DIR}/help.copy-repo.txt
+      ;;
+    cz)
+      HELP_FILE=${HELP_DIR}/help.create-zone.txt
       ;;
     destroy-zone-template|list-zone-templates)
       HELP_FILE=${HELP_DIR}/help.create-zone-template.txt
