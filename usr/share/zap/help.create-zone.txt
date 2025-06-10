@@ -168,8 +168,9 @@ The -C flag will build a cloud-init configuration for the zone. This
 is currently only supported for bhyve zones.
 
 The -k flag specifies a file containing an ssh public key that can be
-used to allow passwordless login to the zone via ssh. This is
-currently only supported for bhyve zones and will enable cloud-init.
+used to allow passwordless login to the zone via ssh. For bhyve zones
+this will enable cloud-init; for illumos style zones it will enable
+the root user in the zone to be accessed using the given key.
 
 The -B flag boots the zone as a blank system, with no processes (other
 than init) running. It's the responsibility of the user to run any
