@@ -7,13 +7,14 @@ the zone.
 
 The syntax of the subcommand is:
 
-create-zone -z zone_name [-t whole|sparse|alien|bhyve|lx|s10|router]
+create-zone -z zone_name [-t whole|sparse|alien|bhyve|lx|s10|router|appstack]
     [-T template] [-I image_file] [-U user]
     [-i ip_address] [-x ip_address] [-R ip_network/prefix] [-6]
     [-d extra_dir] [-o overlay] [-O overlay] [-p package] [-P package]
     [-S|-s shared_dir] [-D dataset] [-v volume | -V volsize]
     [-B] [-n number] [-F flow_props] [-m ram_size] [-f firmware]
     [-c cpu_spec] [-C] [-k sshkey_file] [-L linux_version]
+    [-a appstack_name] [-A appstack_config
 
 Supplying the zone_name is mandatory; all other arguments are
 optional. Not all arguments are relevant to all zone types, and not
@@ -179,9 +180,9 @@ The -6 flag enables IPv6 for the zone.
 The -n flag allows you to construct a number of identical zones with
 one command. The zone name given is used as a prefix, with 1 to N
 added to make the zone name. Similarly, the IP address(es) given are
-used for the first zone, and incremented for each zone. If delegating
-a dataset, the argument is taken as a parent and each zone will get
-a dataset named after the zone name.
+used for the first zone, and incremented for each subsequent zone. If
+delegating a dataset, the argument is taken as a parent and each zone
+will get a dataset named after the zone name.
 
 The -F flag allows the specification of flow properties, specifically
 maxbw and priority, and will create a flow using flowadm(8). Configuring

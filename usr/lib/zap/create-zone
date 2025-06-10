@@ -23,6 +23,8 @@
 #
 # Usage:
 #  -6 set up link-local ipv6 addresses
+#  -a appstack name
+#  -A appstack configuration
 #  -B blank boot
 #  -c cpu allocation (vcpus for bhyve, limit for others)
 #  -C enable cloud-init
@@ -54,7 +56,6 @@
 #
 # FIXMES:
 # add full IPv6
-# add appstack overlays for sparse zones
 #
 
 ZAPLIBDIR="/usr/lib/zap"
@@ -99,6 +100,8 @@ SSHKEYFILE=""
 ISROUTER=""
 CPUSPEC=""
 LXKVER="4.4.15"
+APPSTACK=""
+APPCONFIG=""
 
 #
 # these associative arrays track the interface to address mapping
@@ -132,15 +135,22 @@ usage() {
     echo "  [-d extra_dir] [-s|-S shared_dir] [-D dataset]${VOLUSAGE}"
     echo "  [-B] [-n number_of_zones] [-F flow_props]${MEMUSAGE}"
     echo "  [-c cpu_spec] [-C] [-k sshkey_file]${LXKUSAGE}"
+    echo "  [-a appstack_name] [-A appstack_config_file]"
     #echo "  [-K action=arg[=arg...]]"
     exit 2
 }
 
-while getopts "6Bc:Cd:D:f:F:i:I:k:K:L:m:n:o:O:p:P:R:s:S:t:T:U:v:V:x:z:" opt; do
+while getopts "6a:A:Bc:Cd:D:f:F:i:I:k:K:L:m:n:o:O:p:P:R:s:S:t:T:U:v:V:x:z:" opt; do
 case $opt in
 6)
 	DOIP6="Y"
 	NCMDLINE="${NCMDLINE} -6"
+	;;
+a)
+	APPSTACK="$OPTARG"
+	;;
+A)
+	APPCONFIG="$OPTARG"
 	;;
 B)
 	ZBLANK="Y"
@@ -452,6 +462,10 @@ TRIBappstack)
 	    echo "ERROR: cannot install an appstack zone from an image"
 	    usage
 	fi
+	if [[ -z $APPSTACK ]]; then
+	    echo "ERROR: an appstack zone requires an appstack name to be specified"
+	    usage
+	fi
 	;;
 SUNWsolaris10)
 	if [ ! -f /etc/zones/SUNWsolaris10.xml ]; then
@@ -689,6 +703,18 @@ if [[ -n $BHYVEVOLSIZES && $ZBRAND != bhyve ]]; then
     echo "ERROR: -V option only valid for bhyve"
     usage
 fi
+if [[ -n $NZONES && $ZBRAND = TRIBappstack ]]; then
+    echo "ERROR: cannot build multiple appstack zones"
+    usage
+fi
+if [[ -n $APPSTACK && $ZBRAND != TRIBappstack ]]; then
+    echo "ERROR: -a option only valid for appstack zones"
+    usage
+fi
+if [[ -n $APPCONFIG && $ZBRAND != TRIBappstack ]]; then
+    echo "ERROR: -A option only valid for appstack zones"
+    usage
+fi
 if [[ -n $RAMSPEC ]]; then
     if [[ $RAMSPEC != *G && $RAMSPEC != *M && $RAMSPEC != *T ]]; then
 	echo "ERROR: -m must be in G or M or T"
@@ -799,6 +825,21 @@ fi
 if [[ -n $SSHKEYFILE ]]; then
     if [ ! -f "${SSHKEYFILE}" ]; then
 	echo "ERROR: ssh key file $SSHKEYFILE does not exist"
+	usage
+    fi
+fi
+
+#
+# the appstack configuration file is optional, but if provided it
+# must exist
+#
+if [[ -n $APPCONFIG ]]; then
+    if [ ! -f "${APPCONFIG}" ]; then
+	echo "ERROR: appstack config file $APPCONFIG does not exist"
+	usage
+    fi
+    if [ ! -s "${APPCONFIG}" ]; then
+	echo "ERROR: appstack config file $APPCONFIG is empty"
 	usage
     fi
 fi
@@ -2004,6 +2045,12 @@ if [[ $ZBRAND = SUNWsolaris10 ]]; then
 fi
 if [[ -n $ZTEMPLATE ]]; then
     printf " -T $ZTEMPLATEPATH"
+fi
+if [[ -n $APPSTACK ]]; then
+    printf " -a $APPSTACK"
+fi
+if [[ -n $APPCONFIG ]]; then
+    printf " -A $APPCONFIG"
 fi
 }
 
