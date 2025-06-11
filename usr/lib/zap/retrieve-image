@@ -401,7 +401,7 @@ case $SCHEME in
 			;;
 		    25.04)
 			EXT="zst"
-			UUVER=".1"
+			UUREL="1.1"
 			;;
 		esac
 		DLFILE="ubuntu-${UVER}-standard_${UVER}${UUVER}-${UUREL}_amd64.tar.${EXT}"
