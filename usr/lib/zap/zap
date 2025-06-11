@@ -66,6 +66,16 @@ case $1 in
 esac
 
 #
+# the first argument is now the subcommand, intercept --help so
+# individual subcommands don't all need to implement it
+#
+case $2 in
+    --help|-help)
+	exec ${ZAPLIBDIR}/zap-help $1
+	;;
+esac
+
+#
 # short names are undocumented
 #
 case $1 in
@@ -287,7 +297,7 @@ remove-cd|remove-cdrom|remove-iso)
 	shift
 	exec ${ZAPLIBDIR}/remove-cd "$@"
 	;;
-h|help)
+h|help|-help|--help)
 	shift
 	exec ${ZAPLIBDIR}/zap-help "$@"
 	;;
