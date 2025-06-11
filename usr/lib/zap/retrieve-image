@@ -361,7 +361,7 @@ case $SCHEME in
 		DLNAME="proxmox-fedora-42.tar.xz"
 		;;
 	    gentoo)
-		DLFILE="gentoo-current-default_20200310_amd64.tar.xz"
+		DLFILE="gentoo-current-openrc_20250508_amd64.tar.xz"
 		DLNAME="proxmox-gentoo.tar.xz"
 		echo "WARN: gentoo is not supported by the LX brand"
 		;;
