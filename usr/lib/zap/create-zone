@@ -1571,7 +1571,7 @@ do
 	    if [ -d "${ZROOTBASE}/${ZROUTER}/root/etc/dnsmasq.d" ]; then
 		ZMAC=$(/usr/sbin/dladm show-vnic -p -o MACADDRESS "znic$ZENUM")
 		echo "dhcp-host=${ZMAC},${ZNAME},${IP},infinite" > "${ZROOTBASE}/${ZROUTER}/root/etc/dnsmasq.d/${ZNAME}.conf"
-		/usr/sbin/svcadm -z ${ZROUTER} restart network/dnsmasq
+		/usr/sbin/svcadm -z "${ZROUTER}" restart network/dnsmasq
 		echo "/usr/bin/rm -f ${ZROOTBASE}/${ZROUTER}/root/etc/dnsmasq.d/${ZNAME}.conf" >> "${ZSDIR}/destroy.${ZNAME}"
 		echo "/usr/sbin/svcadm -z ${ZROUTER} restart network/dnsmasq" >> "${ZSDIR}/destroy.${ZNAME}"
 	    fi
@@ -2368,7 +2368,7 @@ if [[ -n "$SSHKEYFILE" ]]; then
     fi
     if [[ $ZBRAND = TRIBwhole || $ZBRAND = TRIBsparse || $ZBRAND = TRIBalien ]]; then
 	# assume all illumos-type zones have the same directory structure
-	UHOME=$(/usr/bin/awk -F: '{if ($1 == "root") print $6}' ${ZROOTBASE}/${ZNAME}/root/etc/passwd)
+	UHOME=$(/usr/bin/awk -F: '{if ($1 == "root") print $6}' "${ZROOTBASE}/${ZNAME}/root/etc/passwd")
 	if [ -n "$UHOME" ]; then
 	    /usr/bin/mkdir -p -m 700 "${ZROOTBASE}/${ZNAME}/root/${UHOME}/.ssh"
 	    /usr/bin/cp "$SSHKEYFILE" "${ZROOTBASE}/${ZNAME}/root/${UHOME}/.ssh/authorized_keys"
