@@ -531,3 +531,6 @@ TRIBblix-repmgr16
 TRIBblix-wal2json16
 TRIBapache-hc-client-423
 TRIBsys-boot-grub
+TRIBgixy-python-312
+TRIBcached-property-python-312
+TRIBconfigargparse-python-312
