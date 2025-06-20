@@ -1,0 +1,28 @@
+Router in the global zone
+=========================
+
+The best way to construct a virtual datacenter in a box - an isolated
+virtual network to which zones can be connected - is to create a
+router zone with the -R flag to zap create-zone.
+
+In some  cases, this isn't possible, as it requires an additional
+external IP address. For example, on many cloud instances you are
+allocated a single externally-facing IP address.
+
+The zap global-router subcommand exists to address this issue. The
+syntax is, as an example
+
+zap global-router -R 10.1.2.0/24
+
+which creates a /24 subnet in the 10.1.2.0 range. Clearly, the address
+range chosen should not conflict or overlap with any other range you
+happen to be using in your infrastructure.
+
+This will set up the appropriate network infrastructure and enable NAT
+for any zones connected to that network. (Creating a zone with an IP
+address in the given range will automatically connect the zone to the
+internal private network.)
+
+A precondition for the global-router to work is that the system
+network interface must be statically configured, rather than the
+default nwam. The zap staticnet subcommand can be used to enable this.
