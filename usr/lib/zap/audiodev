@@ -1,0 +1,186 @@
+#!/bin/ksh
+#
+# SPDX-License-Identifier: CDDL-1.0
+#
+# {{{ CDDL HEADER
+#
+# This file and its contents are supplied under the terms of the
+# Common Development and Distribution License ("CDDL"), version 1.0.
+# You may only use this file in accordance with the terms of version
+# 1.0 of the CDDL.
+#
+# A full copy of the text of the CDDL should have accompanied this
+# source. A copy of the CDDL is also available via the Internet at
+# http://www.illumos.org/license/CDDL.
+#
+# }}}
+#
+# Copyright 2025 Peter Tribble
+#
+
+#
+# manage the default audio device
+#
+
+#
+# there may be multiple audio devices, and the system may default to the
+# wrong one, because it enumerates in the order it finds them, which is
+# essentially random
+#
+
+#
+# help
+#
+usage(){
+    echo "Usage: $0 subcommand"
+    echo "  where valid subcommands are"
+    echo "check, list, show-default, set-default, reset-default, test"
+    exit 2
+}
+
+#
+# list devices and properties
+# if audioctl is installed, use that to give better output
+#
+do_list() {
+    if [ -x /usr/bin/audioctl ]; then
+	/usr/bin/audioctl list-devices | while read -r dev
+	do
+	    /usr/bin/audioctl show-device -d "$dev"
+	done
+    else
+	cd /dev/sound || exit 0
+	/usr/bin/ls -- ? | while read -r dev
+	do
+	    /usr/bin/ls -log "$dev"
+	done
+    fi
+}
+
+#
+# tell the default device, assume it's the one that /dev/audio
+# is pointing to
+#
+do_show_default() {
+    cd /dev || exit 0
+    if [ -e audio ]; then
+	DEFDEV=$(/usr/bin/ls -l audio | /usr/bin/awk '{print $NF}' | /usr/bin/awk -F/ '{print $2}')
+	echo "Default audio is device $DEFDEV"
+    else
+	echo "No audio device"
+    fi
+}
+
+#
+# check the various device links are self-consistent
+# if there is a discrepancy, describe it, and exit 1
+# exit 0 if everything is ok
+#
+do_check() {
+    cd /dev || exit 0
+    AUDEV=$(/usr/bin/ls -l audio | /usr/bin/awk '{print $NF}' | /usr/bin/awk -F/ '{print $2}')
+    CTLDEV=$(/usr/bin/ls -l audioctl | /usr/bin/awk '{print $NF}' | /usr/bin/awk -F/ '{print $2}')
+    CTLDEV=${CTLDEV/ctl/}
+    DSPDEV=$(/usr/bin/ls -l dsp | /usr/bin/awk '{print $NF}')
+    DSPDEV=${DSPDEV/dsp/}
+    STATUS=0
+    if [[ "$AUDEV" != "$CTLDEV" ]]; then
+	echo "ERROR: mismatch between /dev/audio (${AUDEV}) and /dev/audioctl (${CTLDEV})"
+	STATUS=1
+    fi
+    if [[ "$AUDEV" != "$DSPDEV" ]]; then
+	echo "ERROR: mismatch between /dev/audio (${AUDEV}) and /dev/dsp (${DSPDEV})"
+	STATUS=1
+    fi
+    if [[ "$CTLDEV" != "$DSPDEV" ]]; then
+	echo "ERROR: mismatch between /dev/audioctl (${CTLDEV}) and /dev/dsp (${DSPDEV})"
+	STATUS=1
+    fi
+    exit $STATUS
+}
+
+#
+# set the default to the given value
+#
+do_set_default() {
+    if [ -z "$1" ]; then
+	echo "Need to supply the default device"
+	exit 2
+    fi
+    NDEV="$1"
+    if [ ! -e "/dev/sound/${NDEV}" ]; then
+	echo "Invalid device ${NDEV} requested"
+	exit 1
+    fi
+    cd /dev || exit 1
+    AUDEV=$(/usr/bin/ls -l audio | /usr/bin/awk '{print $NF}' | /usr/bin/awk -F/ '{print $2}')
+    CTLDEV=$(/usr/bin/ls -l audioctl | /usr/bin/awk '{print $NF}' | /usr/bin/awk -F/ '{print $2}')
+    CTLDEV=${CTLDEV/ctl/}
+    DSPDEV=$(/usr/bin/ls -l dsp | /usr/bin/awk '{print $NF}')
+    DSPDEV=${DSPDEV/dsp/}
+    if [[ "$NDEV" != "$AUDEV" ]]; then
+	/usr/bin/rm /dev/audio
+	/usr/bin/ln -s "sound/${NDEV}" /dev/audio
+    else
+	echo "/dev/audio already set to $NDEV"
+    fi
+    if [[ "$NDEV" != "$AUDEV" ]]; then
+	/usr/bin/rm /dev/audioctl
+	/usr/bin/ln -s "sound/${NDEV}ctl" /dev/audioctl
+    else
+	echo "/dev/audioctl already set to $NDEV"
+    fi
+    if [[ "$NDEV" != "$DSPDEV" ]]; then
+	/usr/bin/rm /dev/dsp
+	/usr/bin/ln -s "dsp${NDEV}" /dev/dsp
+    else
+	echo "/dev/dsp already set to $NDEV"
+    fi
+}
+
+#
+# run a test, by sending a simple audio file to all the audio devices
+# in turn
+#
+do_test() {
+    AUFILE=/usr/share/audio/samples/au/train.au
+    if [ ! -f "${AUFILE}" ]; then
+	AUFILE=/usr/share/afterstep/desktop/sounds/train.au
+    fi
+    if [ ! -f "${AUFILE}" ]; then
+	echo "No test sound, please install the TRIBlib-demo-audio-samples package"
+	exit 2
+    fi
+    cd /dev/sound || exit 0
+    /usr/bin/ls -- ? | while read -r dev
+    do
+	echo "Testing audio $dev"
+	sleep 1
+	cat "$AUFILE" > "/dev/sound/$dev"
+    done
+   
+}
+
+case $1 in
+    check)
+	do_check
+	;;
+    list)
+	do_list
+	;;
+    reset-default)
+	do_set_default 0
+	;;
+    set-default)
+	do_set_default "$2"
+	;;
+    show-default)
+	do_show_default
+	;;
+    test)
+	do_test
+	;;
+    *)
+	usage
+	;;
+esac

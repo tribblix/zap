@@ -1,0 +1,33 @@
+Managing audio devices
+======================
+
+An illumos system may detect multiple audio devices, but not all will
+be properly connected or work. The system may choose a default device
+that isn't the working one, and it may therefore be necessary to
+change the system's idea of which is the correct device to use.
+
+To list the various audio devices in your system:
+
+    zap audio list
+
+To test the various audio devices to see which (if any) are working:
+
+    zap audio test
+
+This will try and play a known sound (a train whistle) using all the
+known audio devices. If you can hear the sound, you should be able to 
+work out which device was being used. Then (as root):
+
+    zap audio set-default 1
+
+can be used to change the default audio device from the initial 0.
+
+To see what the current device is:
+
+    zap audio show-default
+
+If you can't hear any sound at all, check with
+
+    zap ddu
+
+that all relevant device drivers have been installed.

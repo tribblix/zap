@@ -297,6 +297,10 @@ remove-cd|remove-cdrom|remove-iso)
 	shift
 	exec ${ZAPLIBDIR}/remove-cd "$@"
 	;;
+audio)
+	shift
+	exec ${ZAPLIBDIR}/audiodev "$@"
+	;;
 h|help|-help|--help)
 	shift
 	exec ${ZAPLIBDIR}/zap-help "$@"
