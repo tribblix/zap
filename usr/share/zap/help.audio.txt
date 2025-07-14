@@ -15,7 +15,7 @@ To test the various audio devices to see which (if any) are working:
     zap audio test
 
 This will try and play a known sound (a train whistle) using all the
-known audio devices. If you can hear the sound, you should be able to 
+known audio devices. If you can hear the sound, you should be able to
 work out which device was being used. Then (as root):
 
     zap audio set-default 1

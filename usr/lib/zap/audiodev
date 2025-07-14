@@ -158,7 +158,6 @@ do_test() {
 	sleep 1
 	cat "$AUFILE" > "/dev/sound/$dev"
     done
-   
 }
 
 case $1 in
