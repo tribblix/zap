@@ -291,6 +291,10 @@ case $SCHEME in
 		DLFILE="alpine-3.21-default_20241217_amd64.tar.xz"
 		DLNAME="proxmox-alpine-3.21.tar.xz"
 		;;
+	    alpine-3.22)
+		DLFILE="alpine-3.22-default_20250617_amd64.tar.xz"
+		DLNAME="proxmox-alpine-3.22.tar.xz"
+		;;
 	    arch|archlinux)
 		DLFILE="archlinux-base_20240911-1_amd64.tar.zst"
 		DLNAME="proxmox-archlinux.tar.zst"
