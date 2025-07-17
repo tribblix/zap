@@ -6,3 +6,4 @@ TRIBsys-lib-processor
 TRIBdrv-net-platform
 TRIBv-v
 TRIBdrv-x11-winlock
+TRIBx11-server-xephyr
