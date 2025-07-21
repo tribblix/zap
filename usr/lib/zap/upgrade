@@ -293,6 +293,10 @@ fi
 #
 # refresh common administratively modified files
 #
+# many of these are marked as editable so packaging
+# should leave them alone, so eventually this will
+# not be necessary
+#
 /usr/bin/cp -p /etc/passwd ${ALTROOT}/etc/passwd
 /usr/bin/cp -p /etc/shadow ${ALTROOT}/etc/shadow
 /usr/bin/cp -p /etc/group ${ALTROOT}/etc/group
@@ -325,6 +329,7 @@ grep /swap /etc/vfstab >> ${ALTROOT}/etc/vfstab
 #
 /usr/bin/cp -p /etc/minor_perm ${ALTROOT}/etc/minor_perm
 /usr/bin/cp -p /etc/name_to_major ${ALTROOT}/etc/name_to_major
+
 #
 # if there is a zonelib hierarchy for sparse root zones, it needs
 # to be cleaned out (at this point zones aren't supported but at
@@ -335,38 +340,19 @@ if [ -d ${ALTROOT}/zonelib/lib/svc ]; then
     /usr/bin/rm -fr ${ALTROOT}/zonelib/lib
     /usr/bin/mkdir -p ${ALTROOT}/zonelib/lib
 fi
+#
+# the list of zones in /etc/zones/index is now preserved by packaging,
+# so it's no longer necessary (and results in duplicate entries) to
+# manually propagate entries
+#
+# but we do need to undo any duplicates that might have been added by
+# previous broken upgrades
+#
+/usr/bin/uniq /etc/zones/index > ${ALTROOT}/etc/zones/index
 
 #
-# this is the legacy upgrade path, manually marking certain zone brands
-# as safe
-#
-# we can propagate some zones into the upgraded BE
-# alien-root and solaris10 zones are safe
-# whole and sparse-root clearly aren't
-# lx and bhyve ought to work
-#
-for zname in $(/usr/sbin/zoneadm list -icp | awk -F: '{if ($6 == "solaris10") print $2}')
-do
-    grep "^${zname}:" /etc/zones/index >> ${ALTROOT}/etc/zones/index
-done
-for zname in $(/usr/sbin/zoneadm list -icp | awk -F: '{if ($6 == "alien-root") print $2}')
-do
-    grep "^${zname}:" /etc/zones/index >> ${ALTROOT}/etc/zones/index
-done
-for zname in $(/usr/sbin/zoneadm list -icp | awk -F: '{if ($6 == "bhyve") print $2}')
-do
-    grep "^${zname}:" /etc/zones/index >> ${ALTROOT}/etc/zones/index
-done
-for zname in $(/usr/sbin/zoneadm list -icp | awk -F: '{if ($6 == "lx") print $2}')
-do
-    grep "^${zname}:" /etc/zones/index >> ${ALTROOT}/etc/zones/index
-done
-
-#
-# this is the stub for the new zone upgrade path
-# eventually the legacy propagation of zones to the new BE
-# will be performed here, after the relevant brand upgrade script
-# has returned successfully
+# this is the new zone upgrade path, which runs an upgrade script for
+# each zone
 #
 # zoneadm list output format is
 # id:name:state:path:uuid:brand:ip-type
