@@ -15,7 +15,7 @@
 #
 # }}}
 #
-# Copyright 2024 Peter Tribble
+# Copyright 2025 Peter Tribble
 #
 
 #
@@ -60,12 +60,15 @@ refresh_file_repo() {
     REPO=$(${ZAPLIBDIR}/zap-cfg ${CTXARGS} repo-url "$frepo")
     ${WCLIENT} ${WARGS} "${CFGDIR}/repositories/${frepo}.filelist.bz2.tmp" "${REPO}/filelist.bz2"
     if [ -s "${CFGDIR}/repositories/${frepo}.filelist.bz2.tmp" ]; then
-	mv "${CFGDIR}/repositories/${frepo}.filelist.bz2" "${CFGDIR}/repositories/${frepo}.filelist.bz2.bak"
-	mv "${CFGDIR}/repositories/${frepo}.filelist.bz2.tmp" "${CFGDIR}/repositories/${frepo}.filelist.bz2"
+	/usr/bin/mv "${CFGDIR}/repositories/${frepo}.filelist.bz2" "${CFGDIR}/repositories/${frepo}.filelist.bz2.bak"
+	/usr/bin/mv "${CFGDIR}/repositories/${frepo}.filelist.bz2.tmp" "${CFGDIR}/repositories/${frepo}.filelist.bz2"
+    fi
+    if [ -f "${CFGDIR}/repositories/${frepo}.filelist.bz2.tmp" ]; then
+	/usr/bin/rm -f "${CFGDIR}/repositories/${frepo}.filelist.bz2.tmp"
     fi
 }
 
-for repo in $(/usr/bin/awk '{print $2}' ${CFGDIR}/repo.list)
+for repo in $(/usr/bin/awk '{print $2}' "${CFGDIR}/repo.list")
 do
     refresh_file_repo "$repo"
 done
