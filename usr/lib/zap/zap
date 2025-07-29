@@ -87,11 +87,11 @@ r|get|retrieve)
 	shift
 	exec ${ZAPLIBDIR}/retrieve-pkg ${CTXARGS} "$@"
 	;;
-i|ip|add|install)
+ip|install-pkg)
 	shift
 	exec ${ZAPLIBDIR}/install-pkg ${CTXARGS} "$@"
 	;;
-install-recursive)
+i|install|install-recursive|add)
 	shift
 	exec ${ZAPLIBDIR}/install-recursive ${CTXARGS} "$@"
 	;;

@@ -32,10 +32,10 @@ retrieve pkg [pkg ...]
 
 install [-R dir] [-s dir] pkg [pkg ...]
 
-  This subcommand will install the package or packages specified. The
-  -R flag allows you to specify an alternate root for installation, the
-  -s flag allows you to specify a local directory containing packages
-  (for example, the CD).
+  This subcommand will install the package or packages specified,
+  installing dependencies as necessary. The -R flag allows you to
+  specify an alternate root for installation, the -s flag allows you
+  to specify a local directory containing packages (for example, the CD).
 
 update [-R dir] pkg [pkg ...]
 
