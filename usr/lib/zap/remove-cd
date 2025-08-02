@@ -15,11 +15,11 @@
 #
 # }}}
 #
-# Copyright 2024 Peter Tribble
+# Copyright 2025 Peter Tribble
 #
 
 #
-# remove the cdrom device from a bhyve zone, and optionally
+# remove the cdrom device from a bhyve or emu zone, and optionally
 # reboot it
 #
 
@@ -74,8 +74,10 @@ fi
 ZBRAND=$(/usr/sbin/zoneadm -z "$ZNAME" list -p | awk -F: '{print $6}')
 
 if [ "X$ZBRAND" != "Xbhyve" ]; then
-    echo "Removing a CD is only valid for a bhyve zone"
-    exit 1
+    if [ "X$ZBRAND" != "Xemu" ]; then
+	echo "Removing a CD is only valid for a bhyve or emu zone"
+	exit 1
+    fi
 fi
 
 CDFILE=""

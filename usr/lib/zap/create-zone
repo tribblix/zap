@@ -37,7 +37,8 @@
 #  -k ssh public key, enables cloud-init
 #  -K konfigurator arguments
 #  -L linux kernel version for LX zones
-#  -m ram allocation (size for bhyve, limit for others)
+#  -m ram allocation (size for bhyve and emu, limit for others)
+#  -M arch:cpu processor arch and cpu type for emu
 #  -n create this many zones, all the same
 #  -o overlay for partial root [can be multiple, passed to install]
 #  -O add overlay [can be multiple, passed to install]
@@ -67,20 +68,27 @@ ZNAME=""
 ZIP4=""
 XIP4=""
 RIP4=""
+NUMIP4=0
 NRIP4=""
 ORIP4=""
 ZISOFILE=""
 IMGFLAG="-i"
 ZOVERLAY=""
 ZADDOVERLAY=""
+NUMOVERLAY=0
 ZPACKAGE=""
 ZADDPACKAGE=""
+NUMPACKAGE=0
 ZDIRS=""
+NUMDIRS=0
 ZDATASETS=""
+NUMDATASETS=0
 ZSHARED=""
 ZROSHARED=""
+NUMSHARED=0
 ZUSERS=""
 BZUSERS=""
+NUMUSERS=0
 ZTEMPLATE=""
 ZTEMPLATEPATH=""
 ZBLANK=""
@@ -102,6 +110,11 @@ CPUSPEC=""
 LXKVER="4.4.15"
 APPSTACK=""
 APPCONFIG=""
+#
+# for emu zones
+#
+QARCH=""
+QCPU=""
 
 #
 # these associative arrays track the interface to address mapping
@@ -114,6 +127,8 @@ usage() {
     LXKUSAGE=""
     S10USAGE=""
     BHYVEUSAGE=""
+    QEMUUSAGE=""
+    QCPUUSAGE=""
     VOLUSAGE=""
     MEMUSAGE=" [-m ram_size]"
     if [ -f /etc/zones/SUNWlx.xml ]; then
@@ -128,19 +143,27 @@ usage() {
 	VOLUSAGE=" [-v volume | -V volsize]"
 	MEMUSAGE=" [-m ram_size] [-f firmware]"
     fi
-    echo "Usage: $0 -z zone_name [-t whole|sparse|alien${BHYVEUSAGE}${LXUSAGE}${S10USAGE}|router]"
+    if [ -f /usr/lib/brand/emu/platform.xml ]; then
+	QEMUUSAGE="|emu"
+	VOLUSAGE=" [-v volume | -V volsize]"
+	QCPUUSAGE=" [-M cpu:model]"
+	if [ ! -f /usr/lib/brand/bhyve/platform.xml ]; then
+	    MEMUSAGE=" [-m ram_size]"
+	fi
+    fi
+    echo "Usage: $0 -z zone_name [-t whole|sparse|alien${BHYVEUSAGE}${QEMUUSAGE}${LXUSAGE}${S10USAGE}|router]"
     echo "  [-T template] [-I image_file] [-U user]"
     echo "  [-i ip_address] [-x ip_address] [-R ip_network/prefix] [-6]"
     echo "  [-o overlay] [-O overlay] [-p package] [-P package]"
     echo "  [-d extra_dir] [-s|-S shared_dir] [-D dataset]${VOLUSAGE}"
     echo "  [-B] [-n number_of_zones] [-F flow_props]${MEMUSAGE}"
-    echo "  [-c cpu_spec] [-C] [-k sshkey_file]${LXKUSAGE}"
+    echo "  [-c cpu_spec] [-C] [-k sshkey_file]${QCPUUSAGE}${LXKUSAGE}"
     echo "  [-a appstack_name] [-A appstack_config_file]"
     #echo "  [-K action=arg[=arg...]]"
     exit 2
 }
 
-while getopts "6a:A:Bc:Cd:D:f:F:i:I:k:K:L:m:n:o:O:p:P:R:s:S:t:T:U:v:V:x:z:" opt; do
+while getopts "6a:A:Bc:Cd:D:f:F:i:I:k:K:L:m:M:n:o:O:p:P:R:s:S:t:T:U:v:V:x:z:" opt; do
 case $opt in
 6)
 	DOIP6="Y"
@@ -175,12 +198,15 @@ z)
 	;;
 i)
 	ZIP4="${ZIP4} $OPTARG"
+	NUMIP4=$((NUMIP4+1))
 	;;
 x)
 	XIP4="${XIP4} $OPTARG"
+	NUMIP4=$((NUMIP4+1))
 	;;
 R)
 	RIP4="${RIP4} $OPTARG"
+	NUMIP4=$((NUMIP4+1))
 	;;
 I)
 	ZISOFILE="$OPTARG"
@@ -189,37 +215,46 @@ I)
 o)
 	ZOVERLAY="${ZOVERLAY} $OPTARG"
 	NCMDLINE="${NCMDLINE} -o $OPTARG"
+	NUMOVERLAY=$((NUMOVERLAY+1))
 	;;
 O)
 	ZADDOVERLAY="${ZADDOVERLAY} $OPTARG"
 	NCMDLINE="${NCMDLINE} -O $OPTARG"
+	NUMOVERLAY=$((NUMOVERLAY+1))
 	;;
 p)
 	ZPACKAGE="${ZPACKAGE} $OPTARG"
 	NCMDLINE="${NCMDLINE} -p $OPTARG"
+	NUMPACKAGE=$((NUMPACKAGE+1))
 	;;
 P)
 	ZADDPACKAGE="${ZADDPACKAGE} $OPTARG"
 	NCMDLINE="${NCMDLINE} -P $OPTARG"
+	NUMPACKAGE=$((NUMPACKAGE+1))
 	;;
 d)
 	ZDIRS="${ZDIRS} $OPTARG"
 	NCMDLINE="${NCMDLINE} -d $OPTARG"
+	NUMDIRS=$((NUMDIRS+1))
 	;;
 D)
 	ZDATASETS="${ZDATASETS} $OPTARG"
+	NUMDATASETS=$((NUMDATASETS+1))
 	;;
 s)
 	ZROSHARED="${ZROSHARED} $OPTARG"
 	NCMDLINE="${NCMDLINE} -s $OPTARG"
+	NUMSHARED=$((NUMSHARED+1))
 	;;
 S)
 	ZSHARED="${ZSHARED} $OPTARG"
 	NCMDLINE="${NCMDLINE} -S $OPTARG"
+	NUMSHARED=$((NUMSHARED+1))
 	;;
 U)
 	ZUSERS="${ZUSERS} $OPTARG"
 	NCMDLINE="${NCMDLINE} -U $OPTARG"
+	NUMUSERS=$((NUMUSERS+1))
 	;;
 L)
 	LXKVER="$OPTARG"
@@ -251,6 +286,10 @@ V)
 m)
 	RAMSPEC="$OPTARG"
 	NCMDLINE="${NCMDLINE} -m $OPTARG"
+	;;
+M)
+	QCPUSPEC="$OPTARG"
+	NCMDLINE="${NCMDLINE} -M $OPTARG"
 	;;
 esac
 done
@@ -346,6 +385,9 @@ alien|TRIBalien)
 bhyve)
 	ZBRAND="bhyve"
 	;;
+emu)
+	ZBRAND="emu"
+	;;
 lx|SUNWlx)
 	ZBRAND="SUNWlx"
 	;;
@@ -371,6 +413,10 @@ if [[ $MYARCH = sparc ]]; then
     case $ZBRAND in
 	bhyve)
 	    echo "ERROR: bhyve zones are not supported on sparc"
+	    usage
+	    ;;
+	emu)
+	    echo "ERROR: emu zones are not supported on sparc"
 	    usage
 	    ;;
 	SUNWlx)
@@ -630,6 +676,125 @@ bhyve)
 	#
 	IMGFLAG="-t"
 	;;
+emu)
+	if [ ! -f /var/sadm/overlays/installed/emu ]; then
+	    echo "ERROR: qemu not found"
+	    echo "  To install, zap install-overlay qemu"
+	    #usage
+	fi
+	if [ ! -f /usr/lib/brand/emu/platform.xml ]; then
+	    echo "ERROR: emu not found - is it available?"
+	    #usage
+	fi
+	#
+	# the cpu specification for emu brings in both the system architecture
+	# and the cpu model
+	#
+	if [[ -n $QCPUSPEC ]]; then
+	    case $QCPUSPEC in
+		*:*:*)
+		    echo "ERROR: malformed -M specification"
+		    usage
+		    ;;
+		*:*)
+		    QARCH=${QCPUSPEC%%:*}
+		    QCPU=${QCPUSPEC##*:}
+		    echo "arch ${QARCH}"
+		    echo "cpu ${QCPU}"
+		    ;;
+		*)
+		    ;;
+	    esac
+	else
+	    echo "ERROR: emu zones require an arch and cpu model"
+	    usage
+	fi
+	#
+	# the architecture must match one of the installed emulators
+	#
+	if [ ! -x "/usr/bin/qemu-system-${QARCH}" ]; then
+	    echo "ERROR: no qemu emulator for arch ${QARCH}, expecting one of"
+	    /bin/ls -1d /usr/bin/qemu-system-* | /usr/bin/sed 's:/usr/bin/qemu-system-:  :'
+	    usage
+	fi
+	#
+	# the above implicitly verified QARCH, we check that QCPU
+	# is non-empty
+	#
+	if [[ -z $QCPU ]]; then
+	    echo "ERROR: qemu cpu model must be specified"
+	    usage
+	fi
+	exit 0
+	if [[ -n $ZTEMPLATE ]]; then
+	    echo "ERROR: templates must be sparse-root"
+	    usage
+	fi
+	if [[ -n $ZOVERLAY || -n $ZADDOVERLAY ]]; then
+	   echo "ERROR: cannot specify overlays for emu zones"
+	   usage
+	fi
+	if [[ -n $ZPACKAGE || -n $ZADDPACKAGE ]]; then
+	   echo "ERROR: cannot specify packages for emu zones"
+	   usage
+	fi
+	#
+	# Check that we're either given an existing zvol or
+	# given an image to install. It's validated, and
+	# possibly downloaded, after all the other checks have passed
+	#
+	if [[ -z $BHYVEVOL && -z $ZISOFILE ]]; then
+	    echo "ERROR: emu zones require an image or volume to be specified"
+	    usage
+	fi
+	if [[ -n $BHYVEVOL && -n $ZISOFILE ]]; then
+	    echo "ERROR: emu zones require only one of image or volume"
+	    usage
+	fi
+	#
+	# volume checks
+	#
+	if [[ -z $BHYVEVOL && -z $BHYVEVOLSIZES ]]; then
+	    echo "ERROR: emu zones require either a zvol or size"
+	    usage
+	fi
+	if [[ -n $BHYVEVOL && -n $BHYVEVOLSIZES ]]; then
+	    echo "ERROR: emu zones require only one of zvol or size"
+	    usage
+	fi
+	if [[ -n $BHYVEVOL ]]; then
+	    if [[ ! -e /dev/zvol/rdsk/$BHYVEVOL ]]; then
+		echo "ERROR: specified emu volume does not exist"
+		usage
+	    fi
+	fi
+	if [[ -n $ZIP4 ]]; then
+	    echo "ERROR: emu zones must be exclusive-ip"
+	    usage
+	fi
+	if [[ -n $ZBLANK ]]; then
+	    echo "ERROR: emu zones cannot be blank"
+	    usage
+	fi
+	#
+	# assigning users to emu zones is slightly different
+	# the user is not shared with the zone, or the guest running
+	# under qemu, but should have administrative access, so
+	# pass the list under a different name
+	#
+	if [[ -n $ZUSERS ]]; then
+	    BZUSERS="${ZUSERS}"
+	    ZUSERS=""
+	fi
+	if [[ -n $ZDIRS ]]; then
+	    echo "ERROR: cannot create directories for emu zones"
+	    usage
+	fi
+	if [[ -n $ZDATASETS ]]; then
+	    echo "ERROR: cannot share datasets for emu zones"
+	    usage
+	fi
+	;;
 esac
 
 #
@@ -686,6 +851,10 @@ if [[ -n $RIP4 && $ZBRAND = bhyve ]]; then
     echo "ERROR: proxy zones must not be of type bhyve"
     usage
 fi
+if [[ -n $RIP4 && $ZBRAND = emu ]]; then
+    echo "ERROR: proxy zones must not be of type emu"
+    usage
+fi
 if [[ -n $RIP4 && -n $NZONES ]]; then
     echo "ERROR: cannot build multiple proxy zones"
     usage
@@ -695,12 +864,16 @@ if [[ -n $NZONES && $ZBRAND = bhyve ]]; then
     echo "ERROR: cannot build multiple bhyve zones"
     usage
 fi
-if [[ -n $BHYVEVOL && $ZBRAND != bhyve ]]; then
-    echo "ERROR: -v option only valid for bhyve"
+if [[ -n $NZONES && $ZBRAND = emu ]]; then
+    echo "ERROR: cannot build multiple emu zones"
     usage
 fi
-if [[ -n $BHYVEVOLSIZES && $ZBRAND != bhyve ]]; then
-    echo "ERROR: -V option only valid for bhyve"
+if [[ -n $BHYVEVOL && $ZBRAND != bhyve && $ZBRAND != emu ]]; then
+    echo "ERROR: -v option only valid for bhyve or emu"
+    usage
+fi
+if [[ -n $BHYVEVOLSIZES && $ZBRAND != bhyve && $ZBRAND != emu ]]; then
+    echo "ERROR: -V option only valid for bhyve or emu"
     usage
 fi
 if [[ -n $NZONES && $ZBRAND = TRIBappstack ]]; then
@@ -1122,6 +1295,55 @@ do
 done
 
 #
+# this function will exit with a usage error if there are duplicate words in
+# the given string, as it's a fatal error for zonecfg if a given attribute
+# is duplicated
+# argument 1 - the name of the attribute, for the error message
+# argument 2 - the number of words passed
+# argument 3 - the string with the words in it
+#
+verify_duplicate() {
+    VARNAME="$1"
+    NVARS="$2"
+    CHECKVARS="$3"
+    NUNIQUEVARS=$((for uniquevar in $CHECKVARS ; do echo $uniquevar ; done)|sort | uniq |wc -l)
+    NUNIQUEVARS=$((NUNIQUEVARS))
+    if [ "${NVARS}" -gt "${NUNIQUEVARS}" ]; then
+	DUPEVARS=$((for uniquevar in $CHECKVARS ; do echo $uniquevar ; done)|sort | uniq -c | awk '{if ($1 > 1) printf("%s ",$2)}')
+	echo "ERROR: duplicate ${VARNAME}(s) $DUPEVARS"
+	exit 2
+    fi
+}
+#
+# now we check for all the properties that must not be duplicated
+# we calculate the number of times it's been added and only check
+# if we have more than 1 entry
+#
+# in some cases this also checks for duplication across similar properties
+#
+if [ "${NUMIP4}" -gt 1 ]; then
+    verify_duplicate "ip" "${NUMIP4}" "$ZIP4 $XIP4 $RIP4"
+fi
+if [ "${NUMOVERLAY}" -gt 1 ]; then
+    verify_duplicate "overlay" "${NUMOVERLAY}" "$ZOVERLAY $ZADDOVERLAY"
+fi
+if [ "${NUMPACKAGE}" -gt 1 ]; then
+    verify_duplicate "package" "${NUMPACKAGE}" "$ZPACKAGE $ZADDPACKAGE"
+fi
+if [ "${NUMDIRS}" -gt 1 ]; then
+    verify_duplicate "directory" "${NUMDIRS}" "$ZDIRS"
+fi
+if [ "${NUMDATASETS}" -gt 1 ]; then
+    verify_duplicate "dataset" "${NUMDATASETS}" "$ZDATASETS"
+fi
+if [ "${NUMSHARED}" -gt 1 ]; then
+    verify_duplicate "share" "${NUMSHARED}" "$ZSHARED $ZROSHARED"
+fi
+if [ "${NUMUSERS}" -gt 1 ]; then
+    verify_duplicate "user" "${NUMUSERS}" "$ZUSERS $BZUSERS"
+fi
+
+#
 # check validity of installation images here, after all the other checks,
 # so we only download images if the command is otherwise valid
 #
@@ -1170,7 +1392,7 @@ SUNWsolaris10)
 	    usage
 	fi
 	;;
-bhyve)
+bhyve|emu)
 	# require an image if we're not passed a prefilled volume
 	if [[ -n $ZISOFILE ]]; then
 	    if [[ $ZISOFILE != /* ]]; then
@@ -1197,7 +1419,7 @@ bhyve)
 		usage
 	    fi
 	    if [[ $ZISOFILE != *.iso ]]; then
-		echo "ERROR: bhyve requires an iso image"
+		echo "ERROR: bhyve and emu require an iso image"
 		usage
 	    fi
 	    if [ ! -f "$ZISOFILE" ]; then
@@ -1458,6 +1680,9 @@ echo "zone: $ZNAME" >> "${ZSDIR}/zconfig.${ZNAME}"
 if [[ $ZBRAND = bhyve ]]; then
     echo "create -b"
     echo "set brand=bhyve"
+elif [[ $ZBRAND = emu ]]; then
+    echo "create -b"
+    echo "set brand=emu"
 else
     echo "create -t $ZBRAND"
 fi
@@ -1685,8 +1910,8 @@ if [[ $ZBRAND = TRIBsparse || $ZBRAND = TRIBwhole ]]; then
 	echo "end"
 fi
 #
-# for bhyve zones, share a directory into the zone into which we can
-# drop the vnc socket, so it can be accessed directly from the global
+# for bhyve and emu zones, share a directory into the zone into which we
+# can drop the vnc socket, so it can be accessed directly from the global
 # zone without mucking around with socat
 #
 # the vnc attribute will be rewritten later so it drops the socket into
@@ -1695,22 +1920,22 @@ fi
 # set an ACL on that directory so that the named user(s) can see the
 # socket, and add inheritance so they can open the socket r/w
 #
-if [[ $ZBRAND = bhyve ]]; then
-	if [ ! -d /var/zap/bhyve ]; then
-	    /usr/bin/mkdir -p /var/zap/bhyve
+if [[ $ZBRAND = bhyve || $ZBRAND = emu ]]; then
+	if [ ! -d "/var/zap/${ZBRAND}" ]; then
+	    /usr/bin/mkdir -p "/var/zap/${ZBRAND}"
 	fi
-	/usr/bin/mkdir "/var/zap/bhyve/${ZNAME}"
-	/usr/bin/chmod 755 /var/zap/bhyve
-	/usr/bin/chmod 500 "/var/zap/bhyve/${ZNAME}"
-	echo "/bin/rm -fr /var/zap/bhyve/${ZNAME}" >> "${ZSDIR}/destroy.${ZNAME}"
+	/usr/bin/mkdir "/var/zap/${ZBRAND}/${ZNAME}"
+	/usr/bin/chmod 755 "/var/zap/${ZBRAND}"
+	/usr/bin/chmod 500 "/var/zap/${ZBRAND}/${ZNAME}"
+	echo "/bin/rm -fr /var/zap/${ZBRAND}/${ZNAME}" >> "${ZSDIR}/destroy.${ZNAME}"
 	for TUSER in $BZUSERS
 	do
-	    /usr/bin/chmod "A+user:${TUSER}:list_directory/execute:allow" "/var/zap/bhyve/${ZNAME}"
-	    /usr/bin/chmod "A+user:${TUSER}:read_data/write_data/execute:file_inherit:allow" "/var/zap/bhyve/${ZNAME}"
+	    /usr/bin/chmod "A+user:${TUSER}:list_directory/execute:allow" "/var/zap/${ZBRAND}/${ZNAME}"
+	    /usr/bin/chmod "A+user:${TUSER}:read_data/write_data/execute:file_inherit:allow" "/var/zap/${ZBRAND}/${ZNAME}"
 	done
 	echo "add fs"
-	echo "set dir=/var/bhyve"
-	echo "set special=/var/zap/bhyve/${ZNAME}"
+	echo "set dir=/var/${ZBRAND}"
+	echo "set special=/var/zap/${ZBRAND}/${ZNAME}"
 	echo "set type=lofs"
 	echo "add options [nodevices]"
 	echo "end"
@@ -1777,7 +2002,7 @@ do
 	echo "admin_user: ${TUSER}" >> "${ZSDIR}/zconfig.${ZNAME}"
 done
 #
-# for bhyve zones, no sharing, just admin access
+# for bhyve and emu zones, no sharing, just admin access
 #
 for TUSER in $BZUSERS
 do
@@ -1801,10 +2026,10 @@ if [[ $ZBRAND = SUNWlx ]]; then
 	echo "end"
 fi
 #
-# memory and cpu settings, for bhyve these are passed as string attributes
-# for other zone types we specify the capped-xxx resource controls
+# memory and cpu settings, for bhyve and emu these are passed as string
+# attributes, for other zone types we specify capped-xxx resource controls
 #
-if [[ $ZBRAND != bhyve ]]; then
+if [[ $ZBRAND != bhyve && $ZBRAND != emu ]]; then
     if [[ -n $RAMSPEC ]]; then
 	echo "add capped-memory"
 	echo "set physical=$RAMSPEC"
@@ -1819,15 +2044,15 @@ if [[ $ZBRAND != bhyve ]]; then
     fi
 fi
 #
-# for bhyve, there's a list of attributes we need
+# for bhyve and emu, there's a list of attributes we need
 #
-# the initial disk must be called "bootdisk", then the remainder
-# are called "diskN", where N must start from zero
+# for bhyve the initial disk must be called "bootdisk", then the
+# remainder are called "diskN", where N must start from zero
 #
 # note that we loop over $BHYVEVOLS and $BHYVEVOL, only one will
 # be set
 #
-if [[ $ZBRAND = bhyve ]]; then
+if [[ $ZBRAND = bhyve || $ZBRAND = emu ]]; then
     VOLNUM=0
     VOLSTR="bootdisk"
     for BHVOL in $BHYVEVOLS $BHYVEVOL
@@ -1862,83 +2087,105 @@ if [[ $ZBRAND = bhyve ]]; then
     echo "set type=string"
     #
     # with bhyve users, relocate the vnc socket
-    # this is a Tribblix extension to the bhyve brand
+    # this is a Tribblix extension to the bhyve and emu brands
     #
     if [ -n "${BZUSERS}" ]; then
-	echo "set value=\"unix=/var/bhyve/vm.vnc\""
+	echo "set value=\"unix=/var/${ZBRAND}/vm.vnc\""
     else
 	echo "set value=on"
     fi
     echo "end"
-    echo "add attr"
-    echo "set name=bootrom"
-    echo "set type=string"
-    echo "set value=${BHYVEFW}"
-    echo "end"
-    echo "add attr"
-    echo "set name=acpi"
-    echo "set type=string"
-    echo "set value=off"
-    echo "end"
-    case $ZISOFILE in
-	*omnios*|*tribblix*|*hipster*|XStream*)
-    echo "add attr"
-    echo "set name=xhci"
-    echo "set type=string"
-    echo "set value=off"
-    echo "end"
-	;;
-    esac
-    case $ZISOFILE in
-	*S11-CBE*)
-    echo "add attr"
-    echo "set name=hostbridge"
-    echo "set type=string"
-    echo "set value=none"
-    echo "end"
-    echo "add attr"
-    echo "set name=rng"
-    echo "set type=string"
-    echo "set value=off"
-    echo "end"
-    echo "add attr"
-    echo "set name=type"
-    echo "set type=string"
-    echo "set value=windows"
-    echo "end"
-    echo "add attr"
-    echo "set name=xhci"
-    echo "set type=string"
-    echo "set value=off"
-    echo "end"
-        ;;
-    esac
-    # share directories over virtfs
-    # note that the fs configuration has already been done, here
-    # we set the attributes for bhyve to pick them up
-    # note that we set the tag to a standardised "bhyvefsN" rather than a
-    # string derived from the shared name, so that's what you'll need to
-    # mount in the guest, via eg
-    # mount -t 9p -o trans=virtio,uname=root bhyvefs0 /mnt/foo
-    VFSNUM=0
-    for DIR in $ZSHARED
-    do
+    #
+    # the following are specific to bhyve
+    #
+    if [[ $ZBRAND = bhyve ]]; then
 	echo "add attr"
-	echo "set name=virtfs${VFSNUM}"
+	echo "set name=bootrom"
 	echo "set type=string"
-	echo "set value=bhyvefs${VFSNUM},${DIR}"
+	echo "set value=${BHYVEFW}"
 	echo "end"
-	VFSNUM=$((VFSNUM+1))
-    done
-    for DIR in $ZROSHARED
-    do
 	echo "add attr"
-	echo "set name=virtfs${VFSNUM}"
+	echo "set name=acpi"
 	echo "set type=string"
-	echo "set value=bhyvefs${VFSNUM},${DIR},ro"
+	echo "set value=off"
 	echo "end"
-	VFSNUM=$((VFSNUM+1))
-    done
+	case $ZISOFILE in
+	    *omnios*|*tribblix*|*hipster*|XStream*)
+		echo "add attr"
+		echo "set name=xhci"
+		echo "set type=string"
+		echo "set value=off"
+		echo "end"
+		;;
+	esac
+	case $ZISOFILE in
+	    *S11-CBE*)
+		echo "add attr"
+		echo "set name=hostbridge"
+		echo "set type=string"
+		echo "set value=none"
+		echo "end"
+		echo "add attr"
+		echo "set name=rng"
+		echo "set type=string"
+		echo "set value=off"
+		echo "end"
+		echo "add attr"
+		echo "set name=type"
+		echo "set type=string"
+		echo "set value=windows"
+		echo "end"
+		echo "add attr"
+		echo "set name=xhci"
+		echo "set type=string"
+		echo "set value=off"
+		echo "end"
+		;;
+	esac
+	# share directories over virtfs
+	# note that the fs configuration has already been done, here
+	# we set the attributes for bhyve to pick them up
+	# note that we set the tag to a standardised "bhyvefsN" rather than a
+	# string derived from the shared name, so that's what you'll need to
+	# mount in the guest, via eg
+	# mount -t 9p -o trans=virtio,uname=root bhyvefs0 /mnt/foo
+	VFSNUM=0
+	for DIR in $ZSHARED
+	do
+	    echo "add attr"
+	    echo "set name=virtfs${VFSNUM}"
+	    echo "set type=string"
+	    echo "set value=bhyvefs${VFSNUM},${DIR}"
+	    echo "end"
+	    VFSNUM=$((VFSNUM+1))
+	done
+	for DIR in $ZROSHARED
+	do
+	    echo "add attr"
+	    echo "set name=virtfs${VFSNUM}"
+	    echo "set type=string"
+	    echo "set value=bhyvefs${VFSNUM},${DIR},ro"
+	    echo "end"
+	    VFSNUM=$((VFSNUM+1))
+	done
+    fi
+    #
+    # the following are specific to emu
+    #
+    if [[ $ZBRAND = emu ]]; then
+	echo "add attr"
+	echo "set name=arch"
+	echo "set type=string"
+	echo "set value=$QARCH"
+	echo "end"
+	echo "arch: $QARCH" >> "${ZSDIR}/zconfig.${ZNAME}"
+ 	echo "add attr"
+	echo "set name=cpu"
+	echo "set type=string"
+	echo "set value=$QCPU"
+	echo "end"
+	echo "cpu: $QCPU" >> "${ZSDIR}/zconfig.${ZNAME}"
+   fi
     if [[ -n $RAMSPEC ]]; then
 	echo "add attr"
 	echo "set name=ram"
