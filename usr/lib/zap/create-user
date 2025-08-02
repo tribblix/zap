@@ -15,7 +15,7 @@
 #
 # }}}
 #
-# Copyright 2024 Peter Tribble
+# Copyright 2025 Peter Tribble
 #
 
 #
@@ -23,7 +23,7 @@
 #
 
 usage() {
-    echo "Usage: $0 [-c comment] [-d homedir] [-g gid] [-u uid] [-s shell] [-P profile] name"
+    echo "Usage: $0 [-c comment] [-d homedir] [-z] [-g gid] [-u uid] [-s shell] [-P profile] name"
     exit 2
 }
 
@@ -41,6 +41,7 @@ USER_GROUP=""
 USER_COMMENT=""
 BASE_DIR="/export/home"
 USER_DIR=""
+ZFSFLAG="-Z"
 USER_SHELL="/usr/bin/bash"
 PROFILE=""
 PASSWD_FILE="/etc/passwd"
@@ -52,7 +53,10 @@ PROFILE_FILE="/etc/security/prof_attr"
 # and all are optional
 # P only accepts a single profile
 #
-while getopts "c:d:g:s:u:P:" opt; do
+# z mirrors useradd, we default to -Z
+# and ignore MANAGE_ZFS in /etc/default/useradd
+#
+while getopts "c:d:g:s:u:P:z" opt; do
 case $opt in
 c)
 	USER_COMMENT="$OPTARG"
@@ -71,6 +75,9 @@ u)
 	;;
 P)
 	PROFILE="$OPTARG"
+	;;
+z)
+	ZFSFLAG="-z"
 	;;
 *)
 	usage
@@ -181,6 +188,10 @@ else
 	exit 1
     fi
     BASE_DIR=${USER_DIR%/*}
+    if [ -z "$BASE_DIR" ]; then
+	echo "ERROR: do not create a home directory directly under /"
+	exit 1
+    fi
     if [ ! -d "$BASE_DIR" ]; then
 	echo "ERROR: parent $BASE_DIR for home directory not found"
 	exit 1
@@ -190,6 +201,23 @@ if [ -d "${USER_DIR}" ]; then
     echo "ERROR: proposed home directory ${USER_DIR} already exists"
     exit 1
 fi
+#
+# if we're asked to create a zfs filesystem with -z, ensure the parent
+# is a zfs filesystem
+#
+case $ZFSFLAG in
+    -z)
+	ZFSDIR=$(/usr/sbin/zfs get -H -o value mountpoint "${BASE_DIR}" 2>/dev/null)
+	if [ -z "${ZFSDIR}" ]; then
+	    echo "ERROR: parent ${BASE_DIR} for home must be zfs for -z to be used"
+	    exit 1
+	fi
+	if [ "X${ZFSDIR}" != "X$BASE_DIR" ]; then
+	    echo "ERROR: parent ${BASE_DIR} for home must be a separate zfs filesystem"
+	    exit 1
+	fi
+    ;;
+esac
 #
 # check profile for -P is valid
 #
@@ -231,6 +259,9 @@ fi
 #
 # otherwise, find an unused id starting at UID_MIN
 #
+# note that if the user asks, the uid can be as low as SYS_UID_MIN, but the
+# lowest automatically generated one is UID_MIN
+#
 # we do this here rather than letting useradd do it so that we can check
 # the gid too, and so that we fill in from the bottom
 #
@@ -264,7 +295,7 @@ if [ -z "${USER_GROUP}" ]; then
 fi
 
 if [ -n "${PROFILE}" ]; then
-    /usr/sbin/useradd -m -Z -c "${USER_COMMENT}" -P "${PROFILE}" -s "${USER_SHELL}" -d "${USER_DIR}" -g "${USER_GROUP}" -u "${USER_UID}" "${USER_NAME}"
+    /usr/sbin/useradd -m "${ZFSFLAG}" -c "${USER_COMMENT}" -P "${PROFILE}" -s "${USER_SHELL}" -d "${USER_DIR}" -g "${USER_GROUP}" -u "${USER_UID}" "${USER_NAME}"
 else
-    /usr/sbin/useradd -m -Z -c "${USER_COMMENT}" -s "${USER_SHELL}" -d "${USER_DIR}" -g "${USER_GROUP}" -u "${USER_UID}" "${USER_NAME}"
+    /usr/sbin/useradd -m "${ZFSFLAG}" -c "${USER_COMMENT}" -s "${USER_SHELL}" -d "${USER_DIR}" -g "${USER_GROUP}" -u "${USER_UID}" "${USER_NAME}"
 fi
