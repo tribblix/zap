@@ -2386,7 +2386,7 @@ fi
 #
 if [[ -n ${ZDIRS} ]]; then
    ZPARENT=${ZFSBASE%/*}
-   ZDPARENT=$(/usr/sbin/zfs list -H "${ZPARENT}" | /usr/bin/awk '{print $1}')
+   ZDPARENT=$(/usr/sbin/zfs list -H -o name "${ZPARENT}")
    ZREALNAME=$(echo $ZFSBASE | /usr/bin/sed s:${ZPARENT}:${ZDPARENT}:)
    if [[ ! -d "${ZFSBASE}" ]]; then
       /usr/sbin/zfs create "${ZREALNAME}"
@@ -2397,7 +2397,7 @@ if [[ -n ${ZDIRS} ]]; then
 fi
 if [[ ! -d "${ZROOTBASE}" ]]; then
    ZPARENT=${ZROOTBASE%/*}
-   ZDPARENT=$(/usr/sbin/zfs list -H "${ZPARENT}" | /usr/bin/awk '{print $1}')
+   ZDPARENT=$(/usr/sbin/zfs list -H -o name "${ZPARENT}")
    ZREALNAME=$(echo $ZROOTBASE | /usr/bin/sed s:${ZPARENT}:${ZDPARENT}:)
    /usr/sbin/zfs create "${ZREALNAME}"
 fi

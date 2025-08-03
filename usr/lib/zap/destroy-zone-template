@@ -15,7 +15,7 @@
 #
 # }}}
 #
-# Copyright 2024 Peter Tribble
+# Copyright 2025 Peter Tribble
 #
 
 #
@@ -75,7 +75,7 @@ fi
 #
 # This is the backing zfs dataset
 #
-ZDPARENT=$(/usr/sbin/zfs list -H "${UROOT}" | /usr/bin/awk '{print $1}')
+ZDPARENT=$(/usr/sbin/zfs list -H -o name "${UROOT}")
 
 #
 # Sanity check: the zfs dataset should end in the template name

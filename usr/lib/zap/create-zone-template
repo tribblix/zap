@@ -15,7 +15,7 @@
 #
 # }}}
 #
-# Copyright 2024 Peter Tribble
+# Copyright 2025 Peter Tribble
 #
 
 #
@@ -241,13 +241,13 @@ fi
 #
 if [ ! -d "${ZROOTBASE}" ]; then
    ZPARENT=${ZROOTBASE%/*}
-   ZDPARENT=$(/usr/sbin/zfs list -H "${ZPARENT}" | /usr/bin/awk '{print $1}')
+   ZDPARENT=$(/usr/sbin/zfs list -H -o name "${ZPARENT}")
    ZREALNAME=$(echo $ZROOTBASE | /usr/bin/sed s:${ZPARENT}:${ZDPARENT}:)
    /usr/sbin/zfs create "${ZREALNAME}"
 fi
 if [ ! -d "${ZROOTBASE}/${TNAME}" ]; then
    ZPARENT=${ZROOTBASE%/*}
-   ZDPARENT=$(/usr/sbin/zfs list -H "${ZPARENT}" | /usr/bin/awk '{print $1}')
+   ZDPARENT=$(/usr/sbin/zfs list -H -o name "${ZPARENT}")
    ZREALNAME=$(echo $ZROOTBASE | /usr/bin/sed s:${ZPARENT}:${ZDPARENT}:)
    /usr/sbin/zfs create "${ZREALNAME}/${TNAME}"
 fi
