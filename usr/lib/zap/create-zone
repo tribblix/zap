@@ -1217,11 +1217,19 @@ if [[ -n $ZROSHARED ]]; then
 fi
 
 #
-# if given datasets to delegate, verify it's a dataset and not
-# a pool, by looking for a / separator
-# if multiple, we will create a hierarchy, so no need to check
-# and a pool is a valid choice as the parent
+# if given datasets to delegate, verify it's a dataset and not a
+# directory or pool, by looking for a / separator but no leading /
 #
+# if multiple zones, we will create the hierarchy, so a pool is a
+# valid choice as the parent
+#
+for DSET in $ZDATASETS
+do
+    if [[ $DSET == /* ]]; then
+	echo "ERROR: dataset cannot be a directory"
+	exit 1
+    fi
+done
 if [[ -z $NZONES ]]; then
     for DSET in $ZDATASETS
     do
