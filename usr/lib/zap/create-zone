@@ -2387,6 +2387,10 @@ fi
 if [[ -n ${ZDIRS} ]]; then
    ZPARENT=${ZFSBASE%/*}
    ZDPARENT=$(/usr/sbin/zfs list -H -o name "${ZPARENT}")
+   if [ -z "${ZDPARENT}" ]; then
+     echo "ERROR: cannot find zfs dataset for ${ZPARENT}"
+     exit 1
+   fi
    ZREALNAME=$(echo $ZFSBASE | /usr/bin/sed s:${ZPARENT}:${ZDPARENT}:)
    if [[ ! -d "${ZFSBASE}" ]]; then
       /usr/sbin/zfs create "${ZREALNAME}"
@@ -2398,6 +2402,10 @@ fi
 if [[ ! -d "${ZROOTBASE}" ]]; then
    ZPARENT=${ZROOTBASE%/*}
    ZDPARENT=$(/usr/sbin/zfs list -H -o name "${ZPARENT}")
+   if [ -z "${ZDPARENT}" ]; then
+     echo "ERROR: cannot find zfs dataset for ${ZPARENT}"
+     exit 1
+   fi
    ZREALNAME=$(echo $ZROOTBASE | /usr/bin/sed s:${ZPARENT}:${ZDPARENT}:)
    /usr/sbin/zfs create "${ZREALNAME}"
 fi

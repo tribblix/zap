@@ -242,12 +242,17 @@ fi
 if [ ! -d "${ZROOTBASE}" ]; then
    ZPARENT=${ZROOTBASE%/*}
    ZDPARENT=$(/usr/sbin/zfs list -H -o name "${ZPARENT}")
+   if [ -z "${ZDPARENT}" ]; then
+     echo "ERROR: cannot locate zfs dataset for ${ZROOTBASE}"
+     exit 1
+   fi
    ZREALNAME=$(echo $ZROOTBASE | /usr/bin/sed s:${ZPARENT}:${ZDPARENT}:)
    /usr/sbin/zfs create "${ZREALNAME}"
 fi
 if [ ! -d "${ZROOTBASE}/${TNAME}" ]; then
    ZPARENT=${ZROOTBASE%/*}
    ZDPARENT=$(/usr/sbin/zfs list -H -o name "${ZPARENT}")
+   # we already checked for ZDPARENT being empty above
    ZREALNAME=$(echo $ZROOTBASE | /usr/bin/sed s:${ZPARENT}:${ZDPARENT}:)
    /usr/sbin/zfs create "${ZREALNAME}/${TNAME}"
 fi

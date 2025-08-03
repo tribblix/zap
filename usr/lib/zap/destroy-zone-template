@@ -76,6 +76,10 @@ fi
 # This is the backing zfs dataset
 #
 ZDPARENT=$(/usr/sbin/zfs list -H -o name "${UROOT}")
+if [ -z "${ZDPARENT}" ]; then
+  echo "ERROR: cannot find zfs dataset for template $TNAME"
+  exit 1
+fi
 
 #
 # Sanity check: the zfs dataset should end in the template name
