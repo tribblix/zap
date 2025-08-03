@@ -15,7 +15,7 @@
 #
 # }}}
 #
-# Copyright 2024 Peter Tribble
+# Copyright 2025 Peter Tribble
 #
 
 #
@@ -79,7 +79,7 @@ fi
 # "solaris.*" [root]
 # "solaris.zone.manage/zonename" [delegated to user]
 #
-AUTH1=$(/usr/bin/auths|/usr/bin/tr ',' '\n'|/usr/bin/grep -e "solaris.\*" -e "solaris.zone.manage/$ZNAME")
+AUTH1=$(/usr/bin/auths|/usr/bin/tr ',' '\n'|/usr/bin/grep -x -e "solaris.\*" -e "solaris.zone.manage/$ZNAME")
 if [ -z "$AUTH1" ]; then
    echo "ERROR: insufficient privileges to manage zone $ZNAME"
    exit 1
