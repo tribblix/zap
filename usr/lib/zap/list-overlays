@@ -15,14 +15,14 @@
 #
 # }}}
 #
-# Copyright 2024 Peter Tribble
+# Copyright 2025 Peter Tribble
 #
 
 ODIR="/var/sadm/overlays"
 DESTROOT=""
 
 case $1 in
--R)
+-R|-C)
 	DESTROOT="$2"
 	shift
 	shift

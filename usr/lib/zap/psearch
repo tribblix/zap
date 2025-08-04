@@ -15,7 +15,7 @@
 #
 # }}}
 #
-# Copyright 2024 Peter Tribble
+# Copyright 2025 Peter Tribble
 #
 
 #
@@ -31,12 +31,16 @@
 DESTROOT=""
 
 case $1 in
--R)
+-R|-C)
 	DESTROOT="$2"
 	shift
 	shift
 	if [ ! -d "$DESTROOT" ]; then
 	    echo "ERROR: alternate root $DESTROOT doesn't exist"
+	    exit 1
+	fi
+	if [ ! -d "$DESTROOT/var/sadm/pkg" ]; then
+	    echo "ERROR: alternate root $DESTROOT is invalid"
 	    exit 1
 	fi
 	;;

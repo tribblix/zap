@@ -15,7 +15,7 @@
 #
 # }}}
 #
-# Copyright 2024 Peter Tribble
+# Copyright 2025 Peter Tribble
 #
 
 #
@@ -40,6 +40,10 @@ case $1 in
     BFLAGS="-R ${DESTROOT}"
     shift
     shift
+    if [ ! -d "$DESTROOT/var/sadm/pkg" ]; then
+	echo "ERROR: alternate root $DESTROOT is invalid"
+	exit 1
+    fi
     ;;
 esac
 

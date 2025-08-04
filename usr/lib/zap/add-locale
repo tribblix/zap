@@ -35,6 +35,10 @@ case $1 in
 	CTXARGS="-C ${DESTROOT}"
 	shift
 	shift
+	if [ ! -d "$DESTROOT" ]; then
+	    echo "ERROR: alternate root $DESTROOT doesn't exist"
+	    exit 1
+	fi
 	if [ ! -d "$DESTROOT/var/sadm/pkg" ]; then
 	    echo "ERROR: alternate root $DESTROOT is invalid"
 	    exit 1
@@ -48,6 +52,10 @@ case $1 in
 	PKGARGS="-R ${DESTROOT}"
 	shift
 	shift
+	if [ ! -d "$DESTROOT" ]; then
+	    echo "ERROR: alternate root $DESTROOT doesn't exist"
+	    exit 1
+	fi
 	if [ ! -d "$DESTROOT/var/sadm/pkg" ]; then
 	    echo "ERROR: alternate root $DESTROOT is invalid"
 	    exit 1

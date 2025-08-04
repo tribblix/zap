@@ -40,6 +40,14 @@ case $1 in
     BFLAGS="-R ${DESTROOT}"
     shift
     shift
+    if [ ! -d "$DESTROOT" ]; then
+	echo "ERROR: alternate root $DESTROOT doesn't exist"
+	exit 1
+    fi
+    if [ ! -d "$DESTROOT/var/sadm/pkg" ]; then
+	echo "ERROR: alternate root $DESTROOT is invalid"
+	exit 1
+    fi
     ;;
 esac
 
