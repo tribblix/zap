@@ -321,8 +321,12 @@ case $SCHEME in
 		DLNAME="proxmox-debian-11.tar.zst"
 		;;
 	    debian-12|debian)
-		DLFILE="debian-12-standard_12.7-1_amd64.tar.zst"
+		DLFILE="debian-12-standard_12.12-1_amd64.tar.zst"
 		DLNAME="proxmox-debian-12.tar.zst"
+		;;
+	    debian-13)
+		DLFILE="debian-13-standard_13.1-1_amd64.tar.zst"
+		DLNAME="proxmox-debian-13.tar.zst"
 		;;
 	    devuan-3)
 		DLFILE="devuan-3.0-standard_3.0_amd64.tar.gz"
