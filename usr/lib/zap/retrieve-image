@@ -155,7 +155,7 @@ case $SCHEME in
 	CKNAME="${DLNAME}.sha256"
 	;;
     tribblix)
-	DLPREFIX="https://pkgs.tribblix.org/iso/"
+	DLPREFIX="https://iso.tribblix.org/iso/"
 	DLSUFFIX=".iso"
 	TRIBTYPE="tribblix"
 	#
