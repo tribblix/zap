@@ -296,7 +296,7 @@ case $SCHEME in
 		DLNAME="proxmox-alpine-3.22.tar.xz"
 		;;
 	    arch|archlinux)
-		DLFILE="archlinux-base_20240911-1_amd64.tar.zst"
+		DLFILE="archlinux-base_20250907-1_amd64.tar.zst"
 		DLNAME="proxmox-archlinux.tar.zst"
 		echo "WARN: arch is not supported by the LX brand"
 		;;
@@ -325,7 +325,7 @@ case $SCHEME in
 		DLNAME="proxmox-debian-12.tar.zst"
 		;;
 	    debian-13)
-		DLFILE="debian-13-standard_13.1-1_amd64.tar.zst"
+		DLFILE="debian-13-standard_13.1-2_amd64.tar.zst"
 		DLNAME="proxmox-debian-13.tar.zst"
 		;;
 	    devuan-3)
@@ -384,6 +384,10 @@ case $SCHEME in
 	    rocky|rockylinux|rocky9|rockylinux9)
 		DLFILE="rockylinux-9-default_20240912_amd64.tar.xz"
 		DLNAME="proxmox-rockylinux-9.tar.xz"
+		;;
+	    rocky10|rockylinux10)
+		DLFILE="rockylinux-10-default_20251001_amd64.tar.xz"
+		DLNAME="proxmox-rockylinux-10.tar.xz"
 		;;
 	    ubuntu-*)
 		UVER=${RELVER:7:11}
