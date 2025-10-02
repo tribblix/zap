@@ -110,3 +110,8 @@ TRIBconfigargparse-python-312
 TRIBxcoral
 TRIBfont-xorg-iso8859-1
 TRIBapache-httpclient5
+TRIBblix-citus15
+TRIBblix-wal2json15
+TRIBblix-repmgr15
+TRIBblix-postgis15
+TRIBblix-postgres15
