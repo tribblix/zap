@@ -101,8 +101,8 @@ fi
 # read and parse the driver map once, into 2 hashes, one mapping device ids
 # to drivers, and a second mapping drivers to packages
 #
-# one my desktop machine, reading the map once and using it results in a
-# runtime for this script of of ~0.04s, while a dumb grep every time is
+# on my desktop machine, reading the map once and using it results in a
+# runtime for this script of ~0.04s, while a dumb grep every time is
 # ~0.2s; this difference will likely be more pronounced on larger systems
 #
 # about half of the 0.04s is parsing into the map, and half is prtconf
