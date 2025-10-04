@@ -15,7 +15,7 @@
 #
 # }}}
 #
-# Copyright 2024 Peter Tribble
+# Copyright 2025 Peter Tribble
 #
 
 #
@@ -225,8 +225,14 @@ ${ZAPLIBDIR}/instzap -R $ALTROOT "${CACHE_DIR}/${NPKG}" TRIBzap
 # unfortunately old versions of refresh-overlays do not correctly
 # handle alternate contexts, so use a fixed copy from the new BE
 #
-${ALTROOT}/${ZAPLIBDIR}/refresh-overlays -C ${ALTROOT}
-${ALTROOT}/${ZAPLIBDIR}/refresh-filelist -C ${ALTROOT}
+# if we have the new unified refresh, use that
+#
+if [ -x ${ALTROOT}/${ZAPLIBDIR}/refresh ]; then
+    ${ALTROOT}/${ZAPLIBDIR}/refresh -C ${ALTROOT}
+else
+    ${ALTROOT}/${ZAPLIBDIR}/refresh-overlays -C ${ALTROOT}
+    ${ALTROOT}/${ZAPLIBDIR}/refresh-filelist -C ${ALTROOT}
+fi
 #
 # first we must update SUNWcsd
 #

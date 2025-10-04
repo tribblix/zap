@@ -164,7 +164,7 @@ done
 # bail if we haven't found any file lists
 #
 if [ -z "$FLIST" ]; then
-    echo "No file lists found. Run zap refresh-filelist."
+    echo "No file lists found. Run zap refresh."
     exit 1
 fi
 

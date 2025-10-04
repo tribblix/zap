@@ -19,13 +19,7 @@
 #
 
 #
-# NOTE: all refresh activity has been centralized into a single refresh
-# script, this script needs to remain for compatibility as it is called
-# from upgrades
-#
-
-#
-# refreshes all overlay repo(s), and their overlays
+# refresh all metadata for all package and overlay repos
 #
 
 ZAPLIBDIR="/usr/lib/zap"
@@ -52,21 +46,23 @@ case $1 in
 esac
 
 USER_AGENT="zap"/$(${ZAPLIBDIR}/zap-cfg pkgversion)
+ZAP_PROXY=$(${ZAPLIBDIR}/zap-cfg proxy)
+
+if [ -n "$ZAP_PROXY" ]; then
+    http_proxy=$ZAP_PROXY
+    export http_proxy
+fi
+
 WCLIENT=/usr/bin/curl
-WARGS="-A ${USER_AGENT} -f -s -o"
+WARGS="-A ${USER_AGENT} -f -s --compressed -o"
 if [ ! -x $WCLIENT ]; then
     WCLIENT=/usr/bin/wget
-    WARGS="-U ${USER_AGENT} -q -O"
+    WARGS="-U ${USER_AGENT} -q --compression=gzip -O"
 fi
 if [ ! -x $WCLIENT ]; then
     WCLIENT=/usr/bin/wget2
-    WARGS="-U ${USER_AGENT} -q -O"
+    WARGS="-U ${USER_AGENT} -q --compression=gzip -O"
 fi
-
-#
-# this is all a bit complicated, as it handles the case of multiple overlay
-# repos which doesn't yet exist
-#
 
 #
 # download the new overlay catalogs first, and
@@ -95,6 +91,32 @@ do
     fi
     unset IFS
 done
+
+#
+# get new catalog, aliases, and filelist for each package repo
+#
+refresh_repo() {
+    frepo="$1"
+    REPO=$(${ZAPLIBDIR}/zap-cfg ${CTXARGS} repo-url "$frepo")
+    ${WCLIENT} ${WARGS} "${CFGDIR}/repositories/${frepo}.catalog.tmp" "${REPO}/catalog"
+    if [ -s "${CFGDIR}/repositories/${frepo}.catalog.tmp" ]; then
+	mv "${CFGDIR}/repositories/${frepo}.catalog" "${CFGDIR}/repositories/${frepo}.catalog.bak"
+	mv "${CFGDIR}/repositories/${frepo}.catalog.tmp" "${CFGDIR}/repositories/${frepo}.catalog"
+    fi
+    ${WCLIENT} ${WARGS} "${CFGDIR}/repositories/${frepo}.aliases.tmp" "${REPO}/aliases"
+    if [ -s "${CFGDIR}/repositories/${frepo}.aliases.tmp" ]; then
+	mv "${CFGDIR}/repositories/${frepo}.aliases" "${CFGDIR}/repositories/${frepo}.aliases.bak"
+	mv "${CFGDIR}/repositories/${frepo}.aliases.tmp" "${CFGDIR}/repositories/${frepo}.aliases"
+    fi
+    ${WCLIENT} ${WARGS} "${CFGDIR}/repositories/${frepo}.filelist.bz2.tmp" "${REPO}/filelist.bz2"
+    if [ -s "${CFGDIR}/repositories/${frepo}.filelist.bz2.tmp" ]; then
+	/usr/bin/mv "${CFGDIR}/repositories/${frepo}.filelist.bz2" "${CFGDIR}/repositories/${frepo}.filelist.bz2.bak"
+	/usr/bin/mv "${CFGDIR}/repositories/${frepo}.filelist.bz2.tmp" "${CFGDIR}/repositories/${frepo}.filelist.bz2"
+    fi
+    if [ -f "${CFGDIR}/repositories/${frepo}.filelist.bz2.tmp" ]; then
+	/usr/bin/rm -f "${CFGDIR}/repositories/${frepo}.filelist.bz2.tmp"
+    fi
+}
 
 #
 # this walks through all the overlays for the given repo and
@@ -148,12 +170,18 @@ refresh_overlay_repo() {
     fi
 }
 
+#
+# loop over the package repos
+#
+for repo in $(/usr/bin/awk '{print $2}' "${CFGDIR}/repo.list")
+do
+    refresh_repo "$repo"
+done
+
+#
+# loop over the overlay repos
+#
 for repo in $(${ZAPLIBDIR}/zap-cfg ${CTXARGS} list-overlay-repos)
 do
     refresh_overlay_repo "$repo"
 done
-
-#
-# refresh the catalog as well
-#
-${ZAPLIBDIR}/refresh-catalog ${CTXARGS}

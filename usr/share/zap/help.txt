@@ -13,7 +13,7 @@ The subcommands are:
 refresh
 
   This subcommand refreshes the list of overlays, their contents, and
-  the package catalog.
+  the package catalogs.
 
 search [-R dir] search_term
 

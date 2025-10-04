@@ -15,7 +15,13 @@
 #
 # }}}
 #
-# Copyright 2024 Peter Tribble
+# Copyright 2025 Peter Tribble
+#
+
+#
+# NOTE: all refresh activity has been centralized into a single refresh
+# script, this script needs to remain for compatibility as it is called
+# from upgrades
 #
 
 #

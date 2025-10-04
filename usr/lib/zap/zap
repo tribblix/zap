@@ -143,9 +143,9 @@ dependencies|pkgdep)
 	shift
 	exec ${ZAPLIBDIR}/get-dependencies $(${ZAPLIBDIR}/resolve-alias "$@" | sort -u)
 	;;
-refresh|refresh-overlays|refresh-catalog)
+refresh|refresh-overlays|refresh-catalog|refresh-filelist)
 	shift
-	exec ${ZAPLIBDIR}/refresh-overlays ${CTXARGS}
+	exec ${ZAPLIBDIR}/refresh ${CTXARGS}
 	;;
 describe-package)
 	shift
@@ -159,14 +159,9 @@ show-licenses)
 	shift
 	exec ${ZAPLIBDIR}/show-licenses $(${ZAPLIBDIR}/resolve-alias "$@" | sort -u)
 	;;
-refresh-filelist)
-	shift
-	exec ${ZAPLIBDIR}/refresh-filelist ${CTXARGS}
-	;;
 ue|update-everything)
 	shift
-	${ZAPLIBDIR}/refresh-overlays ${CTXARGS}
-	${ZAPLIBDIR}/refresh-filelist ${CTXARGS}
+	${ZAPLIBDIR}/refresh ${CTXARGS}
 	${ZAPLIBDIR}/update-overlay ${CTXARGS} -a
 	exec ${ZAPLIBDIR}/verify-packages ${PKGARGS} -u
 	;;

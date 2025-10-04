@@ -19,6 +19,12 @@
 #
 
 #
+# NOTE: all refresh activity has been centralized into a single refresh
+# script, this script needs to remain for compatibility as it is called
+# from upgrades
+#
+
+#
 # refreshes the file lists for all repos
 #
 

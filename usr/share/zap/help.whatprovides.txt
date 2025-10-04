@@ -1,8 +1,9 @@
 What package do I need for a given file?
 ========================================
 
-Some other package systems allow you to search for a given pathname,
-to find which package you need to install.
+If you know the name of the file or utility you want, the whatprovides
+subcommand allows you to search for a given pathname, to find which
+package you need to install.
 
 The basic syntax is:
 
@@ -16,8 +17,3 @@ file.
 
 If the search term looks like a library (starts with "lib") then the
 search is for the allowed forms of a shared library name.
-
-The index files used by whatprovides may need to be downloaded before
-this command can be used. To do that, run the following as root:
-
-zap refresh-filelist
