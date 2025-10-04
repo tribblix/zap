@@ -40,7 +40,7 @@ esac
 
 CACHE_DIR=$(${ZAPLIBDIR}/zap-cfg ${CTXARGS} cache-dir)
 USER_AGENT="zap"/$(${ZAPLIBDIR}/zap-cfg pkgversion)
-ZAP_PROXY=$(${ZAPLIBDIR}/zap-cfg ${CTXARGS} proxy)
+ZAP_PROXY=$(${ZAPLIBDIR}/zap-cfg proxy)
 
 if [ -n "$ZAP_PROXY" ]; then
     http_proxy=$ZAP_PROXY

@@ -15,7 +15,7 @@
 #
 # }}}
 #
-# Copyright 2024 Peter Tribble
+# Copyright 2025 Peter Tribble
 #
 
 #
@@ -31,6 +31,7 @@ DOCKER_DIR="/var/zap/docker"
 CACHE_CFG="${CFGDIR}/cache_dir"
 IMAGE_CFG="${CFGDIR}/image_dir"
 DOCKER_CFG="${CFGDIR}/docker_dir"
+# the proxy setting doesn't switch with context
 PROXY_CFG="${CFGDIR}/proxy_cfg"
 
 #
@@ -53,7 +54,6 @@ case $1 in
 	CACHE_CFG="${CFGDIR}/cache_dir"
 	IMAGE_CFG="${CFGDIR}/image_dir"
 	DOCKER_CFG="${CFGDIR}/docker_dir"
-	PROXY_CFG="${CFGDIR}/proxy_cfg"
 	;;
 esac
 
