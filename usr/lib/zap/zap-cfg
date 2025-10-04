@@ -28,9 +28,6 @@ CFGDIR="/etc/zap"
 CACHE_DIR="/var/zap/cache"
 IMAGE_DIR="/var/zap/images"
 DOCKER_DIR="/var/zap/docker"
-CACHE_CFG="${CFGDIR}/cache_dir"
-IMAGE_CFG="${CFGDIR}/image_dir"
-DOCKER_CFG="${CFGDIR}/docker_dir"
 # the proxy setting doesn't switch with context
 PROXY_CFG="${CFGDIR}/proxy_cfg"
 
@@ -51,9 +48,6 @@ case $1 in
 	CACHE_DIR="${ALTROOT}/${CACHE_DIR}"
 	IMAGE_DIR="${ALTROOT}/${IMAGE_DIR}"
 	DOCKER_DIR="${ALTROOT}/${DOCKER_DIR}"
-	CACHE_CFG="${CFGDIR}/cache_dir"
-	IMAGE_CFG="${CFGDIR}/image_dir"
-	DOCKER_CFG="${CFGDIR}/docker_dir"
 	;;
 esac
 
@@ -149,6 +143,7 @@ overlay-url)
 	fi
 	;;
 cache-dir)
+	CACHE_CFG="${CFGDIR}/cache_dir"
 	if [ -f "${CACHE_CFG}" ]; then
 	    CACHE_DIR=${ALTROOT}/$(<"${CACHE_CFG}")
 	fi
@@ -162,6 +157,7 @@ cache-dir)
 	fi
 	;;
 image-dir)
+	IMAGE_CFG="${CFGDIR}/image_dir"
 	if [ -f "${IMAGE_CFG}" ]; then
 	    IMAGE_DIR=${ALTROOT}/$(<"${IMAGE_CFG}")
 	fi
@@ -175,6 +171,7 @@ image-dir)
 	fi
 	;;
 docker-dir)
+	DOCKER_CFG="${CFGDIR}/docker_dir"
 	if [ -f "${DOCKER_CFG}" ]; then
 	    DOCKER_DIR=${ALTROOT}/$(<"${DOCKER_CFG}")
 	fi
