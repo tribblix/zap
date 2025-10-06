@@ -76,7 +76,12 @@ if [ "X${PKG}" != "X${npkg}" ]; then
 fi
 
 #
-# look for packages in overlays
+# look for packages in overlays, this will only identify one overlay
+# even if the package is in several overlays, but we will show an
+# installed overlay that contains the package if there is one, rather
+# than showing an uninstalled overlay which would confuse the user
+#
+# first pass for installed overlays
 #
 for match in $(/usr/bin/grep "$PKG" "${DESTROOT}"/var/sadm/overlays/*.pkgs)
 do
@@ -85,18 +90,36 @@ do
     OVL=${OVL%.pkgs}
     FPKG=${match##*:}
     if [[ -z ${pmap[$FPKG]} ]]; then
-	if [ -f "${DESTROOT}/var/sadm/overlays/installed/${OVL}" ]; then
-	   OSTATUS="installed"
-	else
-	   OSTATUS="uninstalled"
-	fi
 	if [ -d "${DESTROOT}/var/sadm/pkg/${FPKG}" ]; then
 	   PSTATUS="Installed"
 	else
 	   PSTATUS="Uninstalled"
 	fi
-	echo "${PSTATUS} package $FPKG in ${OSTATUS} overlay $OVL"
-	pmap[$FPKG]="$PSTATUS"
+	if [ -f "${DESTROOT}/var/sadm/overlays/installed/${OVL}" ]; then
+	   echo "${PSTATUS} package $FPKG in installed overlay $OVL"
+	   pmap[$FPKG]="$PSTATUS"
+	fi
+    fi
+done
+#
+# second pass for uninstalled overlays
+#
+for match in $(/usr/bin/grep "$PKG" "${DESTROOT}"/var/sadm/overlays/*.pkgs)
+do
+    OVL=${match%%:*}
+    OVL=${OVL##*/}
+    OVL=${OVL%.pkgs}
+    FPKG=${match##*:}
+    if [[ -z ${pmap[$FPKG]} ]]; then
+	if [ -d "${DESTROOT}/var/sadm/pkg/${FPKG}" ]; then
+	   PSTATUS="Installed"
+	else
+	   PSTATUS="Uninstalled"
+	fi
+	if [ ! -f "${DESTROOT}/var/sadm/overlays/installed/${OVL}" ]; then
+	   echo "${PSTATUS} package $FPKG in uninstalled overlay $OVL"
+	   pmap[$FPKG]="$PSTATUS"
+	fi
     fi
 done
 
