@@ -15,11 +15,20 @@
 #
 # }}}
 #
-# Copyright 2024 Peter Tribble
+# Copyright 2025 Peter Tribble
 #
 
 #
-# manage package and overlay repos
+# manage package and overlay repositories
+#
+
+#
+# the available options are to:
+#   list repositories
+#   describe a repository
+#   add an extra repository
+#   remove an extra repository
+#   change a repository URL (to use a mirror, for example)
 #
 
 #
@@ -137,6 +146,7 @@ get_priority_repo() {
 # check we're allowed to manipulate a repo of the given name
 # the rule is that the predefined repos can't be touched
 # exits with an error, so if it returns you're good to continue
+# also checks that the repository name has been given
 #
 check_repo_name() {
     ACTION="$1"
@@ -461,35 +471,64 @@ modify_repo() {
 
 #
 # subcommands
-# TODO - if no priority, then repo doesn't exist
 # TODO - change priority
 #
 case $1 in
     list-package-repos)
-	cat "${PKGREPOLIST}"
+	echo "Priority | Name"
+	echo "==========================="
+	while read -r rpri rname
+	do
+	    printf "|%7s | %-15s|\n" "$rpri" "$rname"
+	done < "${PKGREPOLIST}"
+	echo "==========================="
 	;;
     list-overlay-repos)
-	cat "${OVLREPOLIST}"
+	echo "Priority | Name"
+	echo "==========================="
+	while read -r rpri rname
+	do
+	    printf "|%7s | %-15s|\n" "$rpri" "$rname"
+	done < "${OVLREPOLIST}"
+	echo "==========================="
 	;;
     describe-package-repo)
 	shift
-	if [ -f "${CFGDIR}/repositories/${1}.repo" ]; then
-	    REPOPRI=$(get_repo_priority package "$1")
-	    echo "The $1 repo has priority $REPOPRI"
-	    cat "${CFGDIR}/repositories/${1}.repo"
-	else
-	    echo "No such package repo $1"
-	fi
+	case $# in
+	    1)
+		if [ -f "${CFGDIR}/repositories/${1}.repo" ]; then
+		    REPOPRI=$(get_repo_priority package "$1")
+		    echo "The $1 repo has priority $REPOPRI"
+		    cat "${CFGDIR}/repositories/${1}.repo"
+		else
+		    echo "ERROR: No such package repo $1"
+		    exit 1
+		fi
+		;;
+	    *)
+		echo "ERROR: repository name must be given"
+		exit 2
+		;;
+	esac
 	;;
     describe-overlay-repo)
 	shift
-	if [ -f "${CFGDIR}/repositories/${1}.ovl" ]; then
-	    REPOPRI=$(get_repo_priority overlay "$1")
-	    echo "The $1 repo has priority $REPOPRI"
-	    cat "${CFGDIR}/repositories/${1}.ovl"
-	else
-	    echo "No such overlay repo $1"
-	fi
+	case $# in
+	    1)
+		if [ -f "${CFGDIR}/repositories/${1}.ovl" ]; then
+		    REPOPRI=$(get_repo_priority overlay "$1")
+		    echo "The $1 repo has priority $REPOPRI"
+		    cat "${CFGDIR}/repositories/${1}.ovl"
+		else
+		    echo "ERROR: No such overlay repo $1"
+		    exit 1
+		fi
+		;;
+	    *)
+		echo "ERROR: repository name must be given"
+		exit 2
+		;;
+	esac
 	;;
     remove-package-repo)
 	shift
