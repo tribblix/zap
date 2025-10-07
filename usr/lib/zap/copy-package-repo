@@ -15,7 +15,7 @@
 #
 # }}}
 #
-# Copyright 2024 Peter Tribble
+# Copyright 2025 Peter Tribble
 #
 
 #
@@ -34,8 +34,10 @@ else
 fi
 CURL=/usr/bin/curl
 CARGS="-A ${USER_AGENT} -f -s -o"
-WGET=/usr/bin/wget
-WARGS="-U ${USER_AGENT} -q -O"
+if [ ! -x "${CURL}" ]; then
+    echo "ERROR: this tool needs curl"
+    exit 1
+fi
 
 #
 # arguments are
@@ -46,8 +48,8 @@ WARGS="-U ${USER_AGENT} -q -O"
 # if the destination does not exist it will be created and the repo copied
 # if the destination exists and contains a catalog, it will be updated
 #
-# you can either specify a repo by name or url
-# url is more reliable, as it allows you to specify the
+# you can specify a repo by name or url
+# url is more predictable, as it allows you to specify the
 # version of the repo, just specifying the repo by name
 # will pick whatever matches the currently installed system
 #
@@ -90,6 +92,11 @@ http*)
 	;;
 esac
 
+#
+# if the destination already exists, then the assumption is that it's
+# been created previously, and is either incomplete or to be updated
+# in either case, the catalog file should be present
+#
 if [ -d "${DESTDIR}" ]; then
     if [ ! -f "${DESTDIR}"/catalog ]; then
 	echo "Destination exists but doesn't look like a valid repository"
@@ -114,7 +121,7 @@ if [ ! -d "${DESTDIR}" ]; then
 fi
 
 #
-# grab the catalog and other metadata
+# retrieve the catalog and other metadata
 #
 ${CURL} ${CARGS} "${DESTDIR}"/catalog "${REPO}"/catalog
 ${CURL} ${CARGS} "${DESTDIR}"/aliases "${REPO}"/aliases
@@ -132,8 +139,7 @@ if [ ! -s "${DESTDIR}/catalog" ]; then
 fi
 
 #
-# and grab all the files
-# first with curl, then wget if there's a problem
+# and retrieve all the files
 # we always verify the checksums and delete files that fail to match
 #
 awk -F'|' '{print $1,$2,$4,$5}' "${DESTDIR}"/catalog | while read -r pkg ver fsize fsum
@@ -146,23 +152,22 @@ do
 	    if [ $rsize -eq $fsize ]; then
 		echo "Successful download of ${pkg}.${ver}.zap"
 	    else
-		echo "ERROR: size mismatch for ${pkg}.${ver}.zap, retrying"
+		echo "ERROR: size mismatch for ${pkg}.${ver}.zap, deleting"
 		/usr/bin/rm -f "${DESTDIR}/${pkg}.${ver}.zap"
-		${WGET} ${WARGS} "${DESTDIR}/${pkg}.${ver}.zap" "${REPO}/${pkg}.${ver}.zap"
 	    fi
 	else
-	    ${WGET} ${WARGS} "${DESTDIR}/${pkg}.${ver}.zap" "${REPO}/${pkg}.${ver}.zap"
+	    echo "ERROR: failed to download ${pkg}.${ver}.zap"
 	fi
     fi
     #
-    # always try pulling the sig files, although we don't actually check
-    # them here
+    # always retrieve the sig files, as a mirror will need to serve them,
+    # although we don't actually check them here
     #
     if [ ! -s "${DESTDIR}/${pkg}.${ver}.zap.sig" ]; then
 	echo "Getting ${pkg}.sig"
 	${CURL} ${CARGS} "${DESTDIR}/${pkg}.${ver}.zap.sig" "${REPO}/${pkg}.${ver}.zap.sig"
-	if [ ! -s "${DESTDIR}/${pkg}.${ver}.zap,sig" ]; then
-	    ${WGET} ${WARGS} "${DESTDIR}/${pkg}.${ver}.zap.sig" "${REPO}/${pkg}.${ver}.zap.sig"
+	if [ ! -s "${DESTDIR}/${pkg}.${ver}.zap.sig" ]; then
+	    echo "ERROR: failed to download ${DESTDIR}/${pkg}.${ver}.zap.sig"
 	fi
     fi
     PKGMD5=$(/usr/bin/digest -a md5 "${DESTDIR}/${pkg}.${ver}.zap")

@@ -15,7 +15,7 @@
 #
 # }}}
 #
-# Copyright 2024 Peter Tribble
+# Copyright 2025 Peter Tribble
 #
 
 #
@@ -34,6 +34,10 @@ else
 fi
 CURL=/usr/bin/curl
 CARGS="-A ${USER_AGENT} -f -s -o"
+if [ ! -x "${CURL}" ]; then
+    echo "ERROR: this tool needs curl"
+    exit 1
+fi
 
 #
 # arguments are
@@ -44,8 +48,8 @@ CARGS="-A ${USER_AGENT} -f -s -o"
 # if the destination does not exist it will be created and the repo copied
 # if the destination exists and contains a catalog, it will be updated
 #
-# you can either specify a repo by name or url
-# url is more reliable, as it allows you to specify the
+# you can specify a repo by name or url
+# url is more predictable, as it allows you to specify the
 # version of the repo, just specifying the repo by name
 # will pick whatever matches the currently installed system
 #
@@ -88,6 +92,11 @@ http*)
 	;;
 esac
 
+#
+# if the destination already exists, then the assumption is that it's
+# been created previously, and is either incomplete or to be updated
+# in either case, the catalog file should be present
+#
 if [ -d "${DESTDIR}" ]; then
     if [ ! -f "${DESTDIR}"/catalog ]; then
 	echo "Destination exists but doesn't look like a valid repository"
@@ -112,7 +121,7 @@ if [ ! -d "${DESTDIR}" ]; then
 fi
 
 #
-# grab the catalog and other metadata
+# retrieve the catalog
 #
 ${CURL} ${CARGS} "${DESTDIR}"/catalog "${REPO}"/catalog
 
@@ -127,7 +136,9 @@ if [ ! -s "${DESTDIR}/catalog" ]; then
 fi
 
 #
-# and grab all the files
+# and retrieve all the files
+# if we already have a copy, check to see if it's the right version
+# according to the catalog and retrieve a new version if necessary
 #
 awk -F'|' '{print $1,$2}' "${DESTDIR}"/catalog | while read -r ovl ver
 do
