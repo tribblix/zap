@@ -725,7 +725,6 @@ emu)
 	    echo "ERROR: qemu cpu model must be specified"
 	    usage
 	fi
-	exit 0
 	if [[ -n $ZTEMPLATE ]]; then
 	    echo "ERROR: templates must be sparse-root"
 	    usage
@@ -2098,7 +2097,11 @@ if [[ $ZBRAND = bhyve || $ZBRAND = emu ]]; then
     # this is a Tribblix extension to the bhyve and emu brands
     #
     if [ -n "${BZUSERS}" ]; then
-	echo "set value=\"unix=/var/${ZBRAND}/vm.vnc\""
+	if [[ $ZBRAND = bhyve ]]; then
+	    echo "set value=\"unix=/var/${ZBRAND}/vm.vnc\""
+	else
+	    echo "set value=\"unix:/var/${ZBRAND}/vm.vnc\""
+	fi
     else
 	echo "set value=on"
     fi
@@ -2292,7 +2295,7 @@ for APKG in $ZADDPACKAGE
 do
 	printf " -P $APKG"
 done
-if [[ -n $ZISOFILE && $ZBRAND != bhyve ]]; then
+if [[ -n $ZISOFILE && $ZBRAND != bhyve && $ZBRAND != emu ]]; then
     printf " $IMGFLAG $ZISOFILE"
 fi
 if [[ $ZBRAND = SUNWsolaris10 ]]; then
@@ -2429,7 +2432,7 @@ done
 # the specification can be either size alone, or pool:size
 # to use an alternate pool
 #
-if [[ $ZBRAND = bhyve ]]; then
+if [[ $ZBRAND = bhyve || $ZBRAND = emu ]]; then
     if [[ -z $BHYVEVOL ]]; then
 	if [[ -n $BHYVEVOLSIZES ]]; then
 	    for BHYVEVOLSIZE in $BHYVEVOLSIZES
@@ -2460,7 +2463,7 @@ if [[ $ZBRAND = bhyve ]]; then
 		echo "/usr/sbin/zfs destroy ${BHYVEPOOL}/${BVOLNAME}" >> "${ZSDIR}/destroy.${ZNAME}"
 	    done
 	else
-	    echo "ERROR: bhyve volume logic error"
+	    echo "ERROR: volume logic error"
 	    exit 1
 	fi
     fi
@@ -2598,7 +2601,7 @@ fi
 # do some minimalist configuration of the zone
 #
 /usr/bin/cp /etc/resolv.conf "${ZROOTBASE}/${ZNAME}/root/etc"
-if [[ $ZBRAND != SUNWlx && $ZBRAND != bhyve ]]; then
+if [[ $ZBRAND != SUNWlx && $ZBRAND != bhyve && $ZBRAND != emu ]]; then
     /usr/bin/cp /etc/default/init "${ZROOTBASE}/${ZNAME}/root/etc/default/init"
     echo "${ZNAME}" > "${ZROOTBASE}/${ZNAME}/root/etc/nodename"
     /usr/bin/sed -i "s:tribblix:${ZNAME}:g" "${ZROOTBASE}/${ZNAME}/root/etc/inet/hosts"
