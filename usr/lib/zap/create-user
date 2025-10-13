@@ -23,7 +23,7 @@
 #
 
 usage() {
-    echo "Usage: $0 [-c comment] [-d homedir] [-z] [-g gid] [-u uid] [-s shell] [-P profile] name"
+    echo "Usage: $0 [-c comment] [-d homedir] [-z] [-M mode] [-g gid] [-u uid] [-s shell] [-P profile] name"
     exit 2
 }
 
@@ -42,6 +42,7 @@ USER_COMMENT=""
 BASE_DIR="/export/home"
 USER_DIR=""
 ZFSFLAG="-Z"
+HOMEPERM="0700"
 USER_SHELL="/usr/bin/bash"
 PROFILE=""
 PASSWD_FILE="/etc/passwd"
@@ -51,12 +52,13 @@ PROFILE_FILE="/etc/security/prof_attr"
 #
 # the options cdgsu here mirror useradd
 # and all are optional
+# M is to set home directory permissions
 # P only accepts a single profile
 #
 # z mirrors useradd, we default to -Z
 # and ignore MANAGE_ZFS in /etc/default/useradd
 #
-while getopts "c:d:g:s:u:P:z" opt; do
+while getopts "c:d:g:M:P:s:u:z" opt; do
 case $opt in
 c)
 	USER_COMMENT="$OPTARG"
@@ -67,14 +69,17 @@ d)
 g)
 	USER_GROUP="$OPTARG"
 	;;
+M)
+	HOMEPERM="$OPTARG"
+	;;
+P)
+	PROFILE="$OPTARG"
+	;;
 s)
 	USER_SHELL="$OPTARG"
 	;;
 u)
 	USER_UID="$OPTARG"
-	;;
-P)
-	PROFILE="$OPTARG"
 	;;
 z)
 	ZFSFLAG="-z"
@@ -219,6 +224,26 @@ case $ZFSFLAG in
     ;;
 esac
 #
+# the default home directory permissions are 0700, and can be adjusted
+# with -M, but we only accept a fixed list of known values, adding a
+# leading zero if it's missing
+#
+case $HOMEPERM in
+    755|750|700|751|711|710)
+	HOMEPERM="0${HOMEPERM}"
+	;;
+esac
+case $HOMEPERM in
+    0755|0750|0700|0751|0711|0710)
+	:
+	;;
+    *)
+	echo "ERROR: unexpected home directory permissions"
+	echo "Custom values can be set manually using chmod"
+	exit 2
+	;;
+esac
+#
 # check profile for -P is valid
 #
 if [ -n "${PROFILE}" ]; then
@@ -298,4 +323,17 @@ if [ -n "${PROFILE}" ]; then
     /usr/sbin/useradd -m "${ZFSFLAG}" -c "${USER_COMMENT}" -P "${PROFILE}" -s "${USER_SHELL}" -d "${USER_DIR}" -g "${USER_GROUP}" -u "${USER_UID}" "${USER_NAME}"
 else
     /usr/sbin/useradd -m "${ZFSFLAG}" -c "${USER_COMMENT}" -s "${USER_SHELL}" -d "${USER_DIR}" -g "${USER_GROUP}" -u "${USER_UID}" "${USER_NAME}"
+fi
+#
+# as useradd has no option to set home directory permissions, do it
+# separately here
+#
+# note that this wrapper enforces creation of a new directory, so we need
+# not worry about changing the permission of something that already exists
+#
+if [ -d "${USER_DIR}" ]; then
+    /usr/bin/chmod "${HOMEPERM}" "${USER_DIR}"
+else
+    echo "FAIL: home directory not created"
+    exit 1
 fi

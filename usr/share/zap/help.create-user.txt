@@ -38,7 +38,15 @@ id will be allocated.
 You can specify the shell for the new user. If not given,
 /usr/bin/bash will be used.
 
+-M mode
+
+Set the permissions on the newly created user's home directory. By
+default this will be set to 0700, restricting access to just the user
+themselves, but you can use this option to be more open. The mode must
+be one of the known values: 0755, 0750, 0700, 0751, 0711, or 0710. 
+
 -P "profile"
 
 You can specify an execution profile to be allocated to the new
-user. For example, "Primary Administrator".
+user. For example, "Primary Administrator". Note that as profiles
+contain spaces, they need to be quoted.
