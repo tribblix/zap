@@ -115,3 +115,9 @@ TRIBblix-wal2json15
 TRIBblix-repmgr15
 TRIBblix-postgis15
 TRIBblix-postgres15
+TRIBbeancount-python-312
+TRIBcheroot-python-312
+TRIBfava-python-312
+TRIBflask-babel-python-312
+TRIBmarkdown2-python-312
+TRIBtatsu-python-312
