@@ -77,3 +77,6 @@ TRIBsys-boot-real-mode
 TRIBdrv-net-socal
 TRIBdrv-storage-sf
 TRIBtesseract
+TRIBbreezy-python-312
+TRIBdulwich-python-312
+TRIBfastimport-python-312
