@@ -147,11 +147,8 @@ if [ -z "${pkglist}" ]; then
   exit 0
 fi
 
-echo "Recursive install of: ${pkglist}"
-
 #
 # filter out invalid packages
-# TODO: merge with loop above?
 #
 npkglist=""
 for inpkg in $pkglist
@@ -183,7 +180,6 @@ ntostudy=0
 ntoinstall=1
 while [[ $ntostudy != $ntoinstall ]]
 do
-    echo "Resolving dependencies, pass ${ipass}"
     nnpkglist="${npkglist}"
     for inpkg in $npkglist
     do
@@ -212,6 +208,7 @@ ntoinstall=$(( ntoinstall ))
 gensort() {
 for newpkg in $npkglist
 do
+    echo ${newpkg} ${newpkg}
     for dpkg in ${depmap[$newpkg]}
     do
 	echo ${dpkg} ${newpkg}
@@ -219,6 +216,8 @@ do
 done | $TSORT
 }
 
-echo "\nInstalling ${ntoinstall} packages:\n${npkglist}\n"
+if [ "${ntoinstall}" -gt 1 ]; then
+    echo "\nInstalling ${ntoinstall} packages:\n${npkglist}\n"
+fi
 
 ${ZAPLIBDIR}/install-pkg ${CTXARGS} ${SRCARGS} $(gensort)
