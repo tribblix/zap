@@ -1,0 +1,77 @@
+.TH "TRIBBLIX" "1" "November 14, 2025" "Tribblix"
+.SH NAME
+Tribblix
+.SH DESCRIPTION
+Tribblix is an operating system descended from OpenSolaris, using
+illumos as the foundation.
+It is designed to be fast, lightweight, and efficient, with the
+flexibility to support a wide range of uses.
+.SH FEATURES
+Tribblix has a number of advanced features.
+.SS "Zones"
+The \fBzones\fR(7) facility provides isolated environments for running
+applications.
+A zone has its own namespace and networking, and looks like an
+independent system to users and applications, while sharing resources
+with the host it's running on for performance and efficiency.
+.SS "ZFS"
+Storage in Tribblix is managed using ZFS, an advanced filesystem and
+volume manager.
+ZFS provides protection against data corruption, automatic repair if
+redundant data is available, space saving with data compression,
+snapshots for recovery and clones, and efficient replication to a
+local or remote system.
+Storage devices are combined together into pools, which are managed
+with the \fBzpool\fR(8) utility.
+That storage pool can then be presented as filesystems or block
+volumes, which are managed with the \fBzfs\fR(8) utility.
+.SS "SMF"
+The service management facility, \fBsmf\fR(7), provides a robust
+mechanism for running services and applications in a predictable
+manner.
+It takes care of dependencies between services, and will restart
+services automatically in the event of a failure.
+It also uses \fBrbac\fR(7), role-based access control, to allow
+service administration to be delegated to users without having to hand
+over full administrative privileges.
+.LP
+To query the state of the system's services, use \fBsvcs\fR(1). To
+manage the state of services, use \fBsvcadm\fR(8). To manage service
+configuration, use \fBsvccfg\fR(8).
+.SS "Advanced Networking"
+With Crossbow, Tribblix has a highly flexible and fully virtualizable
+network stack.
+The tool to manage physical and virtual network devices is
+\fBdladm\fR(8), and IP address management on those devices uses the
+\fBipadm\fR(8) utility.
+.LP
+Because Tribblix and illumos value compatibility, the traditional
+method of configuring networks using \fBifconfig\fR(8) will still
+work.
+.SS "Bhyve"
+While zones allow you to run native applications in an isolated
+environment, to run a whole alternative operating system requires a
+full virtual machine, which is where \fBbhyve\fR(8) comes in.
+.LP
+The normal way to run \fBbhyve\fR in Tribblix is to use \fBzap\fR(1)
+to create a \fBbhyve\fR(7) zone, allowing a higher level of security
+and control.
+.SH ADMINISTRATION
+The \fBzap\fR(1) utility is the primary administration utility in
+Tribblix.
+Using \fBzap\fR(1), you can add, remove, and update software, and
+upgrade the whole system to a newer release.
+.LP
+While zones can be managed using the traditional tools, \fBzap\fR(1)
+provides a much simpler interface and hides much of the underlying
+complexity.
+In particular, \fBzap\fR(1) will take care of managing the appropriate
+ZFS and network configuration associated with a zone for you.
+.LP
+The \fBzap\fR(1) utility also simplifies management of users,
+installed locales, the system hostname, and the system timezone.
+.SH SEE ALSO
+\fBsvcs\fR(1), \fBzap\fR(1), \fBbhyve\fR(7), \fBrbac\fR(7),
+\fBsmf\fR(7), \fBzones\fR(7), \fBbhyve\fR(8), \fBdladm\fR(8),
+\fBifconfig\fR(8), \fBipadm\fR(8), \fBsvcadm\fR(8), \fBsvccfg\fR(8),
+\fBzfs\fR(8), \fBzpool\fR(8)
