@@ -677,14 +677,14 @@ bhyve)
 	IMGFLAG="-t"
 	;;
 emu)
-	if [ ! -f /var/sadm/overlays/installed/emu ]; then
+	if [ ! -f /var/sadm/overlays/installed/qemu ]; then
 	    echo "ERROR: qemu not found"
 	    echo "  To install, zap install-overlay qemu"
-	    #usage
+	    usage
 	fi
 	if [ ! -f /usr/lib/brand/emu/platform.xml ]; then
 	    echo "ERROR: emu not found - is it available?"
-	    #usage
+	    usage
 	fi
 	#
 	# the cpu specification for emu brings in both the system architecture
