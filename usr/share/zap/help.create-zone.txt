@@ -123,7 +123,9 @@ zone. Use the zap create-zone-template subcommand to construct such a
 template.
 
 For s10 zones, the -I flag specifies the absolute path to an image
-from a Solaris 10 physical system.
+from a Solaris 10 physical system, or an archive created from Solaris
+10 install media. As a convenience, if a Solaris 10 ISO image is
+supplied, a basic image will be created and used.
 
 For bhyve zones, the -I flag specifies an ISO image as the bhyve
 virtual machine's CDROM drive. Once the system has been installed from

@@ -1398,6 +1398,36 @@ SUNWsolaris10)
 	    echo "ERROR: specified image not found"
 	    usage
 	fi
+	#
+	# if we're passed an ISO image, create a base archive to install from
+	#
+	case $ZISOFILE in
+	    *.iso)
+		echo "Creating a base archive from a Solaris 10 ISO"
+		IMAGE_DIR=$(${ZAPLIBDIR}/zap-cfg image-dir)
+		ZISOROOT=${ZISOFILE%%.iso}
+		ZISOROOT=${ZISOROOT##*/}
+		if [ -d "${IMAGE_DIR}/${ZISOROOT}" ]; then
+		    echo "ERROR: working directory ${IMAGE_DIR}/${ZISOROOT} already exists"
+		    echo "To proceed, remove this directory and start again"
+		    usage
+		fi
+		if [ -f "${IMAGE_DIR}/${ZISOROOT}.tar" ]; then
+		    echo "Reusing existing archive ${IMAGE_DIR}/${ZISOROOT}.tar"
+		    ZISOFILE="${IMAGE_DIR}/${ZISOROOT}.tar"
+		else
+		    ${ZAPLIBDIR}/s10_install -I "${ZISOFILE}" -d "${IMAGE_DIR}/${ZISOROOT}" -x "${IMAGE_DIR}/${ZISOROOT}.tar"
+		    if [ -f "${IMAGE_DIR}/${ZISOROOT}.tar" ]; then
+			echo "Created archive ${IMAGE_DIR}/${ZISOROOT}.tar"
+			ZISOFILE="${IMAGE_DIR}/${ZISOROOT}.tar"
+		    else
+			echo "ERROR: image creation failed"
+			usage
+		    fi
+		    /usr/bin/rm -fr "${IMAGE_DIR}/${ZISOROOT}"
+		fi
+		;;
+	esac
 	;;
 bhyve|emu)
 	# require an image if we're not passed a prefilled volume
