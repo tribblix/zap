@@ -255,6 +255,10 @@ case $SCHEME in
 		DLFILE="almalinux-9-default_20240911_amd64.tar.xz"
 		DLNAME="proxmox-almalinux-9.tar.xz"
 		;;
+	    alma10|almalinux10)
+		DLFILE="almalinux-10-default_20250930_amd64.tar.xz"
+		DLNAME="proxmox-almalinux-10.tar.xz"
+		;;
 	    alpine-3.13)
 		DLFILE="alpine-3.13-default_20210419_amd64.tar.xz"
 		DLNAME="proxmox-alpine-3.13.tar.xz"
