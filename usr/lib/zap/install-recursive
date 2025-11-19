@@ -93,6 +93,7 @@ case $1 in
 	fi
 	INSTODIR="${DESTROOT}/${ODIR}"
 	OVLARGS="-R ${DESTROOT}"
+	PKGARGS="-R ${DESTROOT}"
 	;;
 esac
 
@@ -220,4 +221,4 @@ if [ "${ntoinstall}" -gt 1 ]; then
     echo "\nInstalling ${ntoinstall} packages:\n${npkglist}\n"
 fi
 
-${ZAPLIBDIR}/install-pkg ${CTXARGS} ${SRCARGS} $(gensort)
+${ZAPLIBDIR}/install-pkg ${PKGARGS} ${CTXARGS} ${SRCARGS} $(gensort)
