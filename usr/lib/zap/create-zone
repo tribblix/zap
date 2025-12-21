@@ -2102,6 +2102,7 @@ if [[ $ZBRAND = bhyve || $ZBRAND = emu ]]; then
 	echo "set type=string"
 	echo "set value=${BHVOL}"
 	echo "end"
+	echo "zvol: ${BHVOL}" >> "${ZSDIR}/zconfig.${ZNAME}"
 	VOLSTR=disk${VOLNUM}
 	VOLNUM=$((VOLNUM+1))
     done
@@ -2118,6 +2119,7 @@ if [[ $ZBRAND = bhyve || $ZBRAND = emu ]]; then
 	echo "set type=string"
 	echo "set value=${ZISOFILE}"
 	echo "end"
+	echo "initial_iso: ${ZISOFILE}" >> "${ZSDIR}/zconfig.${ZNAME}"
     fi
     echo "add attr"
     echo "set name=vnc"
