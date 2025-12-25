@@ -1,0 +1,6 @@
+version = 1
+
+[[annotations]]
+path = [ "README.md", "docs/*", "etc/crypto/certs/*.crt", "etc/zap/sign/tribblix/*.gpg", "usr/lib/zap/pkg.force", "usr/share/zap/deprecated.*", "usr/share/zap/help.*" ]
+SPDX-FileCopyrightText = "2025 Peter Tribble"
+SPDX-License-Identifier = "CDDL-1.0"
