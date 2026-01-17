@@ -15,7 +15,7 @@
 #
 # }}}
 #
-# Copyright 2025 Peter Tribble
+# Copyright 2026 Peter Tribble
 #
 
 #
@@ -95,6 +95,7 @@ ZBLANK=""
 NZONES=""
 KARGS=""
 DOIP6=""
+DOIP6IFACE=""
 NCMDLINE=""
 SYSIDCFGFILE=""
 FLOWPROPS=""
@@ -1577,6 +1578,24 @@ get_net_details() {
 }
 
 #
+# get the default interface, which will be the interface with the default
+# router associated with it
+#
+get_net_default() {
+    IFACE=$(/usr/sbin/route -n get -inet default | /usr/bin/grep interface: | /usr/bin/awk '{print $NF}')
+    echo "$IFACE"
+}
+
+#
+# get the default interface IPv6, which will be the interface with the
+# default router for IPv6 associated with it
+#
+get_net6_default() {
+    IFACE=$(/usr/sbin/route -n get -inet6 default | /usr/bin/grep interface: | /usr/bin/awk '{print $NF}')
+    echo "$IFACE"
+}
+
+#
 # if the given address is on an internal subnet behind a router/proxy
 # zone then return the name of that router/proxy zone, as saved in the
 # rconfig file
@@ -1728,8 +1747,15 @@ echo "set zonepath=${ZROOTBASE}/${ZNAME}"
 if [[ -n $XIP4 ]]; then
     echo "set ip-type=exclusive"
     echo "ip-type: exclusive" >> "${ZSDIR}/zconfig.${ZNAME}"
-else
+elif [[ -n $ZIP4 ]]; then
     echo "ip-type: shared" >> "${ZSDIR}/zconfig.${ZNAME}"
+else
+    if [[ -n $DOIP6 ]]; then
+	echo "set ip-type=exclusive"
+	echo "ip-type: exclusive" >> "${ZSDIR}/zconfig.${ZNAME}"
+    else
+	echo "ip-type: shared" >> "${ZSDIR}/zconfig.${ZNAME}"
+    fi
 fi
 #
 # shared ip addresses
@@ -1806,7 +1832,7 @@ do
 		echo "set defrouter=$ZGW"
 	    fi
 	fi
-	echo end
+	echo "end"
 	# in S11 allowed-address can be a list, but in illumos
 	# you need to use multiple net blocks
 	# this doesn't seem to work, the IPv6 address isn't brought up
@@ -1850,6 +1876,34 @@ do
 	    fi
 	fi
 done
+#
+# if we have neither ZIP4 or XIP4 set, then no network will be created
+# above, but if we've been asked for IPv6, create a vnic and configure it
+# save the vnic name as $DOIP6IFACE
+#
+if [[ -z $ZIP4 ]]; then
+    if [[ -z $XIP4 ]]; then
+	if [[ -n $DOIP6 ]]; then
+	    get_net6_default | read ZIFACE
+	    /usr/sbin/dladm show-vnic "znic$ZENUM" > /dev/null 2>&1
+	    ZESTATUS=$?
+	    while [ $ZESTATUS -eq 0 ]
+	    do
+		ZENUM=$((ZENUM+1))
+		/usr/sbin/dladm show-vnic "znic$ZENUM" > /dev/null 2>&1
+		ZESTATUS=$?
+	    done
+	    /usr/sbin/dladm create-vnic -l "$ZIFACE" "znic$ZENUM"
+	    DOIP6IFACE="znic$ZENUM"
+	    # if flow-properties are specified, we can't do anything
+	    # as it's tied to the IP address which we don't have
+	    echo "/usr/sbin/dladm delete-vnic znic$ZENUM" >> "${ZSDIR}/destroy.${ZNAME}"
+	    echo "add net"
+	    echo "set physical=znic$ZENUM"
+	    echo "end"
+	fi
+    fi
+fi
 #
 # For router/proxy zones we create an etherstub for the internal virtual
 # network, and create a vnic over that etherstub. The router/proxy zone
@@ -2567,6 +2621,12 @@ if [[ $ZBRAND != SUNWlx ]]; then
 	ZGW=$(get_gateway $XIP4)
 	echo "$ZGW" > "${ZROOTBASE}/${ZNAME}/root/etc/defaultrouter"
     fi
+fi
+#
+# and for the case of pure IPv6
+#
+if [[ -n $DOIP6IFACE ]]; then
+    touch "${ZROOTBASE}/${ZNAME}/root/etc/hostname6.$DOIP6IFACE"
 fi
 
 #
