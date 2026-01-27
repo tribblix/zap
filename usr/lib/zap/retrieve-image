@@ -207,17 +207,14 @@ case $SCHEME in
 	    jammy)
 		RELVER="22.04"
 		;;
-	    kinetic)
-		RELVER="22.10"
-		;;
-	    lunar)
-		RELVER="23.04"
-		;;
-	    mantic)
-		RELVER="23.10"
-		;;
 	    noble)
 		RELVER="24.04"
+		;;
+	    oriole)
+		RELVER="24.10"
+		;;
+	    quokka)
+		RELVER="25.04"
 		;;
 	    *.*)
 		:
@@ -356,14 +353,6 @@ case $SCHEME in
 		DLFILE="fedora-38-default_20230607_amd64.tar.xz"
 		DLNAME="proxmox-fedora-38.tar.xz"
 		;;
-	    fedora-39)
-		DLFILE="fedora-39-default_20231118_amd64.tar.xz"
-		DLNAME="proxmox-fedora-39.tar.xz"
-		;;
-	    fedora-40)
-		DLFILE="fedora-40-default_20240909_amd64.tar.xz"
-		DLNAME="proxmox-fedora-40.tar.xz"
-		;;
 	    fedora-41)
 		DLFILE="fedora-41-default_20241118_amd64.tar.xz"
 		DLNAME="proxmox-fedora-41.tar.xz"
@@ -371,6 +360,10 @@ case $SCHEME in
 	    fedora-42)
 		DLFILE="fedora-42-default_20250428_amd64.tar.xz"
 		DLNAME="proxmox-fedora-42.tar.xz"
+		;;
+	    fedora-43)
+		DLFILE="fedora-43-default_20260115_amd64.tar.xz"
+		DLNAME="proxmox-fedora-43.tar.xz"
 		;;
 	    gentoo)
 		DLFILE="gentoo-current-openrc_20250508_amd64.tar.xz"
@@ -380,6 +373,10 @@ case $SCHEME in
 	    opensuse-15|opensuse)
 		DLFILE="opensuse-15.6-default_20240910_amd64.tar.xz"
 		DLNAME="proxmox-opensuse-15.tar.xz"
+		;;
+	    opensuse-16)
+		DLFILE="opensuse-16.0-default_20260116_amd64.tar.xz"
+		DLNAME="proxmox-opensuse-16.tar.xz"
 		;;
 	    rocky8|rockylinux8)
 		DLFILE="rockylinux-8-default_20210929_amd64.tar.xz"
@@ -408,7 +405,7 @@ case $SCHEME in
 		    18.04)
 			UUVER=".1"
 			;;
-		    22.04|23.10|24.10)
+		    22.04|24.10)
 			EXT="zst"
 			;;
 		    24.04)
