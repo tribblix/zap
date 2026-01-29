@@ -15,7 +15,7 @@
 #
 # }}}
 #
-# Copyright 2025 Peter Tribble
+# Copyright 2026 Peter Tribble
 #
 
 #
@@ -329,7 +329,6 @@ fi
 /usr/bin/cp -p /var/adm/utmpx ${ALTROOT}/var/adm
 /usr/bin/cp -p /var/adm/wtmpx ${ALTROOT}/var/adm
 /usr/bin/cp -p /var/log/syslog ${ALTROOT}/var/log
-grep /swap /etc/vfstab >> ${ALTROOT}/etc/vfstab
 #
 # FIXME: these 2 often get mangled, need fixing properly
 #
