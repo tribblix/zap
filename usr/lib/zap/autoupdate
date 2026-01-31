@@ -1,0 +1,302 @@
+#!/bin/ksh
+#
+# SPDX-License-Identifier: CDDL-1.0
+#
+# {{{ CDDL HEADER
+#
+# This file and its contents are supplied under the terms of the
+# Common Development and Distribution License ("CDDL"), version 1.0.
+# You may only use this file in accordance with the terms of version
+# 1.0 of the CDDL.
+#
+# A full copy of the text of the CDDL should have accompanied this
+# source. A copy of the CDDL is also available via the Internet at
+# http://www.illumos.org/license/CDDL.
+#
+# }}}
+#
+# Copyright 2026 Peter Tribble
+#
+
+#
+# fully automated package updates
+#
+
+#
+# this wrapper both handles the automated updates and enabling or
+# disabling the task in cron
+#  -a perform the update
+#  -c automatically clear the download cache
+#  -d disable the cron job
+#  -e enable the cron job
+#  -l show current state
+#  -t set the time for the update, rather than the default of now
+#  -w run weekly, rather than the daily default
+#
+# FIXME: the autoupdate process and system reboots and shutdowns aren't aware
+# of each other, which they should be in order to operate safely
+#
+
+usage() {
+    if [ -n "$1" ]; then
+	echo "ERROR: $1"
+    fi
+    echo "USAGE: $0 [-s|-a|-d|-e [-c] [-t time] [-w]]"
+    exit 2
+}
+
+DOUPDATE=""
+DOCLEAN=""
+DODISABLE=""
+DOENABLE=""
+DOSTATUS=""
+DOTIME=""
+DOWEEKLY=""
+
+while getopts "acdest:w" opt ; do
+case $opt in
+a)
+    DOUPDATE="y"
+    ;;
+c)
+    DOCLEAN="y"
+    ;;
+d)
+    DODISABLE="y"
+    ;;
+e)
+    DOENABLE="y"
+    ;;
+s)
+    DOSTATUS="y"
+    ;;
+t)
+    DOTIME="y"
+    CTIME="${OPTARG}"
+    ;;
+w)
+    DOWEEKLY="y"
+    ;;
+*)
+    usage
+    ;;
+esac
+done
+shift $((OPTIND - 1))
+
+#
+# check argument validity
+#
+if [ -n "${DOUPDATE}" ]; then
+    if [ -n "${DODISABLE}" ]; then
+	usage
+    fi
+    if [ -n "${DOENABLE}" ]; then
+	usage
+    fi
+    if [ -n "${DOTIME}" ]; then
+	usage
+    fi
+    if [ -n "${DOWEEKLY}" ]; then
+	usage
+    fi
+    if [ -n "${DOCLEAN}" ]; then
+	usage
+    fi
+fi
+if [ -n "${DODISABLE}" ]; then
+    if [ -n "${DOSTATUS}" ]; then
+	usage
+    fi
+    if [ -n "${DOENABLE}" ]; then
+	usage
+    fi
+    if [ -n "${DOTIME}" ]; then
+	usage
+    fi
+    if [ -n "${DOWEEKLY}" ]; then
+	usage
+    fi
+    if [ -n "${DOCLEAN}" ]; then
+	usage
+    fi
+fi
+if [ -n "${DOSTATUS}" ]; then
+    if [ -n "${DOENABLE}" ]; then
+	usage
+    fi
+    if [ -n "${DOTIME}" ]; then
+	usage
+    fi
+    if [ -n "${DOWEEKLY}" ]; then
+	usage
+    fi
+    if [ -n "${DOCLEAN}" ]; then
+	usage
+    fi
+fi
+# -e can be used with -c and/or -t and/or -w
+
+#
+# select the time at which the cron job should run
+# by default, run every day, if given -w run weekly
+# if no time given, now is as good a choice as any
+# FIXME allow day to be specified
+#
+parse_time() {
+    if [ -n "${DOWEEKLY}" ]; then
+	DAYSPEC=$(/usr/bin/date '+%w')
+    else
+	DAYSPEC="*"
+    fi
+    if [ -n "${DOTIME}" ]; then
+	# assume we're passed HH:MM
+	case $CTIME in
+	    *:*:*)
+		usage "invalid time syntax"
+		;;
+	    {,2}([0-9]):{,2}([0-9]))
+		# above syntax see pattern-list in the ksh manual
+		HOURSPEC=${CTIME%%:*}
+		MINSPEC=${CTIME##*:}
+		;;
+	    *)
+		usage "invalid time syntax"
+		;;
+	esac
+	# if either were missing assume it means zero
+	if [ -z "${HOURSPEC}" ]; then
+	    HOURSPEC="0"
+	fi
+	if [ -z "${MINSPEC}" ]; then
+	    MINSPEC="0"
+	fi
+	#
+	# the above case statement guaranteed digits
+	# now check they're in range
+	#
+	if [ "${HOURSPEC}" -lt 0 ]; then
+	    usage "invalid hour"
+	fi
+	if [ "${MINSPEC}" -lt 0 ]; then
+	    usage "invalid minute"
+	fi
+	if [ "${HOURSPEC}" -gt 23 ]; then
+	    usage "invalid hour"
+	fi
+	if [ "${MINSPEC}" -gt 59 ]; then
+	    usage "invalid minute"
+	fi
+    else
+	HOURSPEC=$(/usr/bin/date '+%k')
+	MINSPEC=$(/usr/bin/date '+%M')
+    fi
+}
+
+#
+# get current text 
+#
+get_current_setting() {
+    /usr/bin/crontab -u root -l | awk '/BEGIN ZAP AUTOUPDATE/,/END ZAP AUTOUPDATE/'
+}
+
+#
+# generate the text that goes into the crontab
+#
+gen_crontab() {
+    echo "# BEGIN ZAP AUTOUPDATE"
+    echo "${MINSPEC} ${HOURSPEC} * * ${DAYSPEC} /usr/bin/zap autoupdate -a > /var/zap/log/autoupdate.log 2>&1"
+    echo "# END ZAP AUTOUPDATE"
+}
+
+#
+# actions
+#
+
+#
+# this is when we're called to actually do the update
+#
+do_update() {
+    echo /usr/bin/zap update-everything
+    if [ -f /etc/zap/auto-clean ]; then
+	/usr/bin/zap clean-cache -a
+    fi
+}
+
+#
+# disable automatic updates
+#
+do_disable() {
+    CURVAL=$(get_current_setting)
+    if [ -z "${CURVAL}" ]; then
+	echo "Automatic updates not enabled"
+	exit 2
+    fi
+    if [ -f /etc/zap/auto-clean ]; then
+	rm -f /etc/zap/auto-clean
+    fi
+    rm -f /var/zap/ctab.$$
+    /usr/bin/crontab -u root -l | sed '/BEGIN ZAP AUTOUPDATE/,/END ZAP AUTOUPDATE/d' > /var/zap/ctab.$$
+    /usr/bin/crontab -u root /var/zap/ctab.$$
+    rm -f /var/zap/ctab.$$
+}
+
+#
+# enable automatic updates at the desired time
+#
+do_enable() {
+    parse_time
+    if ! /usr/bin/crontab -u root -l > /dev/null 2>&1
+    then
+	echo "Only root can enable automatic updates"
+	exit 2
+    fi
+    if [ -n "${DOCLEAN}" ]; then
+	touch /etc/zap/auto-clean
+    fi
+    #
+    # make sure we remove any current cron job, to ensure the cron job
+    # is only present once
+    #
+    rm -f /var/zap/ctab.$$
+    /usr/bin/crontab -u root -l | sed '/BEGIN ZAP AUTOUPDATE/,/END ZAP AUTOUPDATE/d' > /var/zap/ctab.$$
+    gen_crontab >> /var/zap/ctab.$$
+    /usr/bin/crontab -u root /var/zap/ctab.$$
+    rm -f /var/zap/ctab.$$
+}
+
+#
+# display the current status
+#
+show_status() {
+    if ! /usr/bin/crontab -u root -l > /dev/null 2>&1
+    then
+	echo "Only root can show automatic update status"
+	exit 2
+    fi
+    CURVAL=$(get_current_setting)
+    if [ -z "${CURVAL}" ]; then
+	echo "Automatic updates are not enabled"
+    else
+	echo "Automatic updates are enabled"
+	get_current_setting
+    fi
+    if [ -f /etc/zap/auto-clean ]; then
+	echo "Downloaded packages are automatically removed"
+    fi
+}
+
+#
+# do the requested action
+#
+if [ -n "${DOUPDATE}" ]; then
+    do_update
+elif [ -n "${DODISABLE}" ]; then
+    do_disable
+elif [ -n "${DOENABLE}" ]; then
+    do_enable
+elif [ -n "${DOSTATUS}" ]; then
+    show_status
+else
+    usage
+fi

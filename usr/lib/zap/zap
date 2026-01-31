@@ -15,7 +15,7 @@
 #
 # }}}
 #
-# Copyright 2025 Peter Tribble
+# Copyright 2026 Peter Tribble
 #
 
 #
@@ -164,6 +164,10 @@ ue|update-everything)
 	${ZAPLIBDIR}/refresh ${CTXARGS}
 	${ZAPLIBDIR}/update-overlay ${CTXARGS} -a
 	exec ${ZAPLIBDIR}/verify-packages ${PKGARGS} -u
+	;;
+autoupdate)
+	shift
+	exec ${ZAPLIBDIR}/autoupdate ${CTXARGS} "$@"
 	;;
 clean-cache)
 	shift

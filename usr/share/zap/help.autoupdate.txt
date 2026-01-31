@@ -1,0 +1,35 @@
+Automatic Updates
+=================
+
+Keeping your system up to date is important to reduce problems
+associated with old software that might have bugs or security issues.
+
+This can be done manually, by running the following command regularly:
+
+    zap update-everything
+
+The above can also be automated. To enable automatic updates, simply
+
+    zap autoupdate -e
+
+To disable automatic updates, simply run
+
+    zap autoupdate -d
+
+To show the current status
+
+    zap autoupdate -s
+
+By default, automatic updates will be scheduled to run every day, at
+the same time the command is run (as this is a time the system is
+known to be up). To only run updates once a week, add the -w flag
+
+    zap autoupdate -e -w
+
+To specify a time, such as 23:15, use the -t flag
+
+    zap autoupdate -e -t 23:15
+
+Note that the autoupdate process and system reboots and shutdowns
+aren't aware of each other, so automatic updates should be enabled
+with care and a suitable time chosen.
