@@ -15,7 +15,7 @@
 #
 # }}}
 #
-# Copyright 2024 Peter Tribble
+# Copyright 2026 Peter Tribble
 #
 
 #
@@ -98,13 +98,26 @@ rm /etc/ssh/*key*
 rm -fr /root/.ssh
 rm /root/.bash_history
 rm -f /etc/zap/repositories/*.bak
+if [ -f /etc/zap/cache_dir ]; then
+    rm -f /etc/zap/cache_dir
+fi
+if [ -f /etc/zap/image_dir ]; then
+    rm -f /etc/zap/image_dir
+fi
+if [ -f /etc/zap/docker_dir ]; then
+    rm -f /etc/zap/docker_dir
+fi
+if [ -f /etc/zap/proxy_cfg ]; then
+    rm -f /etc/zap/proxy_cfg
+fi
+/usr/bin/find /var/zap/images -type f -exec rm {} \;
 # clean all logs
 rm -f /var/adm/messages.*
 cat /dev/null > /var/adm/messages
 cat /dev/null > /var/adm/wtmpx
 cat /dev/null > /var/adm/utmpx
 cat /dev/null > /var/adm/lastlog
-cat /dev/null > /var/adm/lastlog
+cat /dev/null > /var/adm/loginlog
 rm -f /var/log/syslog.*
 cat /dev/null > /var/log/syslog
 if [ -f /var/log/slim.log ]; then
@@ -113,19 +126,31 @@ fi
 if [ -f /var/adm/sulog ]; then
   cat /dev/null > /var/adm/sulog
 fi
+cat /dev/null > /var/log/authlog
 rm -f /var/log/Xorg*
 cat /dev/null > /var/cron/log
+if [ -f /var/cron/olog ]; then
+    rm -f /var/cron/olog
+fi
+if [ -f /var/adm/spellhist ]; then
+    cat /dev/null > /var/adm/spellhist
+fi
 # and any crash dumps
-rm -f $(find /var/crash -type f)
+/usr/bin/find /var/crash -type f -exec rm {} \;
 # and any saved core files
-rm -f $(find /var/cores -type f)
+/usr/bin/find /var/cores -type f -exec rm {} \;
 # and any mailboxes and messages
-rm -f $(find /var/mail -type f)
-rm -f $(find /var/spool/mqueue -type f)
-rm -f $(find /var/spool/clientmqueue -type f)
+/usr/bin/find /var/mail -type f -exec rm {} \;
+/usr/bin/find /var/spool/mqueue -type f -exec rm {} \;
+/usr/bin/find /var/spool/clientmqueue -type f -exec rm {} \;
 # any customized CA certificates
 if [ -x /usr/lib/zap/manage-cacerts ]; then
     /usr/lib/zap/manage-cacerts clean
+fi
+# disable automatic updates
+if [ -f /var/zap/log/autoupdate.log ]; then
+    /usr/bin/zap autoupdate -d
+    rm -f /var/zap/log/autoupdate.log
 fi
 
 # clean up any customizations
