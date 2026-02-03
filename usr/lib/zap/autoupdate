@@ -194,7 +194,7 @@ parse_time() {
 }
 
 #
-# get current text 
+# get current text
 #
 get_current_setting() {
     /usr/bin/crontab -u root -l | awk '/BEGIN ZAP AUTOUPDATE/,/END ZAP AUTOUPDATE/'
