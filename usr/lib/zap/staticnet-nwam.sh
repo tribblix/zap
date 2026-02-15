@@ -15,7 +15,7 @@
 #
 # }}}
 #
-# Copyright 2025 Peter Tribble
+# Copyright 2026 Peter Tribble
 #
 
 #
@@ -108,12 +108,18 @@ if [ -z "$IPROUTE" ]; then
 fi
 
 #
+# nwam always enables IPv6, so we do the same, it's all autoconfigured
+# so all we need to do is create an addrconf address on the interface
+#
+
+#
 # flip the address to static
 #
 echo "/usr/sbin/svcadm disable -s svc:/network/physical:nwam"
 echo "/usr/sbin/svcadm enable -s svc:/network/physical:default"
 echo "/usr/sbin/ipadm create-if ${IFACE}"
 echo "/usr/sbin/ipadm create-addr -T static -a $IP1 ${IFACE}/v4"
+echo "/usr/sbin/ipadm create-addr -T addrconf ${IFACE}/v6"
 echo "/usr/sbin/route -p add net default $IPROUTE"
 echo "echo $IPROUTE > /etc/defaultrouter"
 echo "/usr/sbin/svcadm disable -s svc:/network/routing/route:default"
@@ -122,6 +128,7 @@ if [ -z "$DRYRUN" ]; then
     /usr/sbin/svcadm enable -s svc:/network/physical:default
     /usr/sbin/ipadm create-if "${IFACE}"
     /usr/sbin/ipadm create-addr -T static -a "$IP1" "${IFACE}/v4"
+    /usr/sbin/ipadm create-addr -T addrconf "${IFACE}/v6"
     /usr/sbin/route -p add net default "$IPROUTE"
     echo "$IPROUTE" > /etc/defaultrouter
     /usr/sbin/svcadm disable -s svc:/network/routing/route:default
