@@ -14,7 +14,7 @@ create-zone -z zone_name [-t whole|sparse|alien|bhyve|lx|s10|router|appstack]
     [-S|-s shared_dir] [-D dataset] [-v volume | -V volsize]
     [-B] [-n number] [-F flow_props] [-m ram_size] [-f firmware]
     [-c cpu_spec] [-C] [-k sshkey_file] [-L linux_version]
-    [-a appstack_name] [-A appstack_config
+    [-a appstack_name] [-A appstack_config]
 
 Supplying the zone_name is mandatory; all other arguments are
 optional. Not all arguments are relevant to all zone types, and not
