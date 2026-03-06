@@ -112,7 +112,7 @@ extract_file() {
     fname="$1"
     xfile="$2"
     if [ -f "${fname}" ]; then
-	/usr/bin/unzip -p "${fname}" "${xfile}" 2>/dev/null 
+	/usr/bin/unzip -p "${fname}" "${xfile}" 2>/dev/null
     fi
 }
 

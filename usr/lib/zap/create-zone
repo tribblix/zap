@@ -2758,7 +2758,7 @@ cat > "${ZROOTBASE}/${ZNAME}/root/etc/appstack.rc" <<EOF
 EOF
 if [[ -n $XIP4 || -n $DOIP6 ]]; then
     cp /usr/lib/brand/appstack/network.sh "${ZROOTBASE}/${ZNAME}/root/etc/"
-cat > "${ZROOTBASE}/${ZNAME}/root/etc/appstack.rc" <<EOF    
+cat > "${ZROOTBASE}/${ZNAME}/root/etc/appstack.rc" <<EOF
 #
 # bring up exclusive-ip networking
 #
@@ -2766,7 +2766,7 @@ cat > "${ZROOTBASE}/${ZNAME}/root/etc/appstack.rc" <<EOF
 EOF
 fi
 ${ZAPLIBDIR}//appstack get_data "${APPSTACK}" run.sh > "${ZROOTBASE}/${ZNAME}/root/etc/appstack.sh"
-cat >> "${ZROOTBASE}/${ZNAME}/root/etc/appstack.rc" <<EOF    
+cat >> "${ZROOTBASE}/${ZNAME}/root/etc/appstack.rc" <<EOF
 #
 # starts the application
 #
