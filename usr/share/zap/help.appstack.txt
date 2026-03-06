@@ -1,0 +1,36 @@
+Application Stacks
+==================
+
+An application stack, referred to as an appstack, is a minimal
+installation of the packages required to create a running
+application. The initial implementation in Tribblix supports
+installation of appstacks in zones, using zap's create-zone subcommand
+like so:
+
+    zap create-zone -t appstack -a appstack_name [-A config_file] ...
+
+To help with discovering and managing appstacks, zap has an appstack
+subcommand with the following options.
+
+To list available appstacks:
+
+    zap appstack list
+
+To show information about an appstack:
+
+    zap appstack describe appstack_name
+
+To download an appstack:
+
+    zap appstack download appstack_name
+
+To configure an appstack:
+
+   zap appstack configure appstack_name config_file
+
+There's normally no need to explicitly download an appstack, as it
+will be automatically downloaded if required.
+
+Appstacks may be configured as shown above. The config_file argument
+is a file that will be created by the configuration process, that is
+then passed to create-zone as the argument to the -A flag.

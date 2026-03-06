@@ -15,7 +15,7 @@
 #
 # }}}
 #
-# Copyright 2025 Peter Tribble
+# Copyright 2026 Peter Tribble
 #
 
 #
@@ -171,6 +171,19 @@ refresh_overlay_repo() {
 }
 
 #
+# get new catalog for each appstack repo
+#
+refresh_appstack_repo() {
+    frepo="$1"
+    REPO=$(${ZAPLIBDIR}/zap-cfg ${CTXARGS} appstack-url "$frepo")
+    ${WCLIENT} ${WARGS} "${CFGDIR}/repositories/${frepo}.appstacks.tmp" "${REPO}/catalog"
+    if [ -s "${CFGDIR}/repositories/${frepo}.appstacks.tmp" ]; then
+	mv "${CFGDIR}/repositories/${frepo}.appstacks" "${CFGDIR}/repositories/${frepo}.appstacks.bak"
+	mv "${CFGDIR}/repositories/${frepo}.appstacks.tmp" "${CFGDIR}/repositories/${frepo}.appstacks"
+    fi
+}
+
+#
 # loop over the package repos
 #
 for repo in $(/usr/bin/awk '{print $2}' "${CFGDIR}/repo.list")
@@ -184,4 +197,12 @@ done
 for repo in $(${ZAPLIBDIR}/zap-cfg ${CTXARGS} list-overlay-repos)
 do
     refresh_overlay_repo "$repo"
+done
+
+#
+# loop over the appstack repos
+#
+for repo in $(${ZAPLIBDIR}/zap-cfg ${CTXARGS} list-appstack-repos)
+do
+    refresh_appstack_repo "$repo"
 done

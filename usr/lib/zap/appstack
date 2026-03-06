@@ -1,0 +1,466 @@
+#!/bin/ksh
+#
+# SPDX-License-Identifier: CDDL-1.0
+#
+# {{{ CDDL HEADER
+#
+# This file and its contents are supplied under the terms of the
+# Common Development and Distribution License ("CDDL"), version 1.0.
+# You may only use this file in accordance with the terms of version
+# 1.0 of the CDDL.
+#
+# A full copy of the text of the CDDL should have accompanied this
+# source. A copy of the CDDL is also available via the Internet at
+# http://www.illumos.org/license/CDDL.
+#
+# }}}
+#
+# Copyright 2026 Peter Tribble
+#
+
+ZAPLIBDIR="/usr/lib/zap"
+TRIBVER=$(${ZAPLIBDIR}/pkgversion SUNWcs)
+CACHE_DIR=$(${ZAPLIBDIR}/zap-cfg cache-dir)
+USER_AGENT="zap"/$(${ZAPLIBDIR}/zap-cfg pkgversion)
+ZAP_PROXY=$(${ZAPLIBDIR}/zap-cfg proxy)
+
+if [ -n "$ZAP_PROXY" ]; then
+    http_proxy=$ZAP_PROXY
+    export http_proxy
+fi
+
+WCLIENT=/usr/bin/curl
+WARGS="-A ${USER_AGENT} -f -s -o"
+if [ ! -x $WCLIENT ]; then
+    WCLIENT=/usr/bin/wget
+    WARGS="-U ${USER_AGENT} -q -O"
+fi
+if [ ! -x $WCLIENT ]; then
+    WCLIENT=/usr/bin/wget2
+    WARGS="-U ${USER_AGENT} -q -O"
+fi
+
+# FIXME need to handle multiple appstack repos
+APPREPO="tribblix"
+APPCATALOG="/etc/zap/repositories/${APPREPO}.appstacks"
+ZAPLIBDIR="/packages/localsrc/Tribblix/zap/usr/lib/zap"
+
+#
+# these are the configuration maps
+#
+typeset -A reqmap
+typeset -A flagmap
+typeset -A targetmap
+typeset -A responsemap
+
+#
+# manage appstacks
+#
+bail() {
+    echo "ERROR: $1"
+    exit 1
+}
+
+#
+# there isn't a separate refresh here, that's part of the normal
+# refresh so that all the metadata gets updated together
+#
+
+#
+# list available appstacks
+# this is the only action that doesn't need root, as everything else
+# might require downloading content into the system cache
+#
+list_appstacks() {
+    if [ ! -f "${APPCATALOG}" ]; then
+	bail "missing appstack catalog"
+    fi
+    if [ "$1" = "-v"  ]; then
+	/usr/bin/awk -F'|' '{print $1"@"$2": "$3}' "${APPCATALOG}"
+    else
+	/usr/bin/awk -F'|' '{print $1}' "${APPCATALOG}"
+    fi
+}
+
+#
+# get the version from the catalog
+# can be used to check existence, if the given appstack does not exist
+# then nothing is returned
+#
+get_version() {
+    appname="$1"
+    if [ -n "${appname}" ]; then
+	/usr/bin/awk -v n="${appname}" -F'|' '{if ($1 == n) print $2}' "${APPCATALOG}"
+    fi
+}
+
+#
+# get the download filename
+#
+get_dlname() {
+    appname="$1"
+    if [ -n "${appname}" ]; then
+	/usr/bin/awk -v n="${appname}" -F'|' '{if ($1 == n) print "APP"n"."$2".zap"}' "${APPCATALOG}"
+    fi
+}
+
+#
+# extract a file from an appstack and emit on stdout
+# emits nothing if the appstack file doesn't exist
+#
+extract_file() {
+    fname="$1"
+    xfile="$2"
+    if [ -f "${fname}" ]; then
+	/usr/bin/unzip -p "${fname}" "${xfile}" 2>/dev/null 
+    fi
+}
+
+#
+# download an appstack
+# if already downloaded, do nothing
+# with -r download the necessary packages into the cache
+#
+download_appstack() {
+    appname="$1"
+    if [ -z "${appname}" ]; then
+	bail "missing appstack name for download"
+    fi
+    appver=$(get_version "$appname")
+    if [ -z "${appver}" ]; then
+	bail "unable to get version for $appname"
+    fi
+    fname=$(get_dlname "$appname")
+    if [ -z "${fname}" ]; then
+	bail "unable to get download name for $appname"
+    fi
+    if [ ! -f "${CACHE_DIR}/${fname}" ]; then
+	REPO=$(${ZAPLIBDIR}/zap-cfg ${CTXARGS} appstack-url "${APPREPO}")
+	echo "Fetching ${REPO}/${fname}"
+	${WCLIENT} ${WARGS} "${CACHE_DIR}/${fname}" "${REPO}/${fname}"
+    fi
+    if [ "$2" = "-r" ]; then
+	get_data "${appname}" appstack.pkgs | while read -r pkg
+	do
+	    fpkg=$(${ZAPLIBDIR}/get-version ${CTXARGS} "$pkg")
+	    fpkg=${fpkg%% *}
+	    if [ -f "${CACHE_DIR}/${fpkg}.zap" ]; then
+		echo "Already downloaded $pkg"
+	    else
+		echo "Downloading package $pkg"
+		echo ${ZAPLIBDIR}/retrieve-pkg "$pkg"
+	    fi
+	done
+    fi
+}
+
+#
+# describe an appstack
+# quick describe we can do from the catalog
+# verbose needs the appstack to be downloaded
+#
+describe_appstack() {
+    appname="$1"
+    if [ -z "${appname}" ]; then
+	bail "missing appstack name for describe"
+    fi
+    if [ ! -f "${APPCATALOG}" ]; then
+	bail "missing appstack catalog"
+    fi
+    appver=$(get_version "$appname")
+    if [ -z "${appver}" ]; then
+	bail "no such appstack $appname"
+    fi
+    /usr/bin/awk -v n="${appname}" -F'|' '{if ($1 == n) print "name="$1", version="$2", description: "$3}' "${APPCATALOG}"
+    if [ "$2" = "-v"  ]; then
+	download_appstack "${appname}"
+	echo "Description:"
+	get_data "${appname}" "appstack.longdesc"
+	echo "Packages:"
+	get_data "${appname}" "appstack.pkgs"
+    fi
+}
+
+#
+# interactive request for a value
+# at present this must be a directory that already exists
+#
+request_config() {
+    req="$1"
+    src="$2"
+    val=""
+    verified=""
+    while [ -z "${verified}" ]
+    do
+	case $req in
+	    optional)
+		echo "Please give a directory name for $src [OPTIONAL]"
+		read val < /dev/stdin
+		;;
+	    required)
+		echo "Please give a directory name for $src [REQUIRED]"
+		while [ -z "$val" ]
+		do
+		    read val
+		done
+		;;
+	esac
+	case $val in
+	    '')
+		verified="y"
+		;;
+	    /*)
+		if [ -d "${val}" ]; then
+		    verified="y"
+		else
+		    echo "INVALID: input must be a directory name and exist"
+		fi
+		;;
+	    *)
+		echo "INVALID: input must be an absolute path"
+		;;
+	esac
+    done
+    responsemap[$src]=$val
+}
+
+#
+# configure an appstack
+# write the derived configuration to the provided file, which must not exist
+#
+configure_appstack() {
+    appname="$1"
+    appconfig="$2"
+    if [ -z "${appname}" ]; then
+	bail "missing appstack name for configure"
+    fi
+    if [ -z "${appconfig}" ]; then
+	bail "missing appstack config filename for configure"
+    fi
+    if [ -f "${appconfig}" ]; then
+	bail "requested config file for configure already exists"
+    fi
+    if [ -d "${appconfig}" ]; then
+	bail "requested config file for configure already exists (as directory)"
+    fi
+    download_appstack "${appname}"
+    #
+    # implementation note on the block below:
+    # this is in 2 stages because the pipe into while in the first stage
+    # swallows stdin, which means that if request_config were inside that
+    # loop then it gets stdin from the loop rather than user input
+    # so split the file read into an independent block
+    #
+    get_data "${appname}" map.properties | while read -r src req flag target
+    do
+	reqmap[$src]=$req
+	flagmap[$src]=$flag
+	targetmap[$src]=$target
+    done
+    for src in "${!flagmap[@]}"
+    do
+        request_config ${reqmap[$src]} $src
+    done
+    #
+    # now we loop over the values and print out the zone configuration
+    # that corresponds to this configuration
+    #
+    touch "${appconfig}"
+    if [ ! -f "${appconfig}" ]; then
+	bail "requested config file cannot be created"
+    fi
+
+    for src in "${!flagmap[@]}"
+    do
+	if [ -n "${responsemap[$src]}" ]; then
+	    echo ${responsemap[$src]} maps to ${targetmap[$src]}
+	    echo "add fs" >> "${appconfig}"
+	    echo "set dir=${targetmap[$src]}" >> "${appconfig}"
+	    echo "set special=${responsemap[$src]}" >> "${appconfig}"
+	    echo "set type=lofs" >> "${appconfig}"
+	    case $flagmap[$src] in
+		ro)
+		    echo "add options [ro,nodevices]" >> "${appconfig}"
+		    ;;
+		rw)
+		    echo "add options [nodevices]" >> "${appconfig}"
+		    ;;
+	    esac
+	    echo "end" >> "${appconfig}"
+	else
+	    echo "no mapping for ${targetmap[$src]}"
+	fi
+    done
+}
+
+#
+# extract a named data item from an appstack
+# FIXME shouldn't really emit errors
+#
+get_data() {
+    appname="$1"
+    param="$2"
+    if [ -z "${appname}" ]; then
+	bail "missing appstack name for get_data"
+    fi
+    if [ -z "${param}" ]; then
+	bail "missing param name for get_data"
+    fi
+    fname=$(get_dlname "$appname")
+    if [ -z "${fname}" ]; then
+	bail "missing dlname"
+    fi
+    # download the appstack if it's not in the cache
+    if [ ! -f "${CACHE_DIR}/${fname}" ]; then
+	download_appstack "${appname}"
+    fi
+    if [ ! -f "${CACHE_DIR}/${fname}" ]; then
+	bail "missing download"
+    fi
+    extract_file "${CACHE_DIR}/${fname}" "APP${appname}/${param}"
+}
+
+#
+# extract a named configuration item from an appstack
+# if configuration is required or optional, say so
+#
+get_config() {
+    appname="$1"
+    appconfig="$2"
+    param="$3"
+    if [ -z "${appname}" ]; then
+	bail "missing appstack name for get_config"
+    fi
+    if [ -z "${appconfig}" ]; then
+	bail "missing appstack config name for get_config"
+    fi
+    download_appstack "${appname}"
+    if [ -z "${param}" ]; then
+	echo "Unimplemented get_config all for $appname $appconfig"
+    else
+	echo "Unimplemented get_config for $appname $appconfig $param"
+    fi
+}
+
+#
+# verify the given appstack and optional config file
+# emits either the string "ERROR" on failure or "OK" on success
+#
+do_fail() {
+    echo "ERROR"
+    exit 1
+}
+do_verify() {
+    appname="$1"
+    appconfig="$2"
+    # check arguments
+    if [ -z "${appname}" ]; then
+	do_fail
+    fi
+    if [ -n "${appconfig}" ]; then
+	if [ ! -f "${appconfig}" ]; then
+	    do_fail
+	fi
+    fi
+    # check we have a catalog
+    if [ ! -f "${APPCATALOG}" ]; then
+	do_fail
+    fi
+    # check the appstack is in the catalog
+    appver=$(get_version "$appname")
+    if [ -z "${appver}" ]; then
+	do_fail
+    fi
+    fname=$(get_dlname "$appname")
+    if [ -z "${fname}" ]; then
+	do_fail
+    fi
+    # make sure the appstack has been downloaded
+    # download packages as a side-effect
+    download_appstack "${appname}" -r > /dev/null
+    if [ ! -f "${CACHE_DIR}/${fname}" ]; then
+	do_fail
+    fi
+    #
+    # check all packages have been downloaded, fail if not
+    #
+    get_data "${appname}" appstack.pkgs | while read -r pkg
+    do
+	fpkg=$(${ZAPLIBDIR}/get-version ${CTXARGS} "$pkg")
+	fpkg=${fpkg%% *}
+	if [ ! -f "${CACHE_DIR}/${fpkg}.zap" ]; then
+	    do_fail
+	fi
+    done
+    #
+    # fail if the appstack needs configuration and config not supplied
+    #
+    get_data "${appname}" map.properties | while read -r src req flag target
+    do
+	case $req in
+	    required)
+		if [ -z "${appconfig}" ]; then
+		    do_fail
+		fi
+		;;
+	esac
+    done
+    echo "OK"
+}
+
+#
+# main wrapper
+#
+case $1 in
+    list)
+	shift
+	list_appstacks $1
+	exit 0
+	;;
+    download)
+	shift
+	# expect name of the appstack as the only argument
+	# optional recursive flag as the second argument
+	download_appstack "$1" "$2"
+	exit 0
+	;;
+    describe)
+	shift
+	# expect name of the appstack as the first argument
+	# optional verbose flag as the second argument
+	describe_appstack "$1" "$2"
+	exit 0
+	;;
+    configure)
+	shift
+	# expect name of the appstack as the first argument
+	# expect name of the configuration file as the second argument
+	configure_appstack "$1" "$2"
+	exit 0
+	;;
+    get_data)
+	shift
+	# expect name of the appstack as the first argument
+	# expect parameter name as the second argument
+	get_data "$1" "$2"
+	exit 0
+	;;
+    get_config)
+	shift
+	# expect name of the appstack as the first argument
+	# expect name of the configuration file as the second argument
+	# optional parameter name as the third argument
+	get_config "$1" "$2" "$3"
+	exit 0
+	;;
+    verify)
+	shift
+	# expect name of the appstack as the first argument
+	# optional parameter name as the second argument
+	do_verify "$1" "$2"
+	exit 0
+	;;
+    *)
+	bail "invalid usage"
+	;;
+esac

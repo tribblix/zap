@@ -2032,6 +2032,12 @@ if [[ $ZBRAND = bhyve || $ZBRAND = emu ]]; then
 	echo "end"
 fi
 #
+# if we have an appstack configuration, insert it here
+#
+if [[ -n $APPCONFIG ]]; then
+    cat "$APPCONFIG"
+fi
+#
 # for any items shared with the zone, add them
 # existence was checked earlier
 #
@@ -2471,6 +2477,25 @@ if [[ -n $NZONES ]]; then
 fi
 
 #
+# if this is an appstack zone, verify first before proceeding
+#
+if [[ $ZBRAND = TRIBappstack ]]; then
+    ZSTATUS=$(${ZAPLIBDIR}/appstack verify "${APPSTACK}")
+    case $ZSTATUS in
+	OK)
+	    echo "Appstack ${APPSTACK} verified"
+	    ;;
+	ERROR)
+	    echo "ERROR: Appstack ${APPSTACK} failed to validate"
+	    exit 1
+	    ;;
+	*)
+	    echo "ERROR: unexpected status ${ZSTATUS} in appstack validation"
+	    ;;
+    esac
+fi
+
+#
 # create any missing zfs datasets
 #
 if [[ -n ${ZDIRS} ]]; then
@@ -2713,6 +2738,43 @@ if [[ $ZBRAND = SUNWsolaris10 ]]; then
     /usr/bin/cp "${ZROOTBASE}/${ZNAME}/root/etc/nsswitch.dns" "${ZROOTBASE}/${ZNAME}/root/etc/nsswitch.conf"
     /usr/bin/cp /etc/.login "${ZROOTBASE}/${ZNAME}/root/etc/.login"
     /usr/bin/cp /etc/profile "${ZROOTBASE}/${ZNAME}/root/etc/profile"
+fi
+
+#
+# if this is an appstack zone, apply custom setup
+# the zone startup is run from /etc/appstack.rc which replaces smf
+# if the zone is exclusive-ip then we need to bring up networking
+# and then launch the application
+#
+if [[ $ZBRAND = TRIBappstack ]]; then
+    if [ -f "${ZROOTBASE}/${ZNAME}/root/etc/inittab" ]; then
+        /usr/bin/sed -i 's:/lib/svc/bin/svc.startd:/etc/appstack.rc:' "${ZROOTBASE}/${ZNAME}/root/etc/inittab"
+    fi
+cat > "${ZROOTBASE}/${ZNAME}/root/etc/appstack.rc" <<EOF
+#!/sbin/sh
+#
+# this is the main appstack startup script
+#
+EOF
+if [[ -n $XIP4 || -n $DOIP6 ]]; then
+    cp /usr/lib/brand/appstack/network.sh "${ZROOTBASE}/${ZNAME}/root/etc/"
+cat > "${ZROOTBASE}/${ZNAME}/root/etc/appstack.rc" <<EOF    
+#
+# bring up exclusive-ip networking
+#
+/etc/network.sh
+EOF
+fi
+${ZAPLIBDIR}//appstack get_data "${APPSTACK}" run.sh > "${ZROOTBASE}/${ZNAME}/root/etc/appstack.sh"
+cat >> "${ZROOTBASE}/${ZNAME}/root/etc/appstack.rc" <<EOF    
+#
+# starts the application
+#
+/etc/appstack.sh
+EOF
+chmod a+x "${ZROOTBASE}/${ZNAME}/root/etc/appstack.rc"
+chmod a+x "${ZROOTBASE}/${ZNAME}/root/etc/appstack.sh"
+chmod a+x "${ZROOTBASE}/${ZNAME}/root/etc/network.sh"
 fi
 
 #

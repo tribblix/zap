@@ -36,6 +36,7 @@ In there you will find
 
 * repo.list - the list of package repositories
 * overlays.list - the list of overlay repositories
+* appstack.list - the list of appstack repositories
 
 These lists contain one line per repository, with a numerical precedence
 (lower numbers mean higher priority) and the name of the repository.
@@ -58,3 +59,14 @@ one overlay repository), which have two files
 
 * ovl - the equivalent of the package repo file
 * overlays - the equivalent of the package catalog file
+
+And the appstack repositories (again normally there's just the
+one appstack repository), which have two files
+
+* app - the equivalent of the package repo file
+* appstacks - the equivalent of the package catalog file
+
+The .repo file (and the equivalent .ovl and .app files) are packaged,
+they're metadata for a specific release. The catalog (and .overlays,
+.appstacks, aliases and filelist) are dynamic and are refreshed from
+the repo.
