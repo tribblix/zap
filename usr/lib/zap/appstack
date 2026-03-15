@@ -148,7 +148,7 @@ download_appstack() {
 		echo "Already downloaded $pkg"
 	    else
 		echo "Downloading package $pkg"
-		echo ${ZAPLIBDIR}/retrieve-pkg "$pkg"
+		${ZAPLIBDIR}/retrieve-pkg "$pkg"
 	    fi
 	done
     fi
