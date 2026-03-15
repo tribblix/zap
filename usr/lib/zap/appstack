@@ -273,7 +273,7 @@ configure_appstack() {
     for src in "${!flagmap[@]}"
     do
 	if [ -n "${responsemap[$src]}" ]; then
-	    echo ${responsemap[$src]} maps to ${targetmap[$src]}
+	    #echo ${responsemap[$src]} maps to ${targetmap[$src]}
 	    echo "add fs" >> "${appconfig}"
 	    echo "set dir=${targetmap[$src]}" >> "${appconfig}"
 	    echo "set special=${responsemap[$src]}" >> "${appconfig}"
@@ -287,10 +287,13 @@ configure_appstack() {
 		    ;;
 	    esac
 	    echo "end" >> "${appconfig}"
-	else
-	    echo "no mapping for ${targetmap[$src]}"
 	fi
     done
+    if [ -s "${appconfig}" ]; then
+	echo "Configuration written to ${appconfig}"
+    else
+	echo "WARN: empty configuration"
+    fi
 }
 
 #
