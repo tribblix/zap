@@ -2245,6 +2245,15 @@ if [[ $ZBRAND = bhyve || $ZBRAND = emu ]]; then
 		echo "end"
 		;;
 	esac
+	case $ZISOFILE in
+	    *windows*|*Windows*)
+		echo "add attr"
+		echo "set name=type"
+		echo "set type=string"
+		echo "set value=windows"
+		echo "end"
+		;;
+	esac
 	# share directories over virtfs
 	# note that the fs configuration has already been done, here
 	# we set the attributes for bhyve to pick them up
