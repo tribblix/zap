@@ -119,10 +119,15 @@ extract_file() {
 #
 # download an appstack
 # if already downloaded, do nothing
-# with -r download the necessary packages into the cache
+# with -r also download the necessary packages into the cache
 #
 download_appstack() {
     appname="$1"
+    varg="$2"
+    if [ "$1" = "-r" ]; then
+	appname="$2"
+	varg="-r"
+    fi
     if [ -z "${appname}" ]; then
 	bail "missing appstack name for download"
     fi
@@ -139,7 +144,7 @@ download_appstack() {
 	echo "Fetching ${REPO}/${fname}"
 	${WCLIENT} ${WARGS} "${CACHE_DIR}/${fname}" "${REPO}/${fname}"
     fi
-    if [ "$2" = "-r" ]; then
+    if [ "$varg" = "-r" ]; then
 	get_data "${appname}" appstack.pkgs | while read -r pkg
 	do
 	    fpkg=$(${ZAPLIBDIR}/get-version ${CTXARGS} "$pkg")
@@ -161,6 +166,11 @@ download_appstack() {
 #
 describe_appstack() {
     appname="$1"
+    varg="$2"
+    if [ "$1" = "-v" ]; then
+	appname="$2"
+	varg="-v"
+    fi
     if [ -z "${appname}" ]; then
 	bail "missing appstack name for describe"
     fi
@@ -172,11 +182,15 @@ describe_appstack() {
 	bail "no such appstack $appname"
     fi
     /usr/bin/awk -v n="${appname}" -F'|' '{if ($1 == n) print "name="$1", version="$2", description: "$3}' "${APPCATALOG}"
-    if [ "$2" = "-v"  ]; then
+    if [ "$varg" = "-v" ]; then
 	download_appstack "${appname}"
+	echo ""
 	echo "Description:"
+	echo "============"
 	get_data "${appname}" "appstack.longdesc"
+	echo ""
 	echo "Packages:"
+	echo "========="
 	get_data "${appname}" "appstack.pkgs"
     fi
 }
