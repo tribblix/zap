@@ -256,10 +256,6 @@ case $SCHEME in
 		DLFILE="almalinux-10-default_20250930_amd64.tar.xz"
 		DLNAME="proxmox-almalinux-10.tar.xz"
 		;;
-	    alpine-3.13)
-		DLFILE="alpine-3.13-default_20210419_amd64.tar.xz"
-		DLNAME="proxmox-alpine-3.13.tar.xz"
-		;;
 	    alpine-3.14)
 		DLFILE="alpine-3.14-default_20210623_amd64.tar.xz"
 		DLNAME="proxmox-alpine-3.14.tar.xz"
@@ -296,8 +292,12 @@ case $SCHEME in
 		DLFILE="alpine-3.22-default_20250617_amd64.tar.xz"
 		DLNAME="proxmox-alpine-3.22.tar.xz"
 		;;
+	    alpine-3.23)
+		DLFILE="alpine-3.23-default_20260116_amd64.tar.xz"
+		DLNAME="proxmox-alpine-3.23.tar.xz"
+		;;
 	    arch|archlinux)
-		DLFILE="archlinux-base_20250907-1_amd64.tar.zst"
+		DLFILE="archlinux-base_20240911-1_amd64.tar.zst"
 		DLNAME="proxmox-archlinux.tar.zst"
 		echo "WARN: arch is not supported by the LX brand"
 		;;
@@ -405,7 +405,7 @@ case $SCHEME in
 		    18.04)
 			UUVER=".1"
 			;;
-		    22.04|24.10)
+		    20.04|22.04|24.10)
 			EXT="zst"
 			;;
 		    24.04)
