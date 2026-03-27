@@ -19,7 +19,6 @@
 #
 
 ZAPLIBDIR="/usr/lib/zap"
-TRIBVER=$(${ZAPLIBDIR}/pkgversion SUNWcs)
 CACHE_DIR=$(${ZAPLIBDIR}/zap-cfg cache-dir)
 USER_AGENT="zap"/$(${ZAPLIBDIR}/zap-cfg pkgversion)
 ZAP_PROXY=$(${ZAPLIBDIR}/zap-cfg proxy)
