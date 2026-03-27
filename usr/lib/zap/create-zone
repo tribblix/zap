@@ -2496,6 +2496,7 @@ if [[ $ZBRAND = TRIBappstack ]]; then
 	    ;;
 	ERROR)
 	    echo "ERROR: Appstack ${APPSTACK} failed to validate"
+	    ${ZAPLIBDIR}/appstack explain-verify "${APPSTACK}"
 	    exit 1
 	    ;;
 	*)

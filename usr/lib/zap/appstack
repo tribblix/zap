@@ -361,42 +361,55 @@ get_config() {
 
 #
 # verify the given appstack and optional config file
-# emits either the string "ERROR" on failure or "OK" on success
+# can be called as either verify or explain-verify
+# as verify, emit either the string "ERROR" on failure or "OK" on success
+# as explain-verify, give a reason for the failure
+# stop on first failure, as it usually means subsequent checks won't
+# work at all
 #
 do_fail() {
-    echo "ERROR"
-    exit 1
+    if [ -n "${EXPLAIN_VERIFY}" ]; then
+	echo "Failed because: $1"
+	exit 0
+    else
+	echo "ERROR"
+	exit 1
+    fi
 }
 do_verify() {
     appname="$1"
     appconfig="$2"
     # check arguments
     if [ -z "${appname}" ]; then
-	do_fail
+	do_fail "No appstack name given"
     fi
     if [ -n "${appconfig}" ]; then
 	if [ ! -f "${appconfig}" ]; then
-	    do_fail
+	    if [ -d "${appconfig}" ]; then
+		do_fail "Given appconfig file is a directory"
+	    else
+		do_fail "Given appconfig file does not exist"
+	    fi
 	fi
     fi
     # check we have a catalog
     if [ ! -f "${APPCATALOG}" ]; then
-	do_fail
+	do_fail "No appstack catalog"
     fi
     # check the appstack is in the catalog
     appver=$(get_version "$appname")
     if [ -z "${appver}" ]; then
-	do_fail
+	do_fail "Appstack ${appname} not found in catalog"
     fi
     fname=$(get_dlname "$appname")
     if [ -z "${fname}" ]; then
-	do_fail
+	do_fail "Appstack ${appname} not found in catalog"
     fi
     # make sure the appstack has been downloaded
     # download packages as a side-effect
     download_appstack "${appname}" -r > /dev/null
     if [ ! -f "${CACHE_DIR}/${fname}" ]; then
-	do_fail
+	do_fail "Appstack ${appname} failed to download"
     fi
     #
     # check all packages have been downloaded, fail if not
@@ -406,7 +419,7 @@ do_verify() {
 	fpkg=$(${ZAPLIBDIR}/get-version ${CTXARGS} "$pkg")
 	fpkg=${fpkg%% *}
 	if [ ! -f "${CACHE_DIR}/${fpkg}.zap" ]; then
-	    do_fail
+	    do_fail "Package ${pkg} failed to download"
 	fi
     done
     #
@@ -417,12 +430,14 @@ do_verify() {
 	case $req in
 	    required)
 		if [ -z "${appconfig}" ]; then
-		    do_fail
+		    do_fail "Property ${src} needs to be configured"
 		fi
 		;;
 	esac
     done
-    echo "OK"
+    if [ -z "${EXPLAIN_VERIFY}" ]; then
+	echo "OK"
+    fi
 }
 
 #
@@ -474,6 +489,14 @@ case $1 in
 	shift
 	# expect name of the appstack as the first argument
 	# optional parameter name as the second argument
+	do_verify "$1" "$2"
+	exit 0
+	;;
+    explain-verify)
+	shift
+	# expect name of the appstack as the first argument
+	# optional parameter name as the second argument
+	EXPLAIN_VERIFY="yes"
 	do_verify "$1" "$2"
 	exit 0
 	;;
