@@ -152,7 +152,8 @@ usage() {
 	    MEMUSAGE=" [-m ram_size]"
 	fi
     fi
-    echo "Usage: $0 -z zone_name [-t whole|sparse|alien${BHYVEUSAGE}${QEMUUSAGE}${LXUSAGE}${S10USAGE}|router]"
+    echo "Usage: $0 -z zone_name"
+    echo "  [-t whole|sparse|alien${BHYVEUSAGE}${QEMUUSAGE}${LXUSAGE}${S10USAGE}|router|appstack]"
     echo "  [-T template] [-I image_file] [-U user]"
     echo "  [-i ip_address] [-x ip_address] [-R ip_network/prefix] [-6]"
     echo "  [-o overlay] [-O overlay] [-p package] [-P package]"
