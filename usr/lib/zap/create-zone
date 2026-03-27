@@ -2489,14 +2489,14 @@ fi
 # if this is an appstack zone, verify first before proceeding
 #
 if [[ $ZBRAND = TRIBappstack ]]; then
-    ZSTATUS=$(${ZAPLIBDIR}/appstack verify "${APPSTACK}")
+    ZSTATUS=$(${ZAPLIBDIR}/appstack verify "${APPSTACK}" "${APPCONFIG}")
     case $ZSTATUS in
 	OK)
 	    echo "Appstack ${APPSTACK} verified"
 	    ;;
 	ERROR)
 	    echo "ERROR: Appstack ${APPSTACK} failed to validate"
-	    ${ZAPLIBDIR}/appstack explain-verify "${APPSTACK}"
+	    ${ZAPLIBDIR}/appstack explain-verify "${APPSTACK}" "${APPCONFIG}"
 	    exit 1
 	    ;;
 	*)
