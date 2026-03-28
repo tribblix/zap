@@ -106,3 +106,6 @@ TRIBtexttable-python-312
 TRIBchardet-python-312
 TRIBpycurl-python-312
 TRIBwfuzz-python-312
+TRIBlib-perl-5-http-oai
+TRIBlib-perl-5-io-tty
+TRIBlib-perl-5-tree-simple
