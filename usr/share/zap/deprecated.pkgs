@@ -109,3 +109,5 @@ TRIBwfuzz-python-312
 TRIBlib-perl-5-http-oai
 TRIBlib-perl-5-io-tty
 TRIBlib-perl-5-tree-simple
+TRIBlib-perl-5-term-readkey
+TRIBlib-perl-5-xml-libxml
