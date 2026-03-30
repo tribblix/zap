@@ -20,24 +20,6 @@
 
 ZAPLIBDIR="/usr/lib/zap"
 CACHE_DIR=$(${ZAPLIBDIR}/zap-cfg cache-dir)
-USER_AGENT="zap"/$(${ZAPLIBDIR}/zap-cfg pkgversion)
-ZAP_PROXY=$(${ZAPLIBDIR}/zap-cfg proxy)
-
-if [ -n "$ZAP_PROXY" ]; then
-    http_proxy=$ZAP_PROXY
-    export http_proxy
-fi
-
-WCLIENT=/usr/bin/curl
-WARGS="-A ${USER_AGENT} -f -s -o"
-if [ ! -x $WCLIENT ]; then
-    WCLIENT=/usr/bin/wget
-    WARGS="-U ${USER_AGENT} -q -O"
-fi
-if [ ! -x $WCLIENT ]; then
-    WCLIENT=/usr/bin/wget2
-    WARGS="-U ${USER_AGENT} -q -O"
-fi
 
 # FIXME need to handle multiple appstack repos
 APPREPO="tribblix"
@@ -140,6 +122,22 @@ download_appstack() {
 	bail "unable to get download name for $appname"
     fi
     if [ ! -f "${CACHE_DIR}/${fname}" ]; then
+	USER_AGENT="zap"/$(${ZAPLIBDIR}/zap-cfg pkgversion)
+	ZAP_PROXY=$(${ZAPLIBDIR}/zap-cfg proxy)
+	if [ -n "$ZAP_PROXY" ]; then
+	    http_proxy=$ZAP_PROXY
+	    export http_proxy
+	fi
+	WCLIENT=/usr/bin/curl
+	WARGS="-A ${USER_AGENT} -f -s -o"
+	if [ ! -x $WCLIENT ]; then
+	    WCLIENT=/usr/bin/wget
+	    WARGS="-U ${USER_AGENT} -q -O"
+	fi
+	if [ ! -x $WCLIENT ]; then
+	    WCLIENT=/usr/bin/wget2
+	    WARGS="-U ${USER_AGENT} -q -O"
+	fi
 	REPO=$(${ZAPLIBDIR}/zap-cfg ${CTXARGS} appstack-url "${APPREPO}")
 	echo "Fetching ${REPO}/${fname}"
 	${WCLIENT} ${WARGS} "${CACHE_DIR}/${fname}" "${REPO}/${fname}"
