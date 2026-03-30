@@ -51,6 +51,7 @@ typeset -A reqmap
 typeset -A flagmap
 typeset -A targetmap
 typeset -A responsemap
+typeset -A confmap
 
 #
 # manage appstacks
@@ -208,13 +209,14 @@ request_config() {
 	case $req in
 	    optional)
 		echo "Please give a directory name for $src [OPTIONAL]"
-		read val < /dev/stdin
+		read -r val < /dev/stdin
 		;;
 	    required)
 		echo "Please give a directory name for $src [REQUIRED]"
+		read -r val < /dev/stdin
 		while [ -z "$val" ]
 		do
-		    read val
+		    read -r val < /dev/stdin
 		done
 		;;
 	esac
@@ -238,7 +240,43 @@ request_config() {
 }
 
 #
-# configure an appstack
+# populate the configuration from the -K flags
+# here we simply exit if there's a problem
+#
+set_config() {
+    req="$1"
+    src="$2"
+    val=${confmap[$src]}
+    case $req in
+	required)
+	    if [ -z "$val" ]; then
+		echo "ERROR: no config for required $src"
+		exit 1
+	    fi
+	    ;;
+    esac
+    case $val in
+	'')
+	    :
+	    ;;
+	/*)
+	    if [ ! -d "${val}" ]; then
+		echo "INVALID: input must be a directory name and exist"
+		exit 1
+	    fi
+	    ;;
+	*)
+	    echo "INVALID: input must be an absolute path"
+	    exit 1
+	    ;;
+    esac
+    responsemap[$src]=$val
+}
+
+#
+# configure an appstack, either automatically if we're given some -K flags,
+# or interactively if not
+#
 # write the derived configuration to the provided file, which must not exist
 #
 configure_appstack() {
@@ -272,7 +310,11 @@ configure_appstack() {
     done
     for src in "${!flagmap[@]}"
     do
-        request_config ${reqmap[$src]} $src
+	if [ -n "${KFLAGS}" ]; then
+            set_config "${reqmap[$src]}" "$src"
+	else
+            request_config "${reqmap[$src]}" "$src"
+	fi
     done
     #
     # now we loop over the values and print out the zone configuration
@@ -291,7 +333,7 @@ configure_appstack() {
 	    echo "set dir=${targetmap[$src]}" >> "${appconfig}"
 	    echo "set special=${responsemap[$src]}" >> "${appconfig}"
 	    echo "set type=lofs" >> "${appconfig}"
-	    case $flagmap[$src] in
+	    case ${flagmap[$src]} in
 		ro)
 		    echo "add options [ro,nodevices]" >> "${appconfig}"
 		    ;;
@@ -440,12 +482,32 @@ do_verify() {
 }
 
 #
+# pick off any -K flags for automatic configuration
+# these have to come before the subcommand
+#
+KFLAGS=""
+while getopts "K:" opt; do
+    case $opt in
+	K)
+	    kkey=${OPTARG%%=*}
+	    kvalue=${OPTARG#*=}
+	    confmap[$kkey]=$kvalue
+	    KFLAGS="y"
+	    ;;
+	*)
+	    :
+	    ;;
+    esac
+done
+shift $((OPTIND - 1))
+
+#
 # main wrapper
 #
 case $1 in
     list)
 	shift
-	list_appstacks $1
+	list_appstacks "$1"
 	exit 0
 	;;
     download)
