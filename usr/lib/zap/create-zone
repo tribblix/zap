@@ -502,8 +502,8 @@ TRIBappstack)
 	   echo "ERROR: cannot specify overlays for appstack zones"
 	   usage
 	fi
-	if [[ -n $ZPACKAGE ]]; then
-	   echo "ERROR: cannot specify copy packages for appstack zones"
+	if [[ -n $ZPACKAGE || -n $ZADDPACKAGE ]]; then
+	   echo "ERROR: cannot specify packages for appstack zones"
 	   usage
 	fi
 	if [[ -n $ZISOFILE ]]; then
