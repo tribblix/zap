@@ -94,6 +94,7 @@ ZTEMPLATEPATH=""
 ZBLANK=""
 NZONES=""
 KARGS=""
+KAPPARGS=""
 DOIP6=""
 DOIP6IFACE=""
 NCMDLINE=""
@@ -111,6 +112,7 @@ CPUSPEC=""
 LXKVER="4.4.15"
 APPSTACK=""
 APPCONFIG=""
+KAPPCONFIG=""
 #
 # for emu zones
 #
@@ -160,8 +162,7 @@ usage() {
     echo "  [-d extra_dir] [-s|-S shared_dir] [-D dataset]${VOLUSAGE}"
     echo "  [-B] [-n number_of_zones] [-F flow_props]${MEMUSAGE}"
     echo "  [-c cpu_spec] [-C] [-k sshkey_file]${QCPUUSAGE}${LXKUSAGE}"
-    echo "  [-a appstack_name] [-A appstack_config_file]"
-    #echo "  [-K action=arg[=arg...]]"
+    echo "  [-a appstack_name] [-A appstack_config_file] [-K key=value]"
     exit 2
 }
 
@@ -271,6 +272,7 @@ k)
 	;;
 K)
 	KARGS="${KARGS} $OPTARG"
+	KAPPARGS="${KAPPARGS} -K $OPTARG"
 	NCMDLINE="${NCMDLINE} -K $OPTARG"
 	;;
 F)
@@ -1014,6 +1016,10 @@ if [[ -n $APPCONFIG ]]; then
     fi
     if [ ! -s "${APPCONFIG}" ]; then
 	echo "ERROR: appstack config file $APPCONFIG is empty"
+	usage
+    fi
+    if [ -n "${KAPPARGS}" ]; then
+	echo "ERROR: cannot supply an appstack config file and -K arguments"
 	usage
     fi
 fi
@@ -2488,8 +2494,19 @@ fi
 
 #
 # if this is an appstack zone, verify first before proceeding
+# if we have konfigurator arguments, use those to create an appconfig
+# file on the fly
 #
 if [[ $ZBRAND = TRIBappstack ]]; then
+    if [ -n "${KAPPARGS}" ]; then
+	KAPPCONFIG=/tmp/zap.appcfg.$(date '+%F-%T').$$
+	${ZAPLIBDIR}/appstack ${KAPPARGS} configure "${APPSTACK}" "${KAPPCONFIG}"
+	if [ -s "${KAPPCONFIG}" ]; then
+	    APPCONFIG="${KAPPCONFIG}"
+	else
+	    /usr/bin/rm -f "${KAPPCONFIG}"
+	fi
+    fi
     ZSTATUS=$(${ZAPLIBDIR}/appstack verify "${APPSTACK}" "${APPCONFIG}")
     case $ZSTATUS in
 	OK)
@@ -2820,6 +2837,9 @@ done
 /usr/sbin/zoneadm -z "${ZNAME}" boot
 /usr/bin/rm "$ZCFGFILE"
 
+if [[ -n ${KAPPCONFIG} ]]; then
+    /usr/bin/rm -f "$KAPPCONFIG"
+fi
 if [[ -n ${SYSIDCFGFILE} ]]; then
     /usr/bin/rm -f "$SYSIDCFGFILE"
 fi

@@ -16,21 +16,35 @@ To list available appstacks:
 
     zap appstack list
 
-To show information about an appstack:
+To show information about an appstack, adding -v will give a verbose
+description:
 
-    zap appstack describe appstack_name
+    zap appstack describe [-v] appstack_name
 
 To download an appstack:
 
     zap appstack download appstack_name
 
-To configure an appstack:
-
-   zap appstack configure appstack_name config_file
-
 There's normally no need to explicitly download an appstack, as it
 will be automatically downloaded if required.
 
-Appstacks may be configured as shown above. The config_file argument
-is a file that will be created by the configuration process, that is
-then passed to create-zone as the argument to the -A flag.
+To interactively configure an appstack:
+
+   zap appstack configure appstack_name config_file
+
+Appstacks may be configured interactively as shown above. The
+config_file argument is a file that will be created by the
+configuration process, that is then passed to create-zone as the
+argument to the -A flag.
+
+Some configuration parameters are common, for example data_dir for
+where an appstack's data can be found, config_dir for configuration
+files, log_dir for application logs.
+
+In simple cases, the configuration can be done while creating a
+zone passing the value of a configuration parameter with the -K
+flag. For example, to set up nginx to serve the files in
+/my/website/output you would use:
+
+    zap create-zone -z web1 -t appstack -x 192.168.1.223 -a nginx \
+        -K data_dir=/my/website/output
