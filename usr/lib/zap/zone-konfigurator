@@ -15,7 +15,7 @@
 #
 # }}}
 #
-# Copyright 2024 Peter Tribble
+# Copyright 2026 Peter Tribble
 #
 
 #
@@ -62,9 +62,10 @@ esac
 action=${1%%=*}
 args=${1#*=}
 
+#
+# the konfigurator arguments may be overloaded for specific brands
+# so silently ignore unrecognized actions
+#
 if [ -x "${ZAPLIBDIR}/konfigure/$action" ]; then
     exec "${ZAPLIBDIR}/konfigure/$action" -z "${ZNAME}" $args
-else
-    echo "WARN: unrecognized action $action"
-    exit 2
 fi
