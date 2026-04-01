@@ -8,15 +8,15 @@ This can be done manually, by running the following command regularly:
 
     zap update-everything
 
-The above can also be automated. To enable automatic updates, simply
+The above can also be automated. To enable automatic updates, run:
 
     zap autoupdate -e
 
-To disable automatic updates, simply run
+To disable automatic updates, run:
 
     zap autoupdate -d
 
-To show the current status
+To show the current status:
 
     zap autoupdate -s
 

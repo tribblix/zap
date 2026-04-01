@@ -48,8 +48,7 @@ uninstall [-R dir] pkg [pkg ...]
 
 list-packages [args]
 
-  Simply lists the installed packages; this is an alias for the
-  pkginfo utility.
+  Lists the installed packages; this is an alias for the pkginfo utility.
 
 describe-package pkg [pkg ...]
 

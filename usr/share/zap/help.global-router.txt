@@ -14,9 +14,9 @@ syntax is, as an example
 
 zap global-router -R 10.1.2.0/24
 
-which creates a /24 subnet in the 10.1.2.0 range. Clearly, the address
-range chosen should not conflict or overlap with any other range you
-happen to be using in your infrastructure.
+which creates a /24 subnet in the 10.1.2.0 range. To avoid confusion,
+the address range chosen should not conflict or overlap with any other
+range you happen to be using in your infrastructure.
 
 This will set up the appropriate network infrastructure and enable NAT
 for any zones connected to that network. (Creating a zone with an IP

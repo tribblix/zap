@@ -41,7 +41,7 @@ Some configuration parameters are common, for example data_dir for
 where an appstack's data can be found, config_dir for configuration
 files, log_dir for application logs.
 
-In simple cases, the configuration can be done while creating a
+In most cases, the configuration can be done while creating a
 zone passing the value of a configuration parameter with the -K
 flag. For example, to set up nginx to serve the files in
 /my/website/output you would use:

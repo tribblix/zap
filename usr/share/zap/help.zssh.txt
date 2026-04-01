@@ -12,8 +12,8 @@ or, to use a specific username:
 
   zap zssh user_name@zone_name
 
-This will log you in to an interactive session; if you simply wish to
-run a command or commands, simply append them, for example:
+This will log you in to an interactive session; if you instead wish to
+run a command or commands, append them like so:
 
   zap zssh zone_name uname -a
 
