@@ -112,3 +112,7 @@ TRIBlib-perl-5-tree-simple
 TRIBlib-perl-5-term-readkey
 TRIBlib-perl-5-xml-libxml
 TRIBos-win-python-312
+TRIBiniconfig-python-312
+TRIBlogutils-python-312
+TRIBmore-itertools-python-312
+TRIBscrypt-python-312
