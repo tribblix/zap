@@ -308,7 +308,9 @@ fi
 /usr/bin/cp -p /etc/group ${ALTROOT}/etc/group
 /usr/bin/cp -p /etc/logadm.conf ${ALTROOT}/etc/logadm.conf
 /usr/bin/cp -p /etc/dumpadm.conf ${ALTROOT}/etc/dumpadm.conf
-/usr/bin/cp -p /etc/coreadm.conf ${ALTROOT}/etc/coreadm.conf
+if [ -f /etc/coreadm.conf ]; then
+    /usr/bin/cp -p /etc/coreadm.conf ${ALTROOT}/etc/coreadm.conf
+fi
 /usr/bin/cp -p /etc/syslog.conf ${ALTROOT}/etc/syslog.conf
 /usr/bin/cp -p /etc/nsswitch.conf ${ALTROOT}/etc/nsswitch.conf
 /usr/bin/cp -p /etc/user_attr ${ALTROOT}/etc/user_attr
