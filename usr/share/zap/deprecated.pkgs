@@ -403,3 +403,11 @@ TRIBpure-eval-python-312
 TRIBtraitlets-python-312
 TRIBwcwidth-python-312
 TRIBborg-python-312
+TRIBdjango5-python-312
+TRIBdjango6-python-312
+TRIBdjango-tagging-python-312
+TRIBsqlparse-python-312
+TRIBbcrypt-python-312
+TRIBasgiref-python-312
+TRIBargon2-cffi-python-312
+TRIBargon2-cffi-bind-python-312
