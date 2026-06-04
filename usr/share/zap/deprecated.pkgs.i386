@@ -12,3 +12,5 @@ TRIBipytree-python-312
 TRIBminio-server
 TRIBperl-534
 TRIBperl-534-module-sun-solaris
+TRIBv-gfortran10
+TRIBv-gcc10
