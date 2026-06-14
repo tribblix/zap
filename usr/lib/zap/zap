@@ -181,6 +181,10 @@ set-timezone)
 	shift
 	exec ${ZAPLIBDIR}/set-timezone ${CTXARGS} "$@"
 	;;
+manage-firewall)
+	shift
+	exec ${ZAPLIBDIR}/manage-firewall "$@"
+	;;
 global-router)
 	shift
 	exec ${ZAPLIBDIR}/global-router "$@"

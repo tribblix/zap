@@ -1,0 +1,140 @@
+#!/bin/ksh
+#
+# SPDX-License-Identifier: CDDL-1.0
+#
+# {{{ CDDL HEADER
+#
+# This file and its contents are supplied under the terms of the
+# Common Development and Distribution License ("CDDL"), version 1.0.
+# You may only use this file in accordance with the terms of version
+# 1.0 of the CDDL.
+#
+# A full copy of the text of the CDDL should have accompanied this
+# source. A copy of the CDDL is also available via the Internet at
+# http://www.illumos.org/license/CDDL.
+#
+# }}}
+#
+# Copyright 2026 Peter Tribble
+#
+
+#
+# manage ipfilter
+#
+IPF="/usr/sbin/ipf"
+IPF_FMRI="svc:/network/ipfilter:default"
+
+#
+# exit with error
+#
+bail() {
+    echo "ERROR: $1"
+    exit 1
+}
+
+#
+# exit with usage
+#
+usage() {
+    echo "Usage: $0 command [args]"
+    echo "possible commands are:"
+    echo "  status - show firewall status"
+    echo "  enable - enable firewall"
+    echo "  disable - disable firewall"
+    exit 2
+}
+
+#
+# functions
+#
+
+#
+# get the state of the SMF service
+#
+do_smf_status() {
+    /usr/bin/svcs -H "${IPF_FMRI}" | awk '{print $1}'
+}
+
+#
+# exit if not installed
+#
+do_check_exit() {
+    if [ ! -f "${IPF}" ]; then
+	echo "Cannot $1 as ipfilter is not installed"
+	exit 1
+    fi
+}
+
+#
+# show installation and operational status
+#
+do_firewall_status() {
+    if [ ! -f "${IPF}" ]; then
+	echo "Firewall (ipfilter) not installed"
+    else
+	echo "Firewall (ipfilter) installed and in $(do_smf_status) state"
+    fi
+    exit 0
+}
+
+#
+# enable
+#
+do_firewall_enable() {
+    do_check_exit "enable firewall"
+    SMFSTATUS=$(do_smf_status)
+    case $SMFSTATUS in
+	online)
+	    echo "Firewall already enabled"
+	    exit 2
+	    ;;
+	disabled)
+	    /usr/sbin/svcadm enable -s "${IPF_FMRI}"
+	    exit 0
+	    ;;
+	*)
+	    echo "Unable to enable firewall, currently in state ${SMFSTATUS}"
+	    exit 1
+	    ;;
+    esac
+}
+
+#
+# enable
+#
+do_firewall_disable() {
+    do_check_exit "disable firewall"
+    SMFSTATUS=$(do_smf_status)
+    case $SMFSTATUS in
+	disabled)
+	    echo "Firewall already disabled"
+	    exit 2
+	    ;;
+	online)
+	    /usr/sbin/svcadm disable -s "${IPF_FMRI}"
+	    exit 0
+	    ;;
+	*)
+	    echo "Unable to enable firewall, currently in state ${SMFSTATUS}"
+	    exit 1
+	    ;;
+    esac
+}
+
+#
+# select function based on argument
+#
+case $1 in
+    status)
+	do_firewall_status
+	;;
+    enable)
+	do_firewall_enable
+	;;
+    disable)
+	do_firewall_disable
+	;;
+    *)
+	usage
+	;;
+esac

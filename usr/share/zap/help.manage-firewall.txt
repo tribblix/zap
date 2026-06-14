@@ -1,0 +1,26 @@
+Managing the Tribblix firewall
+==============================
+
+The firewall in illumos is ipfilter. At present, zap provides a basic
+interface to manage ipfilter, allowing you to enable, disable, and
+check the status of ipfliter, with the following subcommands:
+
+    zap manage-firewall status
+    zap manage-firewall enable
+    zap manage-firewall disable
+
+To learn more about the various components of ipfilter, the relevant
+parts of the manual can be accessed with the following commands:
+
+    man ipnat.4i
+    man ipf.5
+    man ipmon.5
+    man ipnat.5
+    man ippool.5
+    man ipfilter.7
+    man ipf.8
+    man ipfs.8
+    man ipfstat.8
+    man ipmon.8
+    man ipnat.8
+    man ippool.8
