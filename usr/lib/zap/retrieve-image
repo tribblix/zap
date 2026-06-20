@@ -297,7 +297,7 @@ case $SCHEME in
 		DLNAME="proxmox-alpine-3.23.tar.xz"
 		;;
 	    arch|archlinux)
-		DLFILE="archlinux-base_20240911-1_amd64.tar.zst"
+		DLFILE="archlinux-base_20260420-1_amd64.tar.zst"
 		DLNAME="proxmox-archlinux.tar.zst"
 		echo "WARN: arch is not supported by the LX brand"
 		;;
@@ -405,7 +405,7 @@ case $SCHEME in
 		    18.04)
 			UUVER=".1"
 			;;
-		    20.04|22.04|24.10)
+		    20.04|22.04|24.10|26.04)
 			EXT="zst"
 			;;
 		    24.04)
@@ -416,15 +416,21 @@ case $SCHEME in
 			EXT="zst"
 			UUREL="1.1"
 			;;
+		    *)
+			echo "ERROR: Unknown proxmox ubuntu version"
+			exit 2
+			;;
 		esac
 		DLFILE="ubuntu-${UVER}-standard_${UVER}${UUVER}-${UUREL}_amd64.tar.${EXT}"
 		DLNAME="proxmox-ubuntu-${UVER}.tar.${EXT}"
 		;;
 	    ubuntu)
-		UVER="22.04"
+		UVER="24.04"
+		EXT="zst"
 		UUVER=""
-		DLFILE="ubuntu-${UVER}-standard_${UVER}${UUVER}-1_amd64.tar.zst"
-		DLNAME="proxmox-ubuntu-${UVER}.tar.zst"
+		UUREL="2"
+		DLFILE="ubuntu-${UVER}-standard_${UVER}${UUVER}-${UUREL}_amd64.tar.${EXT}"
+		DLNAME="proxmox-ubuntu-${UVER}.tar.${EXT}"
 		;;
 	    *)
 		echo "ERROR: Unknown proxmox image"
