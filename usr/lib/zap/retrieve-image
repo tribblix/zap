@@ -15,7 +15,7 @@
 #
 # }}}
 #
-# Copyright 2025 Peter Tribble
+# Copyright 2026 Peter Tribble
 #
 
 #
@@ -296,6 +296,10 @@ case $SCHEME in
 		DLFILE="alpine-3.23-default_20260116_amd64.tar.xz"
 		DLNAME="proxmox-alpine-3.23.tar.xz"
 		;;
+	    alpine-3.24)
+		DLFILE="alpine-3.24-default_20260714_amd64.tar.xz"
+		DLNAME="proxmox-alpine-3.24.tar.xz"
+		;;
 	    arch|archlinux)
 		DLFILE="archlinux-base_20260420-1_amd64.tar.zst"
 		DLNAME="proxmox-archlinux.tar.zst"
@@ -313,6 +317,10 @@ case $SCHEME in
 		DLFILE="centos-9-stream-default_20240828_amd64.tar.xz"
 		DLNAME="proxmox-centos-9.tar.xz"
 		;;
+	    centos-10|centos-10-stream)
+		DLFILE="centos-10-stream-default_20260713_amd64.tar.xz"
+		DLNAME="proxmox-centos-10.tar.xz"
+		;;
 	    debian-10)
 		DLFILE="debian-10-standard_10.7-1_amd64.tar.gz"
 		DLNAME="proxmox-debian-10.tar.gz"
@@ -326,7 +334,7 @@ case $SCHEME in
 		DLNAME="proxmox-debian-12.tar.zst"
 		;;
 	    debian-13)
-		DLFILE="debian-13-standard_13.1-2_amd64.tar.zst"
+		DLFILE="debian-13-standard_13.6-1_amd64.tar.zst"
 		DLNAME="proxmox-debian-13.tar.zst"
 		;;
 	    devuan-3)
@@ -364,6 +372,10 @@ case $SCHEME in
 	    fedora-43)
 		DLFILE="fedora-43-default_20260115_amd64.tar.xz"
 		DLNAME="proxmox-fedora-43.tar.xz"
+		;;
+	    fedora-44)
+		DLFILE="fedora-44-default_20260713_amd64.tar.xz"
+		DLNAME="proxmox-fedora-44.tar.xz"
 		;;
 	    gentoo)
 		DLFILE="gentoo-current-openrc_20250508_amd64.tar.xz"
