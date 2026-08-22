@@ -15,7 +15,7 @@
 #
 # }}}
 #
-# Copyright 2025 Peter Tribble
+# Copyright 2026 Peter Tribble
 #
 
 #
@@ -23,7 +23,7 @@
 #
 
 usage() {
-    echo "Usage: $0 [-c comment] [-d homedir] [-z] [-M mode] [-g gid] [-u uid] [-s shell] [-P profile] name"
+    echo "Usage: $0 [-c comment] [-d homedir] [-z] [-M mode] [-g gid] [-u uid] [-s shell] [-P profile] [-l|-p|-N] name"
     exit 2
 }
 
@@ -48,6 +48,9 @@ PROFILE=""
 PASSWD_FILE="/etc/passwd"
 GROUP_FILE="/etc/group"
 PROFILE_FILE="/etc/security/prof_attr"
+DOPASSWD=""
+DONOLOGIN=""
+DOLOCK=""
 
 #
 # the options cdgsu here mirror useradd
@@ -55,10 +58,14 @@ PROFILE_FILE="/etc/security/prof_attr"
 # M is to set home directory permissions
 # P only accepts a single profile
 #
+# -l meanr run passwd -l to lock the account
+# -p means run passwd to set the password
+# -N means run passwd -N to set to no login (ie. ssh key only)
+#
 # z mirrors useradd, we default to -Z
 # and ignore MANAGE_ZFS in /etc/default/useradd
 #
-while getopts "c:d:g:M:P:s:u:z" opt; do
+while getopts "c:d:g:lM:NpP:s:u:z" opt; do
 case $opt in
 c)
 	USER_COMMENT="$OPTARG"
@@ -69,8 +76,17 @@ d)
 g)
 	USER_GROUP="$OPTARG"
 	;;
+l)
+	DOLOCK="yes"
+	;;
 M)
 	HOMEPERM="$OPTARG"
+	;;
+N)
+	DONOLOGIN="yes"
+	;;
+p)
+	DOPASSWD="yes"
 	;;
 P)
 	PROFILE="$OPTARG"
@@ -102,6 +118,26 @@ case $# in
 	usage
 	;;
 esac
+
+#
+# only allow one of -l -p -N for passwd
+#
+if [ -n "${DOPASSWD}" ]; then
+    if [ -n "${DONOLOGIN}" ]; then
+	echo "ERROR: can only specify one of -l|-p|-N"
+	usage
+    fi
+    if [ -n "${DOLOCK}" ]; then
+	echo "ERROR: can only specify one of -l|-p|-N"
+	usage
+    fi
+fi
+if [ -n "${DONOLOGIN}" ]; then
+    if [ -n "${DOLOCK}" ]; then
+	echo "ERROR: can only specify one of -l|-p|-N"
+	usage
+    fi
+fi
 
 #
 # sanity checking
@@ -157,7 +193,6 @@ if [ -z "$USER_GROUP" ]; then
 fi
 #
 # shell specified should either exist or be /sbin/nologin
-# TODO: should nologin be a separate flag
 #
 if [ ! -x "${USER_SHELL}" ]; then
     if [ "X${USER_SHELL}" != "X/sbin/nologin" ]; then
@@ -336,4 +371,16 @@ if [ -d "${USER_DIR}" ]; then
 else
     echo "FAIL: home directory not created"
     exit 1
+fi
+#
+# manage password if requested
+#
+if [ -n "${DOPASSWD}" ]; then
+    /usr/bin/passwd "${USER_NAME}"
+fi
+if [ -n "${DONOLOGIN}" ]; then
+    /usr/bin/passwd -N "${USER_NAME}"
+fi
+if [ -n "${DOLOCK}" ]; then
+    /usr/bin/passwd -l "${USER_NAME}"
 fi
