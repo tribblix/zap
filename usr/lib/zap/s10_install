@@ -15,7 +15,7 @@
 #
 # }}}
 #
-# Copyright 2025 Peter Tribble
+# Copyright 2026 Peter Tribble
 #
 
 #
@@ -32,8 +32,6 @@
 #  -I ISO file to install from
 #  -d name of directory to populate
 #  -x name of tarball to export to
-#
-# TODO: extra packages
 #
 
 ZAPLIBDIR="/usr/lib/zap"
@@ -271,9 +269,13 @@ EOF
 # compress here
 #
 if [ -n "${ZTARBALL}" ]; then
-    echo "TODO create tarball"
     cd "${ZDIRECTORY}" || bail "cd to ${ZDIRECTORY} failed"
-    tar cf "${ZTARBALL}" .
+    /usr/sbin/tar cf "${ZTARBALL}" .
+    if [ -f "${ZTARBALL}" ]; then
+	echo "Tarball has been created at ${ZTARBALL}"
+    else
+	bail "tarball creation failed"
+    fi
 fi
 
 #
