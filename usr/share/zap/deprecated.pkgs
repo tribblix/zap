@@ -438,3 +438,17 @@ TRIBbrotli-python-312
 TRIBpybind11-python-312
 TRIBsimplejson-python-312
 TRIBsimplejson-python-313
+TRIBnumpy-python-312
+TRIBmesonpy-python-312
+TRIBcython-python-312
+TRIBmeson-python-312
+TRIBproj-metadata-python-312
+TRIBtqdm-python-312
+TRIBhatch-vcs-python-312
+TRIBhatchling-python-312
+TRIBpathspec-python-312
+TRIBpluggy-python-312
+TRIBtrove-class-python-312
+TRIBversioneer-python-312
+TRIBpkgconfig-python-312
+TRIBpoetry-core-python-312
