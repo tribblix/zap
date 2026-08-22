@@ -61,5 +61,5 @@ The user's password will be prompted for.
 
 -N
 
-The user's password wil be set to no login. This still allows key-based
+The user's password will be set to no login. This still allows key-based
 access via ssh, it prevents logging in interactively with a password.
