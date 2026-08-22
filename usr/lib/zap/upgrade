@@ -347,15 +347,6 @@ if [ -d ${ALTROOT}/zonelib/lib/svc ]; then
     /usr/bin/rm -fr ${ALTROOT}/zonelib/lib
     /usr/bin/mkdir -p ${ALTROOT}/zonelib/lib
 fi
-#
-# the list of zones in /etc/zones/index is now preserved by packaging,
-# so it's no longer necessary (and results in duplicate entries) to
-# manually propagate entries
-#
-# but we do need to undo any duplicates that might have been added by
-# previous broken upgrades
-#
-/usr/bin/uniq /etc/zones/index > ${ALTROOT}/etc/zones/index
 
 #
 # this is the new zone upgrade path, which runs an upgrade script for
